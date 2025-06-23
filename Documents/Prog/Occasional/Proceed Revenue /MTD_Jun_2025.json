@@ -1,0 +1,178 @@
+[
+  {
+    "Customer": "ARAC Healthcare",
+    "Service_Type": "Transportation",
+    "Jun 2025 Cost": 96429.0,
+    "Jun 2025 Target": 125000.0,
+    "Jun 2025 Revenue": 71047.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 56.84,
+    "Jun 2025 Gross Profit %": -35.73,
+    "Jun 2025 Receivables Collected Rate %": 0.0
+  },
+  {
+    "Customer": "AVALON",
+    "Service_Type": "Transportation",
+    "Jun 2025 Cost": 82737.0,
+    "Jun 2025 Target": 107000.0,
+    "Jun 2025 Revenue": 124006.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 115.89,
+    "Jun 2025 Gross Profit %": 33.28,
+    "Jun 2025 Receivables Collected Rate %": 0.0
+  },
+  {
+    "Customer": "AVALON GCC",
+    "Service_Type": "Transportation",
+    "Jun 2025 Cost": 35145.0,
+    "Jun 2025 Target": 50000.0,
+    "Jun 2025 Revenue": 0.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 0.0,
+    "Jun 2025 Gross Profit %": 0,
+    "Jun 2025 Receivables Collected Rate %": 0
+  },
+  {
+    "Customer": "Axios",
+    "Service_Type": "Transportation",
+    "Jun 2025 Cost": 48675.0,
+    "Jun 2025 Target": 70000.0,
+    "Jun 2025 Revenue": 0.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 0.0,
+    "Jun 2025 Gross Profit %": 0,
+    "Jun 2025 Receivables Collected Rate %": 0
+  },
+  {
+    "Customer": "NUPCO",
+    "Service_Type": "Transportation",
+    "Jun 2025 Cost": 122833.0,
+    "Jun 2025 Target": 152000.0,
+    "Jun 2025 Revenue": 152000.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 100.0,
+    "Jun 2025 Gross Profit %": 19.19,
+    "Jun 2025 Receivables Collected Rate %": 0.0
+  },
+  {
+    "Customer": "NUPCO",
+    "Service_Type": "Warehouses",
+    "Jun 2025 Cost": 315124.0,
+    "Jun 2025 Target": 485000.0,
+    "Jun 2025 Revenue": 581200.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 119.84,
+    "Jun 2025 Gross Profit %": 45.78,
+    "Jun 2025 Receivables Collected Rate %": 0.0
+  },
+  {
+    "Customer": "Other Transp.",
+    "Service_Type": "Transportation",
+    "Jun 2025 Cost": 104820.0,
+    "Jun 2025 Target": 178317.0,
+    "Jun 2025 Revenue": 259668.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 145.62,
+    "Jun 2025 Gross Profit %": 59.63,
+    "Jun 2025 Receivables Collected Rate %": 0.0
+  },
+  {
+    "Customer": "SPIMACO",
+    "Service_Type": "Transportation",
+    "Jun 2025 Cost": 598796.0,
+    "Jun 2025 Target": 850000.0,
+    "Jun 2025 Revenue": 771848.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 90.81,
+    "Jun 2025 Gross Profit %": 22.42,
+    "Jun 2025 Receivables Collected Rate %": 0.0
+  },
+  {
+    "Customer": "SPIMACO",
+    "Service_Type": "Warehouses",
+    "Jun 2025 Cost": 607690.0,
+    "Jun 2025 Target": 810000.0,
+    "Jun 2025 Revenue": 827078.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 102.11,
+    "Jun 2025 Gross Profit %": 26.53,
+    "Jun 2025 Receivables Collected Rate %": 0.0
+  },
+  {
+    "Customer": "SPIMACO GCC",
+    "Service_Type": "Transportation",
+    "Jun 2025 Cost": 95954.0,
+    "Jun 2025 Target": 125000.0,
+    "Jun 2025 Revenue": 0.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 0.0,
+    "Jun 2025 Gross Profit %": 0,
+    "Jun 2025 Receivables Collected Rate %": 0
+  },
+  {
+    "Customer": "SPL",
+    "Service_Type": "Transportation",
+    "Jun 2025 Cost": 1229131.0,
+    "Jun 2025 Target": 1549350.0,
+    "Jun 2025 Revenue": 0.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 0.0,
+    "Jun 2025 Gross Profit %": 0,
+    "Jun 2025 Receivables Collected Rate %": 0
+  },
+  {
+    "Customer": "TAMER",
+    "Service_Type": "Transportation",
+    "Jun 2025 Cost": 300000.0,
+    "Jun 2025 Target": 400000.0,
+    "Jun 2025 Revenue": 322340.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 80.58,
+    "Jun 2025 Gross Profit %": 6.93,
+    "Jun 2025 Receivables Collected Rate %": 0.0
+  },
+  {
+    "Customer": "Tabuk",
+    "Service_Type": "Transportation",
+    "Jun 2025 Cost": 85371.0,
+    "Jun 2025 Target": 114000.0,
+    "Jun 2025 Revenue": 0.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 0.0,
+    "Jun 2025 Gross Profit %": 0,
+    "Jun 2025 Receivables Collected Rate %": 0
+  },
+  {
+    "Customer": "Tabuk",
+    "Service_Type": "Warehouses",
+    "Jun 2025 Cost": 148940.0,
+    "Jun 2025 Target": 210350.0,
+    "Jun 2025 Revenue": 210350.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 100.0,
+    "Jun 2025 Gross Profit %": 29.19,
+    "Jun 2025 Receivables Collected Rate %": 0.0
+  },
+  {
+    "Customer": "Tan Gulf",
+    "Service_Type": "Transportation",
+    "Jun 2025 Cost": 47548.0,
+    "Jun 2025 Target": 70000.0,
+    "Jun 2025 Revenue": 0.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 0.0,
+    "Jun 2025 Gross Profit %": 0,
+    "Jun 2025 Receivables Collected Rate %": 0
+  },
+  {
+    "Customer": "VAS",
+    "Service_Type": "Warehouses",
+    "Jun 2025 Cost": 165583.0,
+    "Jun 2025 Target": 399808.0,
+    "Jun 2025 Revenue": 191906.0,
+    "Jun 2025 Receivables Collected": 0.0,
+    "Jun 2025 Ach. %": 48.0,
+    "Jun 2025 Gross Profit %": 13.72,
+    "Jun 2025 Receivables Collected Rate %": 0.0
+  }
+]
