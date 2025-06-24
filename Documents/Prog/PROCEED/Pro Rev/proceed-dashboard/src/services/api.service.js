@@ -76,13 +76,27 @@ class ApiService {
     const formData = new FormData();
     formData.append('file', file);
 
-    return this.request('/upload', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        // Don't set Content-Type - let browser set it for FormData
+    // For file uploads, we need to bypass the connection manager's
+    // Content-Type header setting and make a direct fetch request
+    try {
+      await connectionManager.ensureConnection();
+      
+      const response = await fetch(`${connectionManager.baseUrl}/upload`, {
+        method: 'POST',
+        body: formData,
+        // Don't set Content-Type - let browser set it automatically for FormData
+        signal: AbortSignal.timeout(30000)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-    });
+
+      return await response.json();
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw error;
+    }
   }
 
   // Health check
