@@ -82,8 +82,8 @@ const Overview = () => {
           value={overview.revenue}
           icon={Banknote}
           iconColor="green"
-          trend={overview.revenue >= overview.target ? "up" : "down"}
-          trendValue={`${formatPercentage(overview.achievement - 100)} vs Target`}
+          trend="up"
+          trendValue={`${formatPercentage(overview.achievement)} vs Target`}
         />
         <MetricCard
           title="Target"
