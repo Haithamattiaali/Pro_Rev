@@ -166,27 +166,72 @@ const Overview = () => {
         </div>
       </div>
 
-      {/* Financial Summary */}
+      {/* Achievement Summary */}
       <div className="dashboard-card">
-        <h2 className="section-title">Financial Summary</h2>
+        <h2 className="section-title">Achievement Summary</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center p-4 bg-primary-light/20 rounded-lg">
-            <p className="text-sm font-semibold text-neutral-mid uppercase">Total Cost</p>
-            <p className="text-2xl font-bold text-primary mt-2">
-              {formatCurrency(overview.cost)}
-            </p>
+          {/* Target */}
+          <div className="relative overflow-hidden rounded-lg bg-secondary-pale p-6 border border-secondary-light/50 hover:shadow-md transition-all">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-accent-blue/10 rounded-full -mr-10 -mt-10"></div>
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-accent-blue/20">
+                  <Target className="w-5 h-5 text-accent-blue" />
+                </div>
+                <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Target</p>
+              </div>
+              <p className="text-3xl font-bold text-neutral-dark">
+                {formatCurrency(overview.target)}
+              </p>
+              <p className="text-xs text-neutral-mid mt-1">{periodFilter.period} Target Amount</p>
+            </div>
           </div>
-          <div className="text-center p-4 bg-accent-blue/20 rounded-lg">
-            <p className="text-sm font-semibold text-neutral-mid uppercase">Revenue vs Target</p>
-            <p className="text-2xl font-bold text-accent-blue mt-2">
-              {overview.revenue - overview.target >= 0 ? '+' : ''}{formatCurrency(overview.revenue - overview.target)}
-            </p>
+
+          {/* Revenue Achieved */}
+          <div className="relative overflow-hidden rounded-lg bg-secondary-pale p-6 border border-secondary-light/50 hover:shadow-md transition-all">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-primary-light/20 rounded-full -mr-10 -mt-10"></div>
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-primary-light/50">
+                  <Banknote className="w-5 h-5 text-primary" />
+                </div>
+                <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Revenue Achieved</p>
+              </div>
+              <p className="text-3xl font-bold text-neutral-dark">
+                {formatCurrency(overview.revenue)}
+              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="h-1.5 w-20 bg-secondary-light rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary rounded-full"
+                    style={{ width: `${Math.min(overview.achievement, 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-neutral-mid">{formatPercentage(overview.achievement)} Achieved</p>
+              </div>
+            </div>
           </div>
-          <div className="text-center p-4 bg-accent-coral/20 rounded-lg">
-            <p className="text-sm font-semibold text-neutral-mid uppercase">Cost Ratio</p>
-            <p className="text-2xl font-bold text-accent-coral mt-2">
-              {formatPercentage((overview.cost / overview.revenue) * 100)}
-            </p>
+
+          {/* To Go */}
+          <div className="relative overflow-hidden rounded-lg bg-secondary-pale p-6 border border-secondary-light/50 hover:shadow-md transition-all">
+            <div className="absolute top-0 right-0 w-20 h-20 bg-accent-coral/10 rounded-full -mr-10 -mt-10"></div>
+            <div className="relative">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-accent-coral/20">
+                  <TrendingUp className="w-5 h-5 text-accent-coral" />
+                </div>
+                <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">To Go</p>
+              </div>
+              <p className="text-3xl font-bold text-neutral-dark">
+                {formatCurrency(Math.max(0, overview.target - overview.revenue))}
+              </p>
+              <p className="text-xs text-neutral-mid mt-1">
+                {overview.achievement < 100 
+                  ? `${formatPercentage(100 - overview.achievement)} remaining`
+                  : 'Target Achieved!'
+                }
+              </p>
+            </div>
           </div>
         </div>
       </div>
