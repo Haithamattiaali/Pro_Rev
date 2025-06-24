@@ -15,11 +15,23 @@ const MetricCard = ({ title, value, format = 'currency', trend, trendValue, icon
   }
 
   return (
-    <div className="dashboard-card">
-      <div className="flex items-start justify-between">
+    <div className="dashboard-card relative overflow-hidden transition-all hover:shadow-lg hover:-translate-y-0.5">
+      {/* Accent line at top */}
+      <div className={`absolute top-0 left-0 right-0 h-1 ${
+        iconColor === 'primary' ? 'bg-gradient-to-r from-primary to-primary-light' :
+        iconColor === 'blue' ? 'bg-gradient-to-r from-accent-blue to-accent-blue/50' :
+        iconColor === 'green' ? 'bg-gradient-to-r from-green-600 to-green-400' :
+        iconColor === 'coral' ? 'bg-gradient-to-r from-accent-coral to-accent-coral/50' :
+        'bg-gradient-to-r from-primary to-primary-light'
+      }`}></div>
+      
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent pointer-events-none"></div>
+      
+      <div className="flex items-start justify-between relative z-10">
         <div className="flex-1">
-          <p className="metric-label">{title}</p>
-          <p className="metric-value mt-2">{formatValue(value)}</p>
+          <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wider mb-1">{title}</p>
+          <p className="text-3xl font-bold text-neutral-dark tracking-tight">{formatValue(value)}</p>
           
           {trend && (
             <div className="flex items-center mt-3 space-x-1">
