@@ -21,20 +21,56 @@ Professional React dashboard for visualizing Proceed logistics revenue performan
 
 ## Getting Started
 
-1. Install dependencies:
+### Prerequisites
+- Node.js 16.x or higher
+- npm 8.x or higher
+
+### Installation
+
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd proceed-dashboard
+```
+
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-2. Run development server:
+3. Set up environment variables:
 ```bash
-npm run dev
+# Create .env file for local development
+echo "VITE_API_URL=http://localhost:3001/api" > .env
 ```
 
-3. Build for production:
+4. Run development server:
+```bash
+# Start both frontend and backend
+npm run start
+
+# Or run separately:
+npm run dev      # Frontend only
+npm run backend  # Backend only
+```
+
+### Production Build
+
 ```bash
 npm run build
 ```
+
+The built files will be in the `dist/` directory.
+
+### Deployment
+
+This project is configured for deployment on Netlify. The frontend is served as a static site, while the backend API should be deployed separately.
+
+For Netlify deployment:
+1. Connect your GitHub repository to Netlify
+2. Set build command: `npm run build`
+3. Set publish directory: `dist`
+4. Configure environment variables in Netlify dashboard
 
 ## Project Structure
 
