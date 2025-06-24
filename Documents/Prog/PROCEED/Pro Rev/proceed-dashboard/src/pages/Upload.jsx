@@ -32,6 +32,8 @@ const Upload = () => {
         setFile(droppedFile)
         setError(null)
         setUploadResult(null)
+        // Auto-upload immediately
+        handleUpload(droppedFile)
       }
     }
   }
@@ -43,6 +45,8 @@ const Upload = () => {
         setFile(selectedFile)
         setError(null)
         setUploadResult(null)
+        // Auto-upload immediately
+        handleUpload(selectedFile)
       }
     }
   }
@@ -68,8 +72,8 @@ const Upload = () => {
     return true
   }
 
-  const handleUpload = async () => {
-    if (!file) {
+  const handleUpload = async (fileToUpload = file) => {
+    if (!fileToUpload) {
       setError('Please select a file first')
       return
     }
@@ -79,7 +83,7 @@ const Upload = () => {
     setUploadResult(null)
 
     try {
-      const result = await apiService.uploadExcelFile(file)
+      const result = await apiService.uploadExcelFile(fileToUpload)
       setUploadResult(result)
       setFile(null)
       
@@ -124,7 +128,7 @@ const Upload = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-primary-dark tracking-tight">Data Upload</h1>
-        <p className="text-neutral-mid mt-2">Upload Excel files to update revenue data</p>
+        <p className="text-neutral-mid mt-2">Select Excel files to automatically upload and update revenue data</p>
       </div>
 
       <div className="grid gap-6">
@@ -173,32 +177,22 @@ const Upload = () => {
                     <p className="font-medium text-green-700">{file.name}</p>
                     <p className="text-sm text-green-600">{formatFileSize(file.size)}</p>
                   </div>
-                  <button
-                    onClick={clearFile}
-                    className="p-1 hover:bg-red-100 rounded-full transition-colors"
-                    disabled={uploading}
-                  >
-                    <X className="w-5 h-5 text-red-500" />
-                  </button>
+                  {!uploading && (
+                    <button
+                      onClick={clearFile}
+                      className="p-1 hover:bg-red-100 rounded-full transition-colors"
+                    >
+                      <X className="w-5 h-5 text-red-500" />
+                    </button>
+                  )}
                 </div>
                 
-                <button
-                  onClick={handleUpload}
-                  disabled={uploading}
-                  className="inline-flex items-center gap-2 px-6 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {uploading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>
-                      <UploadIcon className="w-4 h-4" />
-                      Upload File
-                    </>
-                  )}
-                </button>
+                {uploading && (
+                  <div className="flex items-center justify-center gap-2 text-primary">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span className="font-medium">Uploading and processing...</span>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-4">
@@ -208,7 +202,7 @@ const Upload = () => {
                     Drag and drop your Excel file here
                   </p>
                   <p className="text-sm text-neutral-mid mt-1">
-                    or click to browse files
+                    or click to browse files - Upload starts immediately
                   </p>
                 </div>
                 
