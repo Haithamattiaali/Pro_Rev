@@ -110,7 +110,11 @@ class ConnectionManager {
     if (!this.isConnected || Date.now() - this.lastHealthCheck > 60000) {
       const isHealthy = await this.checkHealth();
       if (!isHealthy) {
-        throw new Error('Backend connection is not available');
+        console.warn('Backend health check failed, but proceeding anyway...');
+        // Don't throw error in production - let the actual request fail if needed
+        if (import.meta.env.DEV) {
+          throw new Error('Backend connection is not available');
+        }
       }
     }
   }
