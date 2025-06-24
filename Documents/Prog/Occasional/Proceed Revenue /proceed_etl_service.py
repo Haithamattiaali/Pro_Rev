@@ -44,7 +44,7 @@ class ProceedETLService:
             return period_type
     
     def filter_data_by_period(self, period_type: str, year: int, month: int = None, quarter: int = None) -> pd.DataFrame:
-        """Filter data based on period type (MTD, QTD, YTD)"""
+        """Filter data based on period type (MTD, QTD, YTD) - specific period logic"""
         filtered_df = self.df[self.df['Year'] == year].copy()
         
         # Month name mapping
@@ -54,11 +54,11 @@ class ProceedETLService:
         }
         
         if period_type.lower() == 'month':
-            # Month-to-Date: specific month only
-            month_name = month_names[month]
-            filtered_df = filtered_df[filtered_df['Month'] == month_name]
+            # Month-to-Date: ONLY the specific month
+            target_month_name = month_names[month]
+            filtered_df = filtered_df[filtered_df['Month'] == target_month_name]
         elif period_type.lower() == 'quarter':
-            # Quarter-to-Date: months 1-3, 4-6, 7-9, or 10-12
+            # Quarter-to-Date: ONLY the months within that specific quarter
             quarter_months = {
                 1: ['Jan', 'Feb', 'Mar'],
                 2: ['Apr', 'May', 'Jun'], 
@@ -98,10 +98,59 @@ class ProceedETLService:
             'collection_rate_pct': round(collection_rate_pct, 2)
         }
     
+    def find_last_revenue_month(self, customer: str, service_type: str, year: int) -> str:
+        """Find the last month with revenue > 0 for a customer/service combination"""
+        customer_data = self.df[
+            (self.df['Customer'] == customer) & 
+            (self.df['Service_Type'] == service_type) & 
+            (self.df['Year'] == year)
+        ].copy()
+        
+        # Filter months with revenue > 0
+        revenue_months = customer_data[customer_data['Revenue'] > 0].copy()
+        
+        if revenue_months.empty:
+            return None
+        
+        # Month order for proper sorting
+        month_order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        
+        # Sort by month order and get the last one
+        revenue_months.loc[:, 'month_index'] = revenue_months['Month'].map({month: idx for idx, month in enumerate(month_order)})
+        last_month_idx = revenue_months['month_index'].max()
+        
+        return month_order[last_month_idx]
+    
+    def filter_data_ytd_smart(self, year: int, customer: str, service_type: str) -> pd.DataFrame:
+        """Filter YTD data up to last month with revenue for specific customer/service"""
+        # Find last month with revenue for this customer/service
+        last_revenue_month = self.find_last_revenue_month(customer, service_type, year)
+        
+        if last_revenue_month is None:
+            # No revenue found, return all data for the customer/service
+            return self.df[
+                (self.df['Customer'] == customer) & 
+                (self.df['Service_Type'] == service_type) & 
+                (self.df['Year'] == year)
+            ].copy()
+        
+        # Get months up to and including the last revenue month
+        month_order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+        last_month_index = month_order.index(last_revenue_month)
+        months_to_include = month_order[:last_month_index + 1]
+        
+        # Filter data
+        filtered_data = self.df[
+            (self.df['Customer'] == customer) & 
+            (self.df['Service_Type'] == service_type) & 
+            (self.df['Year'] == year) &
+            (self.df['Month'].isin(months_to_include))
+        ].copy()
+        
+        return filtered_data
+
     def generate_report(self, period_type: str, year: int, month: int = None, quarter: int = None) -> List[Dict[str, Any]]:
         """Generate report for specified period"""
-        # Filter data by period
-        filtered_df = self.filter_data_by_period(period_type, year, month, quarter)
         
         # Get period name for column headers
         period_name = self.get_period_name(period_type, year, month, quarter)
@@ -109,25 +158,55 @@ class ProceedETLService:
         # Group by Customer and Service_Type
         report_data = []
         
-        for (customer, service_type), group in filtered_df.groupby(['Customer', 'Service_Type']):
-            # Calculate metrics for this customer/service combination
-            metrics = self.calculate_metrics(group)
-            derived_metrics = self.calculate_derived_metrics(metrics)
+        if period_type.lower() == 'year':
+            # Special handling for YTD - aggregate up to last revenue month for each customer/service
+            year_df = self.df[self.df['Year'] == year].copy()
             
-            # Create report entry with dynamic column names
-            report_entry = {
-                "Customer": customer,
-                "Service_Type": service_type,
-                f"{period_name} Cost": round(metrics['cost'], 2),
-                f"{period_name} Target": round(metrics['target'], 2),
-                f"{period_name} Revenue": round(metrics['revenue'], 2),
-                f"{period_name} Receivables Collected": round(metrics['receivables_collected'], 2),
-                f"{period_name} Ach. %": derived_metrics['achievement_pct'],
-                f"{period_name} Gross Profit %": derived_metrics['gross_profit_pct'],
-                f"{period_name} Receivables Collected Rate %": derived_metrics['collection_rate_pct']
-            }
+            for (customer, service_type), group in year_df.groupby(['Customer', 'Service_Type']):
+                # Get YTD data up to last revenue month for this specific customer/service
+                filtered_group = self.filter_data_ytd_smart(year, customer, service_type)
+                
+                # Calculate metrics for this customer/service combination
+                metrics = self.calculate_metrics(filtered_group)
+                derived_metrics = self.calculate_derived_metrics(metrics)
+                
+                # Create report entry with dynamic column names
+                report_entry = {
+                    "Customer": customer,
+                    "Service_Type": service_type,
+                    f"{period_name} Cost": round(metrics['cost'], 2),
+                    f"{period_name} Target": round(metrics['target'], 2),
+                    f"{period_name} Revenue": round(metrics['revenue'], 2),
+                    f"{period_name} Receivables Collected": round(metrics['receivables_collected'], 2),
+                    f"{period_name} Ach. %": derived_metrics['achievement_pct'],
+                    f"{period_name} Gross Profit %": derived_metrics['gross_profit_pct'],
+                    f"{period_name} Receivables Collected Rate %": derived_metrics['collection_rate_pct']
+                }
+                
+                report_data.append(report_entry)
+        else:
+            # Standard handling for MTD and QTD
+            filtered_df = self.filter_data_by_period(period_type, year, month, quarter)
             
-            report_data.append(report_entry)
+            for (customer, service_type), group in filtered_df.groupby(['Customer', 'Service_Type']):
+                # Calculate metrics for this customer/service combination
+                metrics = self.calculate_metrics(group)
+                derived_metrics = self.calculate_derived_metrics(metrics)
+                
+                # Create report entry with dynamic column names
+                report_entry = {
+                    "Customer": customer,
+                    "Service_Type": service_type,
+                    f"{period_name} Cost": round(metrics['cost'], 2),
+                    f"{period_name} Target": round(metrics['target'], 2),
+                    f"{period_name} Revenue": round(metrics['revenue'], 2),
+                    f"{period_name} Receivables Collected": round(metrics['receivables_collected'], 2),
+                    f"{period_name} Ach. %": derived_metrics['achievement_pct'],
+                    f"{period_name} Gross Profit %": derived_metrics['gross_profit_pct'],
+                    f"{period_name} Receivables Collected Rate %": derived_metrics['collection_rate_pct']
+                }
+                
+                report_data.append(report_entry)
         
         return report_data
     
