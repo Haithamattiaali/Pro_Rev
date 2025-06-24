@@ -1,0 +1,150 @@
+{
+  "Transportation": [
+    {
+      "Customer": "ARAC Healthcare",
+      "QTD Target": 350000.0,
+      "QTD Revenue": 197822.0,
+      "QTD Achievement %": 56.52,
+      "YTD Target": 650000.0,
+      "YTD Revenue": 387285.0,
+      "YTD Achievement %": 59.58
+    },
+    {
+      "Customer": "AVALON",
+      "QTD Target": 294250.0,
+      "QTD Revenue": 583285.0,
+      "QTD Achievement %": 198.23,
+      "YTD Target": 535000.0,
+      "YTD Revenue": 1089108.0,
+      "YTD Achievement %": 203.57
+    },
+    {
+      "Customer": "AVALON GCC",
+      "QTD Target": 150000.0,
+      "QTD Revenue": 0.0,
+      "QTD Achievement %": 0.0,
+      "YTD Target": 50000.0,
+      "YTD Revenue": 40464.0,
+      "YTD Achievement %": 80.93
+    },
+    {
+      "Customer": "Axios",
+      "QTD Target": 200000.0,
+      "QTD Revenue": 0.0,
+      "QTD Achievement %": 0.0,
+      "YTD Target": 180000.0,
+      "YTD Revenue": 416061.0,
+      "YTD Achievement %": 231.14
+    },
+    {
+      "Customer": "NUPCO",
+      "QTD Target": 456000.0,
+      "QTD Revenue": 522768.0,
+      "QTD Achievement %": 114.64,
+      "YTD Target": 912000.0,
+      "YTD Revenue": 1045648.0,
+      "YTD Achievement %": 114.65
+    },
+    {
+      "Customer": "Other Transp.",
+      "QTD Target": 448701.0,
+      "QTD Revenue": 558548.0,
+      "QTD Achievement %": 124.48,
+      "YTD Target": 720252.0,
+      "YTD Revenue": 1194883.0,
+      "YTD Achievement %": 165.9
+    },
+    {
+      "Customer": "SPIMACO",
+      "QTD Target": 2500000.0,
+      "QTD Revenue": 2142249.0,
+      "QTD Achievement %": 85.69,
+      "YTD Target": 4900000.0,
+      "YTD Revenue": 4515452.0,
+      "YTD Achievement %": 92.15
+    },
+    {
+      "Customer": "SPIMACO GCC",
+      "QTD Target": 325000.0,
+      "QTD Revenue": 0.0,
+      "QTD Achievement %": 0.0,
+      "YTD Target": 950000.0,
+      "YTD Revenue": 0.0,
+      "YTD Achievement %": 0.0
+    },
+    {
+      "Customer": "SPL",
+      "QTD Target": 4136550.0,
+      "QTD Revenue": 1708607.0,
+      "QTD Achievement %": 41.31,
+      "YTD Target": 3227730.0,
+      "YTD Revenue": 5240109.0,
+      "YTD Achievement %": 162.35
+    },
+    {
+      "Customer": "TAMER",
+      "QTD Target": 1100000.0,
+      "QTD Revenue": 897361.0,
+      "QTD Achievement %": 81.58,
+      "YTD Target": 2000000.0,
+      "YTD Revenue": 1861493.0,
+      "YTD Achievement %": 93.07
+    },
+    {
+      "Customer": "Tabuk",
+      "QTD Target": 342000.0,
+      "QTD Revenue": 114650.0,
+      "QTD Achievement %": 33.52,
+      "YTD Target": 456000.0,
+      "YTD Revenue": 515925.0,
+      "YTD Achievement %": 113.14
+    },
+    {
+      "Customer": "Tan Gulf",
+      "QTD Target": 200000.0,
+      "QTD Revenue": 0.0,
+      "QTD Achievement %": 0.0,
+      "YTD Target": 120000.0,
+      "YTD Revenue": 64942.0,
+      "YTD Achievement %": 54.12
+    }
+  ],
+  "Warehouses": [
+    {
+      "Customer": "NUPCO",
+      "QTD Target": 1455000.0,
+      "QTD Revenue": 1551200.0,
+      "QTD Achievement %": 106.61,
+      "YTD Target": 2910000.0,
+      "YTD Revenue": 3006200.0,
+      "YTD Achievement %": 103.31
+    },
+    {
+      "Customer": "SPIMACO",
+      "QTD Target": 2430000.0,
+      "QTD Revenue": 2447078.0,
+      "QTD Achievement %": 100.7,
+      "YTD Target": 4860000.0,
+      "YTD Revenue": 4877078.0,
+      "YTD Achievement %": 100.35
+    },
+    {
+      "Customer": "Tabuk",
+      "QTD Target": 631050.0,
+      "QTD Revenue": 841400.0,
+      "QTD Achievement %": 133.33,
+      "YTD Target": 1051750.0,
+      "YTD Revenue": 984075.0,
+      "YTD Achievement %": 93.57
+    },
+    {
+      "Customer": "VAS",
+      "QTD Target": 1249424.0,
+      "QTD Revenue": 613921.0,
+      "QTD Achievement %": 49.14,
+      "YTD Target": 2769424.0,
+      "YTD Revenue": 2419420.0,
+      "YTD Achievement %": 87.36
+    }
+  ]
+}

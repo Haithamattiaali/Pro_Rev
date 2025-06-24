@@ -216,6 +216,302 @@ class ProceedETLService:
             json.dump(report_data, f, indent=2)
         print(f"Report exported to {filename}")
     
+    def generate_slide1_landing_achievement(self, year: int) -> Dict[str, Any]:
+        """Slide 1: Total Landing Achievement - Total achievement vs total target"""
+        # Get YTD data for all customers
+        ytd_report = self.generate_report('year', year)
+        
+        total_metrics = {
+            'cost': sum(item[f'{year} Cost'] for item in ytd_report),
+            'target': sum(item[f'{year} Target'] for item in ytd_report),
+            'revenue': sum(item[f'{year} Revenue'] for item in ytd_report),
+            'receivables_collected': sum(item[f'{year} Receivables Collected'] for item in ytd_report)
+        }
+        
+        # Calculate achievement and other metrics
+        achievement_pct = (total_metrics['revenue'] / total_metrics['target'] * 100) if total_metrics['target'] > 0 else 0
+        gross_profit = total_metrics['revenue'] - total_metrics['cost']
+        gross_profit_pct = (gross_profit / total_metrics['revenue'] * 100) if total_metrics['revenue'] > 0 else 0
+        
+        return {
+            "Total Target": round(total_metrics['target'], 2),
+            "Total Revenue": round(total_metrics['revenue'], 2),
+            "Total Cost": round(total_metrics['cost'], 2),
+            "Total Achievement %": round(achievement_pct, 2),
+            "Total Gross Profit": round(gross_profit, 2),
+            "Total Gross Profit %": round(gross_profit_pct, 2),
+            "Year": year
+        }
+    
+    def generate_slide2_business_unit_landing(self, year: int) -> List[Dict[str, Any]]:
+        """Slide 2: Business Unit Landing - High level achievement by service type"""
+        # Get YTD data
+        ytd_report = self.generate_report('year', year)
+        
+        # Group by service type
+        service_groups = {}
+        for item in ytd_report:
+            service_type = item['Service_Type']
+            if service_type not in service_groups:
+                service_groups[service_type] = {
+                    'cost': 0,
+                    'target': 0,
+                    'revenue': 0,
+                    'receivables_collected': 0
+                }
+            
+            service_groups[service_type]['cost'] += item[f'{year} Cost']
+            service_groups[service_type]['target'] += item[f'{year} Target']
+            service_groups[service_type]['revenue'] += item[f'{year} Revenue']
+            service_groups[service_type]['receivables_collected'] += item[f'{year} Receivables Collected']
+        
+        # Calculate metrics for each service type
+        result = []
+        for service_type, metrics in service_groups.items():
+            achievement_pct = (metrics['revenue'] / metrics['target'] * 100) if metrics['target'] > 0 else 0
+            gross_profit = metrics['revenue'] - metrics['cost']
+            gross_profit_pct = (gross_profit / metrics['revenue'] * 100) if metrics['revenue'] > 0 else 0
+            
+            result.append({
+                "Service_Type": service_type,
+                "Target": round(metrics['target'], 2),
+                "Revenue": round(metrics['revenue'], 2),
+                "Cost": round(metrics['cost'], 2),
+                "Achievement %": round(achievement_pct, 2),
+                "Gross Profit": round(gross_profit, 2),
+                "Gross Profit %": round(gross_profit_pct, 2)
+            })
+        
+        return result
+    
+    def generate_slide3_business_unit_period_breakdown(self, year: int, current_month: int = 6, current_quarter: int = 2) -> Dict[str, List[Dict[str, Any]]]:
+        """Slide 3: Business Unit Period Breakdown - MTD, QTD, YTD by service type"""
+        result = {
+            "Transportation": [],
+            "Warehouses": []
+        }
+        
+        # Get current periods
+        mtd_report = self.generate_report('month', year, month=current_month)
+        qtd_report = self.generate_report('quarter', year, quarter=current_quarter)
+        ytd_report = self.generate_report('year', year)
+        
+        # Period names
+        mtd_name = self.get_period_name('month', year, current_month)
+        qtd_name = self.get_period_name('quarter', year, quarter=current_quarter)
+        ytd_name = str(year)
+        
+        # Aggregate by service type for each period
+        for service_type in ["Transportation", "Warehouses"]:
+            # MTD
+            mtd_metrics = self._aggregate_by_service_type(mtd_report, service_type, mtd_name)
+            if mtd_metrics:
+                mtd_metrics["Period"] = f"MTD ({mtd_name})"
+                result[service_type].append(mtd_metrics)
+            
+            # QTD
+            qtd_metrics = self._aggregate_by_service_type(qtd_report, service_type, qtd_name)
+            if qtd_metrics:
+                qtd_metrics["Period"] = f"QTD ({qtd_name})"
+                result[service_type].append(qtd_metrics)
+            
+            # YTD
+            ytd_metrics = self._aggregate_by_service_type(ytd_report, service_type, ytd_name)
+            if ytd_metrics:
+                ytd_metrics["Period"] = f"YTD ({ytd_name})"
+                result[service_type].append(ytd_metrics)
+        
+        return result
+    
+    def _aggregate_by_service_type(self, report: List[Dict], service_type: str, period_name: str) -> Dict[str, Any]:
+        """Helper function to aggregate metrics by service type"""
+        filtered_items = [item for item in report if item['Service_Type'] == service_type]
+        
+        if not filtered_items:
+            return None
+        
+        # Find the column names dynamically
+        cost_col = next((k for k in filtered_items[0].keys() if 'Cost' in k and period_name in k), None)
+        target_col = next((k for k in filtered_items[0].keys() if 'Target' in k and period_name in k), None)
+        revenue_col = next((k for k in filtered_items[0].keys() if 'Revenue' in k and period_name in k), None)
+        
+        if not all([cost_col, target_col, revenue_col]):
+            return None
+        
+        total_cost = sum(item[cost_col] for item in filtered_items)
+        total_target = sum(item[target_col] for item in filtered_items)
+        total_revenue = sum(item[revenue_col] for item in filtered_items)
+        
+        achievement_pct = (total_revenue / total_target * 100) if total_target > 0 else 0
+        gross_profit = total_revenue - total_cost
+        gross_profit_pct = (gross_profit / total_revenue * 100) if total_revenue > 0 else 0
+        
+        return {
+            "Target": round(total_target, 2),
+            "Revenue": round(total_revenue, 2),
+            "Cost": round(total_cost, 2),
+            "Achievement %": round(achievement_pct, 2),
+            "Gross Profit": round(gross_profit, 2),
+            "Gross Profit %": round(gross_profit_pct, 2)
+        }
+    
+    def generate_slide4_customer_achievement(self, year: int, current_quarter: int = 2) -> List[Dict[str, Any]]:
+        """Slide 4: Customer Achievement - QTD and YTD by customer"""
+        qtd_report = self.generate_report('quarter', year, quarter=current_quarter)
+        ytd_report = self.generate_report('year', year)
+        
+        qtd_name = self.get_period_name('quarter', year, quarter=current_quarter)
+        ytd_name = str(year)
+        
+        # Create customer dictionary
+        customers = {}
+        
+        # Process QTD data
+        for item in qtd_report:
+            customer = item['Customer']
+            if customer not in customers:
+                customers[customer] = {}
+            
+            # Sum up metrics for this customer
+            if 'QTD' not in customers[customer]:
+                customers[customer]['QTD'] = {
+                    'cost': 0, 'target': 0, 'revenue': 0
+                }
+            
+            customers[customer]['QTD']['cost'] += item[f'{qtd_name} Cost']
+            customers[customer]['QTD']['target'] += item[f'{qtd_name} Target']
+            customers[customer]['QTD']['revenue'] += item[f'{qtd_name} Revenue']
+        
+        # Process YTD data
+        for item in ytd_report:
+            customer = item['Customer']
+            if customer not in customers:
+                customers[customer] = {}
+            
+            if 'YTD' not in customers[customer]:
+                customers[customer]['YTD'] = {
+                    'cost': 0, 'target': 0, 'revenue': 0
+                }
+            
+            customers[customer]['YTD']['cost'] += item[f'{ytd_name} Cost']
+            customers[customer]['YTD']['target'] += item[f'{ytd_name} Target']
+            customers[customer]['YTD']['revenue'] += item[f'{ytd_name} Revenue']
+        
+        # Build result
+        result = []
+        for customer, periods in customers.items():
+            entry = {"Customer": customer}
+            
+            # QTD metrics
+            if 'QTD' in periods:
+                qtd_ach = (periods['QTD']['revenue'] / periods['QTD']['target'] * 100) if periods['QTD']['target'] > 0 else 0
+                entry[f"QTD Target"] = round(periods['QTD']['target'], 2)
+                entry[f"QTD Revenue"] = round(periods['QTD']['revenue'], 2)
+                entry[f"QTD Achievement %"] = round(qtd_ach, 2)
+            
+            # YTD metrics
+            if 'YTD' in periods:
+                ytd_ach = (periods['YTD']['revenue'] / periods['YTD']['target'] * 100) if periods['YTD']['target'] > 0 else 0
+                entry[f"YTD Target"] = round(periods['YTD']['target'], 2)
+                entry[f"YTD Revenue"] = round(periods['YTD']['revenue'], 2)
+                entry[f"YTD Achievement %"] = round(ytd_ach, 2)
+            
+            result.append(entry)
+        
+        return result
+    
+    def generate_slide5_customer_by_service_type(self, year: int, current_quarter: int = 2) -> Dict[str, List[Dict[str, Any]]]:
+        """Slide 5: Customer Achievement by Service Type - QTD and YTD"""
+        qtd_report = self.generate_report('quarter', year, quarter=current_quarter)
+        ytd_report = self.generate_report('year', year)
+        
+        qtd_name = self.get_period_name('quarter', year, quarter=current_quarter)
+        ytd_name = str(year)
+        
+        result = {
+            "Transportation": [],
+            "Warehouses": []
+        }
+        
+        # Process by service type
+        for service_type in ["Transportation", "Warehouses"]:
+            customers = {}
+            
+            # Process QTD
+            qtd_filtered = [item for item in qtd_report if item['Service_Type'] == service_type]
+            for item in qtd_filtered:
+                customer = item['Customer']
+                if customer not in customers:
+                    customers[customer] = {'QTD': {}, 'YTD': {}}
+                
+                customers[customer]['QTD'] = {
+                    'target': item[f'{qtd_name} Target'],
+                    'revenue': item[f'{qtd_name} Revenue'],
+                    'achievement': item[f'{qtd_name} Ach. %']
+                }
+            
+            # Process YTD
+            ytd_filtered = [item for item in ytd_report if item['Service_Type'] == service_type]
+            for item in ytd_filtered:
+                customer = item['Customer']
+                if customer not in customers:
+                    customers[customer] = {'QTD': {}, 'YTD': {}}
+                
+                customers[customer]['YTD'] = {
+                    'target': item[f'{ytd_name} Target'],
+                    'revenue': item[f'{ytd_name} Revenue'],
+                    'achievement': item[f'{ytd_name} Ach. %']
+                }
+            
+            # Build result for this service type
+            for customer, periods in customers.items():
+                entry = {"Customer": customer}
+                
+                if periods.get('QTD'):
+                    entry["QTD Target"] = round(periods['QTD']['target'], 2)
+                    entry["QTD Revenue"] = round(periods['QTD']['revenue'], 2)
+                    entry["QTD Achievement %"] = round(periods['QTD']['achievement'], 2)
+                
+                if periods.get('YTD'):
+                    entry["YTD Target"] = round(periods['YTD']['target'], 2)
+                    entry["YTD Revenue"] = round(periods['YTD']['revenue'], 2)
+                    entry["YTD Achievement %"] = round(periods['YTD']['achievement'], 2)
+                
+                result[service_type].append(entry)
+        
+        return result
+    
+    def generate_presentation_slides(self, year: int, current_month: int = 6, current_quarter: int = 2):
+        """Generate all presentation slides and export to JSON files"""
+        print(f"\nGenerating presentation slides for {year}...")
+        
+        # Slide 1: Landing Achievement
+        slide1 = self.generate_slide1_landing_achievement(year)
+        self.export_report_to_json(slide1, "Slide1_Landing_Achievement.json")
+        print("✓ Slide 1: Landing Achievement generated")
+        
+        # Slide 2: Business Unit Landing
+        slide2 = self.generate_slide2_business_unit_landing(year)
+        self.export_report_to_json(slide2, "Slide2_Business_Unit_Landing.json")
+        print("✓ Slide 2: Business Unit Landing generated")
+        
+        # Slide 3: Business Unit Period Breakdown
+        slide3 = self.generate_slide3_business_unit_period_breakdown(year, current_month, current_quarter)
+        self.export_report_to_json(slide3, "Slide3_Business_Unit_Period_Breakdown.json")
+        print("✓ Slide 3: Business Unit Period Breakdown generated")
+        
+        # Slide 4: Customer Achievement
+        slide4 = self.generate_slide4_customer_achievement(year, current_quarter)
+        self.export_report_to_json(slide4, "Slide4_Customer_Achievement.json")
+        print("✓ Slide 4: Customer Achievement generated")
+        
+        # Slide 5: Customer by Service Type
+        slide5 = self.generate_slide5_customer_by_service_type(year, current_quarter)
+        self.export_report_to_json(slide5, "Slide5_Customer_By_Service_Type.json")
+        print("✓ Slide 5: Customer by Service Type generated")
+        
+        print("\nAll presentation slides generated successfully!")
+    
     def generate_all_reports(self, year: int, current_month: int = 12, current_quarter: int = 4):
         """Generate monthly, quarterly, and yearly reports"""
         reports = {}
@@ -244,6 +540,7 @@ def main():
     parser.add_argument('--quarter', type=int, help='Current quarter (1-4)')
     parser.add_argument('--period', choices=['month', 'quarter', 'year'], help='Specific period type')
     parser.add_argument('--export', action='store_true', help='Export reports to JSON files')
+    parser.add_argument('--slides', action='store_true', help='Generate presentation slides')
     
     args = parser.parse_args()
     
@@ -255,7 +552,11 @@ def main():
     current_month = args.month or current_date.month
     current_quarter = args.quarter or ((current_date.month - 1) // 3 + 1)
     
-    if args.period:
+    if args.slides:
+        # Generate presentation slides
+        etl.generate_presentation_slides(args.year, current_month, current_quarter)
+    
+    elif args.period:
         # Generate specific period report
         if args.period == 'month':
             report = etl.generate_report('month', args.year, month=current_month)

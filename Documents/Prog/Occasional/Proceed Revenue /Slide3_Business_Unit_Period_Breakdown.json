@@ -1,0 +1,60 @@
+{
+  "Transportation": [
+    {
+      "Target": 3790667.0,
+      "Revenue": 1700909.0,
+      "Cost": 2847439.0,
+      "Achievement %": 44.87,
+      "Gross Profit": -1146530.0,
+      "Gross Profit %": -67.41,
+      "Period": "MTD (Jun 2025)"
+    },
+    {
+      "Target": 10502501.0,
+      "Revenue": 6725290.0,
+      "Cost": 7862535.0,
+      "Achievement %": 64.04,
+      "Gross Profit": -1137245.0,
+      "Gross Profit %": -16.91,
+      "Period": "QTD (Q2 2025)"
+    },
+    {
+      "Target": 14700982.0,
+      "Revenue": 16371370.0,
+      "Cost": 10916186.0,
+      "Achievement %": 111.36,
+      "Gross Profit": 5455184.0,
+      "Gross Profit %": 33.32,
+      "Period": "YTD (2025)"
+    }
+  ],
+  "Warehouses": [
+    {
+      "Target": 1905158.0,
+      "Revenue": 1810534.0,
+      "Cost": 1237337.0,
+      "Achievement %": 95.03,
+      "Gross Profit": 573197.0,
+      "Gross Profit %": 31.66,
+      "Period": "MTD (Jun 2025)"
+    },
+    {
+      "Target": 5765474.0,
+      "Revenue": 5453599.0,
+      "Cost": 3712011.0,
+      "Achievement %": 94.59,
+      "Gross Profit": 1741588.0,
+      "Gross Profit %": 31.93,
+      "Period": "QTD (Q2 2025)"
+    },
+    {
+      "Target": 11591174.0,
+      "Revenue": 11286773.0,
+      "Cost": 7424022.0,
+      "Achievement %": 97.37,
+      "Gross Profit": 3862751.0,
+      "Gross Profit %": 34.22,
+      "Period": "YTD (2025)"
+    }
+  ]
+}

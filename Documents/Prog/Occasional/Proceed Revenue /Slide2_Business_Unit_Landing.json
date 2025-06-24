@@ -1,0 +1,20 @@
+[
+  {
+    "Service_Type": "Transportation",
+    "Target": 14700982.0,
+    "Revenue": 16371370.0,
+    "Cost": 10916186.0,
+    "Achievement %": 111.36,
+    "Gross Profit": 5455184.0,
+    "Gross Profit %": 33.32
+  },
+  {
+    "Service_Type": "Warehouses",
+    "Target": 11591174.0,
+    "Revenue": 11286773.0,
+    "Cost": 7424022.0,
+    "Achievement %": 97.37,
+    "Gross Profit": 3862751.0,
+    "Gross Profit %": 34.22
+  }
+]
