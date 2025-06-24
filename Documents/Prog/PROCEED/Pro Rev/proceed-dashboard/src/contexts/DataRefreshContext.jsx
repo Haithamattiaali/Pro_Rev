@@ -22,20 +22,25 @@ export const DataRefreshProvider = ({ children }) => {
       duration = 3000 
     } = options
 
-    console.log('Triggering global data refresh...')
+    console.log('🔄 DataRefreshContext: Triggering global data refresh...')
     setRefreshing(true)
     
     // Increment the refresh trigger to notify all listening components
-    setRefreshTrigger(prev => prev + 1)
+    setRefreshTrigger(prev => {
+      const newValue = prev + 1
+      console.log('🔄 DataRefreshContext: Refresh trigger updated:', prev, '->', newValue)
+      return newValue
+    })
     
     // Show notification if requested
     if (showNotification) {
       // You could integrate with a toast notification system here
-      console.log(message)
+      console.log('📢 DataRefreshContext:', message)
     }
     
     // Small delay to ensure all components have time to start their refresh
     setTimeout(() => {
+      console.log('🔄 DataRefreshContext: Refresh completed')
       setRefreshing(false)
     }, 1000)
     

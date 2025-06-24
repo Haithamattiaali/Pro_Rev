@@ -24,6 +24,7 @@ const Overview = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('📊 Overview: Starting data fetch, refreshTrigger =', refreshTrigger);
       setLoading(true);
       setError(null);
       
@@ -34,9 +35,10 @@ const Overview = () => {
           periodFilter.month,
           periodFilter.quarter
         );
+        console.log('📊 Overview: Data fetched successfully');
         setOverviewData(data);
       } catch (err) {
-        console.error('Error fetching overview data:', err);
+        console.error('📊 Overview: Error fetching overview data:', err);
         setError('Failed to load overview data. Please try again.');
       } finally {
         setLoading(false);

@@ -88,11 +88,13 @@ const Upload = () => {
       if (fileInput) fileInput.value = ''
       
       // Trigger global data refresh to update all dashboard components
+      console.log('📤 Upload: Triggering refresh after successful upload');
       await triggerRefresh({
         showNotification: true,
         message: `Upload successful! Updated ${result.updated} records, added ${result.inserted} new records.`,
         duration: 4000
       })
+      console.log('📤 Upload: Refresh trigger completed');
       
     } catch (err) {
       console.error('Upload error:', err)
