@@ -212,20 +212,83 @@ const Customers = () => {
       {/* Customer Selector */}
       <div className="dashboard-card">
         <h2 className="section-title">Select Customer for Detailed Analysis</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          {sortedCustomers.map((customer) => (
-            <button
-              key={customer.customer}
-              onClick={() => setSelectedCustomer(customer.customer)}
-              className={`p-3 rounded-lg text-sm font-medium transition-colors ${
-                selectedCustomer === customer.customer
-                  ? 'bg-primary text-white'
-                  : 'bg-white text-neutral-dark hover:bg-secondary-pale border border-neutral-light'
-              }`}
-            >
-              {customer.customer}
-            </button>
-          ))}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+          {sortedCustomers.map((customer) => {
+            // Calculate total revenue for percentage
+            const totalRevenue = sortedCustomers.reduce((sum, c) => sum + c.revenue, 0);
+            const revenuePercentage = ((customer.revenue / totalRevenue) * 100).toFixed(1);
+            
+            return (
+              <button
+                key={customer.customer}
+                onClick={() => setSelectedCustomer(customer.customer)}
+                className={`relative p-3 rounded-lg transition-all ${
+                  selectedCustomer === customer.customer
+                    ? 'bg-primary text-white shadow-lg scale-105'
+                    : 'bg-white text-neutral-dark hover:bg-secondary-pale border border-neutral-light hover:shadow-md'
+                }`}
+              >
+                <div className="space-y-2">
+                  {/* Customer Name */}
+                  <h3 className={`text-sm font-bold truncate ${
+                    selectedCustomer === customer.customer ? 'text-white' : 'text-neutral-dark'
+                  }`}>
+                    {customer.customer}
+                  </h3>
+                  
+                  {/* Revenue Info */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className={`text-xs ${
+                        selectedCustomer === customer.customer ? 'text-white/80' : 'text-neutral-mid'
+                      }`}>Revenue</span>
+                      <span className={`text-xs font-semibold ${
+                        selectedCustomer === customer.customer ? 'text-white' : 'text-neutral-dark'
+                      }`}>
+                        {formatCurrency(customer.revenue).replace('SAR ', '')}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className={`text-xs ${
+                        selectedCustomer === customer.customer ? 'text-white/80' : 'text-neutral-mid'
+                      }`}>Share</span>
+                      <span className={`text-xs font-semibold ${
+                        selectedCustomer === customer.customer ? 'text-white' : 'text-primary'
+                      }`}>
+                        {revenuePercentage}%
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className={`text-xs ${
+                        selectedCustomer === customer.customer ? 'text-white/80' : 'text-neutral-mid'
+                      }`}>Achievement</span>
+                      <span className={`text-xs font-semibold ${
+                        selectedCustomer === customer.customer ? 'text-white' : 'text-primary-dark'
+                      }`}>
+                        {formatPercentage(customer.achievement)}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Achievement Progress Bar */}
+                  <div className={`h-1 rounded-full overflow-hidden ${
+                    selectedCustomer === customer.customer ? 'bg-white/30' : 'bg-secondary-light'
+                  }`}>
+                    <div 
+                      className={`h-full rounded-full transition-all ${
+                        selectedCustomer === customer.customer ? 'bg-white' : 'bg-primary'
+                      }`}
+                      style={{ 
+                        width: `${Math.min(customer.achievement, 100)}%`
+                      }}
+                    />
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
