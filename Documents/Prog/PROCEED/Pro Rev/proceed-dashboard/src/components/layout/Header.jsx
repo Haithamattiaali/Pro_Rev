@@ -1,9 +1,11 @@
 import React from 'react'
 import { format } from 'date-fns'
-import { Calendar } from 'lucide-react'
+import { Calendar, RefreshCw } from 'lucide-react'
+import { useDataRefresh } from '../../contexts/DataRefreshContext'
 
 const Header = () => {
   const currentDate = format(new Date(), 'MMMM dd, yyyy')
+  const { refreshing, lastRefreshTime, triggerRefresh } = useDataRefresh()
   
   return (
     <header className="bg-white shadow-sm border-b border-secondary-pale">
@@ -13,9 +15,34 @@ const Header = () => {
           <p className="text-sm text-neutral-mid mt-1">Insights for strategic decision making</p>
         </div>
         
-        <div className="flex items-center space-x-2 text-neutral-mid">
-          <Calendar className="w-4 h-4" />
-          <span className="text-sm font-medium">{currentDate}</span>
+        <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-2 text-neutral-mid">
+            <Calendar className="w-4 h-4" />
+            <span className="text-sm font-medium">{currentDate}</span>
+          </div>
+          
+          {/* Refresh Status Indicator */}
+          <div className="flex items-center space-x-2">
+            {refreshing && (
+              <div className="flex items-center space-x-2 text-primary">
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span className="text-sm font-medium">Refreshing...</span>
+              </div>
+            )}
+            {!refreshing && lastRefreshTime && (
+              <div className="text-xs text-neutral-mid">
+                Last updated: {new Date(lastRefreshTime).toLocaleTimeString()}
+              </div>
+            )}
+          </div>
+          
+          {/* Manual Test Refresh Button - Temporary for debugging */}
+          <button 
+            onClick={() => triggerRefresh({ showNotification: true, message: 'Manual refresh triggered' })}
+            className="px-3 py-1 text-xs bg-secondary text-white rounded hover:bg-secondary-light"
+          >
+            Test Refresh
+          </button>
         </div>
       </div>
     </header>

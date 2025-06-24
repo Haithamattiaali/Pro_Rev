@@ -13,6 +13,7 @@ export const useDataRefresh = () => {
 export const DataRefreshProvider = ({ children }) => {
   const [refreshTrigger, setRefreshTrigger] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
+  const [lastRefreshTime, setLastRefreshTime] = useState(Date.now())
 
   // Trigger a global data refresh
   const triggerRefresh = useCallback(async (options = {}) => {
@@ -25,10 +26,12 @@ export const DataRefreshProvider = ({ children }) => {
     console.log('🔄 DataRefreshContext: Triggering global data refresh...')
     setRefreshing(true)
     
-    // Increment the refresh trigger to notify all listening components
+    // Update both trigger and timestamp
+    const refreshTime = Date.now()
+    setLastRefreshTime(refreshTime)
     setRefreshTrigger(prev => {
       const newValue = prev + 1
-      console.log('🔄 DataRefreshContext: Refresh trigger updated:', prev, '->', newValue)
+      console.log('🔄 DataRefreshContext: Refresh trigger updated:', prev, '->', newValue, 'at', new Date(refreshTime).toLocaleTimeString())
       return newValue
     })
     
@@ -55,12 +58,14 @@ export const DataRefreshProvider = ({ children }) => {
   const getRefreshState = useCallback(() => ({
     refreshTrigger,
     refreshing,
-    lastRefresh: new Date().toISOString()
-  }), [refreshTrigger, refreshing])
+    lastRefreshTime,
+    lastRefresh: new Date(lastRefreshTime).toISOString()
+  }), [refreshTrigger, refreshing, lastRefreshTime])
 
   const value = {
     refreshTrigger,
     refreshing,
+    lastRefreshTime,
     triggerRefresh,
     clearRefresh,
     getRefreshState

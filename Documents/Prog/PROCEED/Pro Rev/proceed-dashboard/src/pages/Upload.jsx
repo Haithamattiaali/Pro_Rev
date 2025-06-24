@@ -257,6 +257,14 @@ const Upload = () => {
                   <p className="text-amber-600">Errors: {uploadResult.errors}</p>
                 )}
               </div>
+              <div className="mt-3">
+                <button 
+                  onClick={() => triggerRefresh({ showNotification: true, message: 'Manual refresh triggered from upload' })}
+                  className="px-3 py-1 text-xs bg-primary text-white rounded hover:bg-primary-dark"
+                >
+                  Test Manual Refresh
+                </button>
+              </div>
             </div>
           )}
         </div>
