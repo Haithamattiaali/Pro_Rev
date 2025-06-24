@@ -2,7 +2,10 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-const DB_PATH = path.join(__dirname, 'proceed_revenue.db');
+// Use /tmp for production if disk is not mounted
+const DB_PATH = process.env.NODE_ENV === 'production' 
+  ? '/tmp/proceed_revenue.db'
+  : path.join(__dirname, 'proceed_revenue.db');
 const SCHEMA_PATH = path.join(__dirname, 'schema.sql');
 
 class PersistentDatabase {

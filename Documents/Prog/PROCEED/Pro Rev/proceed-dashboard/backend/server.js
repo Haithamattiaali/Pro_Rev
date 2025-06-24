@@ -55,7 +55,14 @@ app.use(requestTimeout(30000)); // 30 second timeout
 app.use('/api', ensureConnection); // Ensure DB connection for all API routes
 
 // Configure multer for file uploads
-const uploadDir = process.env.NODE_ENV === 'production' ? '/var/data/uploads' : 'uploads/';
+const fs = require('fs');
+const uploadDir = process.env.NODE_ENV === 'production' ? '/tmp/uploads' : 'uploads/';
+
+// Ensure upload directory exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const upload = multer({
   dest: uploadDir,
   fileFilter: (req, file, cb) => {
