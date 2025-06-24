@@ -4,11 +4,13 @@ import { formatCurrency, formatPercentage, getAchievementStatus, getGrossProfitS
 import BusinessUnitBarChart from '../components/charts/BusinessUnitBarChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { useFilter } from '../contexts/FilterContext'
+import { useDataRefresh } from '../contexts/DataRefreshContext'
 import dataService from '../services/dataService'
 
 const BusinessUnits = () => {
   const [selectedUnit, setSelectedUnit] = useState('Transportation')
   const { periodFilter } = useFilter()
+  const { refreshTrigger } = useDataRefresh()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [businessUnits, setBusinessUnits] = useState([])
@@ -41,7 +43,7 @@ const BusinessUnits = () => {
     }
 
     fetchData()
-  }, [periodFilter, selectedUnit])
+  }, [periodFilter, selectedUnit, refreshTrigger])
 
   if (loading) {
     return (

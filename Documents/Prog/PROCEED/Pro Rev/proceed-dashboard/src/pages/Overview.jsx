@@ -5,10 +5,12 @@ import GaugeChart from '../components/charts/GaugeChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
 import { useFilter } from '../contexts/FilterContext'
+import { useDataRefresh } from '../contexts/DataRefreshContext'
 import dataService from '../services/dataService'
 
 const Overview = () => {
   const { periodFilter } = useFilter();
+  const { refreshTrigger } = useDataRefresh();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [overviewData, setOverviewData] = useState(null);
@@ -35,7 +37,7 @@ const Overview = () => {
     };
 
     fetchData();
-  }, [periodFilter]);
+  }, [periodFilter, refreshTrigger]);
 
   if (loading) {
     return (

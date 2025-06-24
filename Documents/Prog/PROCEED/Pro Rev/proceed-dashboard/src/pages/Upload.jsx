@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Upload as UploadIcon, FileSpreadsheet, CheckCircle, AlertCircle, X, Loader2 } from 'lucide-react'
 import apiService from '../services/api.service'
+import { useDataRefresh } from '../contexts/DataRefreshContext'
 
 const Upload = () => {
   const [file, setFile] = useState(null)
@@ -8,6 +9,7 @@ const Upload = () => {
   const [uploadResult, setUploadResult] = useState(null)
   const [error, setError] = useState(null)
   const [dragActive, setDragActive] = useState(false)
+  const { triggerRefresh } = useDataRefresh()
 
   const handleDrag = (e) => {
     e.preventDefault()
@@ -84,6 +86,13 @@ const Upload = () => {
       // Reset file input
       const fileInput = document.getElementById('file-input')
       if (fileInput) fileInput.value = ''
+      
+      // Trigger global data refresh to update all dashboard components
+      await triggerRefresh({
+        showNotification: true,
+        message: `Upload successful! Updated ${result.updated} records, added ${result.inserted} new records.`,
+        duration: 4000
+      })
       
     } catch (err) {
       console.error('Upload error:', err)

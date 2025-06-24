@@ -3,10 +3,12 @@ import { Users, Award, TrendingUp, Loader2, Trophy, Star, Crown } from 'lucide-r
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { useFilter } from '../contexts/FilterContext'
+import { useDataRefresh } from '../contexts/DataRefreshContext'
 import dataService from '../services/dataService'
 
 const Customers = () => {
   const { periodFilter } = useFilter()
+  const { refreshTrigger } = useDataRefresh()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [customers, setCustomers] = useState([])
@@ -58,7 +60,7 @@ const Customers = () => {
     }
 
     fetchData()
-  }, [periodFilter])
+  }, [periodFilter, refreshTrigger])
 
   if (loading) {
     return (
