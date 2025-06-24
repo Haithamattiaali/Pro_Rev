@@ -45,8 +45,19 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 // Get overview data with period filter
 app.get('/api/overview', async (req, res) => {
   try {
-    const { year = new Date().getFullYear(), period = 'YTD' } = req.query;
-    const data = await dataService.getOverviewData(parseInt(year), period);
+    const { 
+      year = new Date().getFullYear(), 
+      period = 'YTD',
+      month = null,
+      quarter = null
+    } = req.query;
+    
+    const data = await dataService.getOverviewData(
+      parseInt(year), 
+      period,
+      month ? (month === 'all' ? 'all' : parseInt(month)) : null,
+      quarter ? (quarter === 'all' ? 'all' : parseInt(quarter)) : null
+    );
     res.json(data);
   } catch (error) {
     console.error('Overview error:', error);
@@ -57,8 +68,19 @@ app.get('/api/overview', async (req, res) => {
 // Get business unit data
 app.get('/api/business-units', async (req, res) => {
   try {
-    const { year = new Date().getFullYear(), period = 'YTD' } = req.query;
-    const data = await dataService.getBusinessUnitData(parseInt(year), period);
+    const { 
+      year = new Date().getFullYear(), 
+      period = 'YTD',
+      month = null,
+      quarter = null
+    } = req.query;
+    
+    const data = await dataService.getBusinessUnitData(
+      parseInt(year), 
+      period,
+      month ? (month === 'all' ? 'all' : parseInt(month)) : null,
+      quarter ? (quarter === 'all' ? 'all' : parseInt(quarter)) : null
+    );
     res.json(data);
   } catch (error) {
     console.error('Business units error:', error);
@@ -69,8 +91,19 @@ app.get('/api/business-units', async (req, res) => {
 // Get customer data
 app.get('/api/customers', async (req, res) => {
   try {
-    const { year = new Date().getFullYear(), period = 'YTD' } = req.query;
-    const data = await dataService.getCustomerData(parseInt(year), period);
+    const { 
+      year = new Date().getFullYear(), 
+      period = 'YTD',
+      month = null,
+      quarter = null
+    } = req.query;
+    
+    const data = await dataService.getCustomerData(
+      parseInt(year), 
+      period,
+      month ? (month === 'all' ? 'all' : parseInt(month)) : null,
+      quarter ? (quarter === 'all' ? 'all' : parseInt(quarter)) : null
+    );
     res.json(data);
   } catch (error) {
     console.error('Customers error:', error);
@@ -93,8 +126,19 @@ app.get('/api/trends/monthly', async (req, res) => {
 // Get customer achievement data
 app.get('/api/customers/achievement', async (req, res) => {
   try {
-    const { year = new Date().getFullYear(), period = 'YTD' } = req.query;
-    const data = await dataService.getCustomerAchievement(parseInt(year), period);
+    const { 
+      year = new Date().getFullYear(), 
+      period = 'YTD',
+      month = null,
+      quarter = null
+    } = req.query;
+    
+    const data = await dataService.getCustomerAchievement(
+      parseInt(year), 
+      period,
+      month ? (month === 'all' ? 'all' : parseInt(month)) : null,
+      quarter ? (quarter === 'all' ? 'all' : parseInt(quarter)) : null
+    );
     res.json(data);
   } catch (error) {
     console.error('Customer achievement error:', error);
@@ -118,7 +162,42 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err.stack);
+  res.status(500).json({ 
+    error: 'Internal server error', 
+    message: err.message,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
+  });
+});
+
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
+});
+
+// Handle server errors
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use`);
+    process.exit(1);
+  } else {
+    console.error('Server error:', error);
+  }
+});
+
+// Graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+  });
 });

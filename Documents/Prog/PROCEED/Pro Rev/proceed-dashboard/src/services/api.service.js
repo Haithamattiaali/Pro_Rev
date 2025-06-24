@@ -23,18 +23,27 @@ class ApiService {
   }
 
   // Overview data
-  async getOverviewData(year, period = 'YTD') {
-    return this.request(`/overview?year=${year}&period=${period}`);
+  async getOverviewData(year, period = 'YTD', month = null, quarter = null) {
+    let url = `/overview?year=${year}&period=${period}`;
+    if (month !== null) url += `&month=${month}`;
+    if (quarter !== null) url += `&quarter=${quarter}`;
+    return this.request(url);
   }
 
   // Business unit data
-  async getBusinessUnitData(year, period = 'YTD') {
-    return this.request(`/business-units?year=${year}&period=${period}`);
+  async getBusinessUnitData(year, period = 'YTD', month = null, quarter = null) {
+    let url = `/business-units?year=${year}&period=${period}`;
+    if (month !== null) url += `&month=${month}`;
+    if (quarter !== null) url += `&quarter=${quarter}`;
+    return this.request(url);
   }
 
   // Customer data
-  async getCustomerData(year, period = 'YTD') {
-    return this.request(`/customers?year=${year}&period=${period}`);
+  async getCustomerData(year, period = 'YTD', month = null, quarter = null) {
+    let url = `/customers?year=${year}&period=${period}`;
+    if (month !== null) url += `&month=${month}`;
+    if (quarter !== null) url += `&quarter=${quarter}`;
+    return this.request(url);
   }
 
   // Monthly trends
@@ -43,8 +52,11 @@ class ApiService {
   }
 
   // Customer achievement
-  async getCustomerAchievement(year, period = 'YTD') {
-    return this.request(`/customers/achievement?year=${year}&period=${period}`);
+  async getCustomerAchievement(year, period = 'YTD', month = null, quarter = null) {
+    let url = `/customers/achievement?year=${year}&period=${period}`;
+    if (month !== null) url += `&month=${month}`;
+    if (quarter !== null) url += `&quarter=${quarter}`;
+    return this.request(url);
   }
 
   // Available years

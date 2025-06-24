@@ -11,6 +11,10 @@ class Database {
   }
 
   async connect() {
+    if (this.db) {
+      return this.db;
+    }
+    
     return new Promise((resolve, reject) => {
       this.db = new sqlite3.Database(DB_PATH, (err) => {
         if (err) {
@@ -58,19 +62,39 @@ class Database {
   }
 
   async get(sql, params = []) {
+    if (!this.db) {
+      await this.connect();
+    }
+    
     return new Promise((resolve, reject) => {
       this.db.get(sql, params, (err, row) => {
-        if (err) reject(err);
-        else resolve(row);
+        if (err) {
+          console.error('Database query error:', err);
+          console.error('SQL:', sql);
+          console.error('Params:', params);
+          reject(err);
+        } else {
+          resolve(row);
+        }
       });
     });
   }
 
   async all(sql, params = []) {
+    if (!this.db) {
+      await this.connect();
+    }
+    
     return new Promise((resolve, reject) => {
       this.db.all(sql, params, (err, rows) => {
-        if (err) reject(err);
-        else resolve(rows);
+        if (err) {
+          console.error('Database query error:', err);
+          console.error('SQL:', sql);
+          console.error('Params:', params);
+          reject(err);
+        } else {
+          resolve(rows || []);
+        }
       });
     });
   }

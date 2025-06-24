@@ -20,8 +20,18 @@ const Customers = () => {
       
       try {
         const [customersData, achievementData] = await Promise.all([
-          dataService.getCustomerData(periodFilter.year, periodFilter.period),
-          dataService.getCustomerAchievement(periodFilter.year, periodFilter.period)
+          dataService.getCustomerData(
+            periodFilter.year, 
+            periodFilter.period,
+            periodFilter.month,
+            periodFilter.quarter
+          ),
+          dataService.getCustomerAchievement(
+            periodFilter.year, 
+            periodFilter.period,
+            periodFilter.month,
+            periodFilter.quarter
+          )
         ])
         
         setCustomers(customersData)

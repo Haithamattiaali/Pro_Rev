@@ -21,19 +21,19 @@ class DataService {
     return data;
   }
 
-  async getOverviewData(year = new Date().getFullYear(), period = 'YTD') {
-    const key = this.getCacheKey('overview', year, period);
-    return this.getCachedData(key, () => apiService.getOverviewData(year, period));
+  async getOverviewData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
+    const key = this.getCacheKey('overview', year, period, month, quarter);
+    return this.getCachedData(key, () => apiService.getOverviewData(year, period, month, quarter));
   }
 
-  async getBusinessUnitData(year = new Date().getFullYear(), period = 'YTD') {
-    const key = this.getCacheKey('businessUnits', year, period);
-    return this.getCachedData(key, () => apiService.getBusinessUnitData(year, period));
+  async getBusinessUnitData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
+    const key = this.getCacheKey('businessUnits', year, period, month, quarter);
+    return this.getCachedData(key, () => apiService.getBusinessUnitData(year, period, month, quarter));
   }
 
-  async getCustomerData(year = new Date().getFullYear(), period = 'YTD') {
-    const key = this.getCacheKey('customers', year, period);
-    return this.getCachedData(key, () => apiService.getCustomerData(year, period));
+  async getCustomerData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
+    const key = this.getCacheKey('customers', year, period, month, quarter);
+    return this.getCachedData(key, () => apiService.getCustomerData(year, period, month, quarter));
   }
 
   async getMonthlyTrends(year = new Date().getFullYear()) {
@@ -41,9 +41,9 @@ class DataService {
     return this.getCachedData(key, () => apiService.getMonthlyTrends(year));
   }
 
-  async getCustomerAchievement(year = new Date().getFullYear(), period = 'YTD') {
-    const key = this.getCacheKey('customerAchievement', year, period);
-    return this.getCachedData(key, () => apiService.getCustomerAchievement(year, period));
+  async getCustomerAchievement(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
+    const key = this.getCacheKey('customerAchievement', year, period, month, quarter);
+    return this.getCachedData(key, () => apiService.getCustomerAchievement(year, period, month, quarter));
   }
 
   async getAvailableYears() {

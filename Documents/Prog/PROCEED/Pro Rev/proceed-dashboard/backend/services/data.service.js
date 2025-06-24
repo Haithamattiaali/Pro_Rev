@@ -17,7 +17,7 @@ class DataService {
     }
   }
 
-  getPeriodMonths(year, period) {
+  getPeriodMonths(year, period, month = null, quarter = null) {
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();
@@ -29,13 +29,32 @@ class DataService {
     
     switch (period) {
       case 'MTD':
-        monthStart = maxMonth;
-        monthEnd = maxMonth;
+        // If specific month is provided, use it; otherwise use current/max month
+        if (month && month !== 'all') {
+          monthStart = month;
+          monthEnd = month;
+        } else if (month === 'all') {
+          monthStart = 1;
+          monthEnd = maxMonth;
+        } else {
+          monthStart = maxMonth;
+          monthEnd = maxMonth;
+        }
         break;
       case 'QTD':
-        const quarter = Math.ceil(maxMonth / 3);
-        monthStart = (quarter - 1) * 3 + 1;
-        monthEnd = Math.min(quarter * 3, maxMonth);
+        // If specific quarter is provided, use it; otherwise use current quarter
+        let targetQuarter;
+        if (quarter && quarter !== 'all') {
+          targetQuarter = quarter;
+        } else if (quarter === 'all') {
+          monthStart = 1;
+          monthEnd = maxMonth;
+          break;
+        } else {
+          targetQuarter = Math.ceil(maxMonth / 3);
+        }
+        monthStart = (targetQuarter - 1) * 3 + 1;
+        monthEnd = Math.min(targetQuarter * 3, maxMonth);
         break;
       case 'YTD':
       default:
@@ -49,10 +68,10 @@ class DataService {
       .map(([name]) => name);
   }
 
-  async getOverviewData(year, period) {
+  async getOverviewData(year, period, month = null, quarter = null) {
     await this.initialize();
     
-    const months = this.getPeriodMonths(year, period);
+    const months = this.getPeriodMonths(year, period, month, quarter);
     const placeholders = months.map(() => '?').join(',');
     
     const sql = `
@@ -112,10 +131,10 @@ class DataService {
     };
   }
 
-  async getBusinessUnitData(year, period) {
+  async getBusinessUnitData(year, period, month = null, quarter = null) {
     await this.initialize();
     
-    const months = this.getPeriodMonths(year, period);
+    const months = this.getPeriodMonths(year, period, month, quarter);
     const placeholders = months.map(() => '?').join(',');
     
     const sql = `
@@ -145,10 +164,10 @@ class DataService {
     }));
   }
 
-  async getCustomerData(year, period) {
+  async getCustomerData(year, period, month = null, quarter = null) {
     await this.initialize();
     
-    const months = this.getPeriodMonths(year, period);
+    const months = this.getPeriodMonths(year, period, month, quarter);
     const placeholders = months.map(() => '?').join(',');
     
     const sql = `
@@ -205,10 +224,10 @@ class DataService {
     return await db.all(sql, [year]);
   }
 
-  async getCustomerAchievement(year, period) {
+  async getCustomerAchievement(year, period, month = null, quarter = null) {
     await this.initialize();
     
-    const months = this.getPeriodMonths(year, period);
+    const months = this.getPeriodMonths(year, period, month, quarter);
     const placeholders = months.map(() => '?').join(',');
     
     const sql = `

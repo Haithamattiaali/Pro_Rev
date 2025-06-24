@@ -21,7 +21,12 @@ const BusinessUnits = () => {
       
       try {
         const [unitsData, trendsData] = await Promise.all([
-          dataService.getBusinessUnitData(periodFilter.year, periodFilter.period),
+          dataService.getBusinessUnitData(
+            periodFilter.year, 
+            periodFilter.period,
+            periodFilter.month,
+            periodFilter.quarter
+          ),
           dataService.getMonthlyTrends(periodFilter.year)
         ])
         

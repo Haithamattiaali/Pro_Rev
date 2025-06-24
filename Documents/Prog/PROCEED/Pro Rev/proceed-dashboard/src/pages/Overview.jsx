@@ -19,7 +19,12 @@ const Overview = () => {
       setError(null);
       
       try {
-        const data = await dataService.getOverviewData(periodFilter.year, periodFilter.period);
+        const data = await dataService.getOverviewData(
+          periodFilter.year, 
+          periodFilter.period,
+          periodFilter.month,
+          periodFilter.quarter
+        );
         setOverviewData(data);
       } catch (err) {
         console.error('Error fetching overview data:', err);
