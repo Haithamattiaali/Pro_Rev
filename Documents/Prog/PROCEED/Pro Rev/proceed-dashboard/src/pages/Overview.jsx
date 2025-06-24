@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { DollarSign, Target, TrendingUp, Percent, Loader2, Truck, Warehouse } from 'lucide-react'
+import { Banknote, Target, TrendingUp, Percent, Loader2, Truck, Warehouse } from 'lucide-react'
 import MetricCard from '../components/cards/MetricCard'
 import GaugeChart from '../components/charts/GaugeChart'
 import PeriodFilter from '../components/filters/PeriodFilter'
@@ -80,7 +80,8 @@ const Overview = () => {
         <MetricCard
           title="Total Revenue"
           value={overview.revenue}
-          icon={DollarSign}
+          icon={Banknote}
+          iconColor="green"
           trend={overview.revenue >= overview.target ? "up" : "down"}
           trendValue={`${formatPercentage(overview.achievement - 100)} vs Target`}
         />
@@ -88,17 +89,20 @@ const Overview = () => {
           title="Target"
           value={overview.target}
           icon={Target}
+          iconColor="blue"
         />
         <MetricCard
           title="Gross Profit"
           value={overview.profit}
           icon={TrendingUp}
+          iconColor="primary"
         />
         <MetricCard
           title="Gross Profit Margin"
           value={overview.profitMargin}
           format="percentage"
           icon={Percent}
+          iconColor="coral"
         />
       </div>
 

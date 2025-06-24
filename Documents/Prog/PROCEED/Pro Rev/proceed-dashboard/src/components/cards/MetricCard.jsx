@@ -2,7 +2,7 @@ import React from 'react'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { formatCurrency, formatPercentage } from '../../utils/formatters'
 
-const MetricCard = ({ title, value, format = 'currency', trend, trendValue, icon: Icon }) => {
+const MetricCard = ({ title, value, format = 'currency', trend, trendValue, icon: Icon, iconColor = 'primary' }) => {
   const formatValue = (val) => {
     switch (format) {
       case 'currency':
@@ -38,8 +38,22 @@ const MetricCard = ({ title, value, format = 'currency', trend, trendValue, icon
         </div>
         
         {Icon && (
-          <div className="w-12 h-12 bg-primary-light rounded-lg flex items-center justify-center">
-            <Icon className="w-6 h-6 text-primary" />
+          <div className="relative">
+            <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-lg transition-transform hover:scale-105 ${
+              iconColor === 'primary' ? 'bg-gradient-to-br from-primary-light to-primary/20 shadow-primary/20' :
+              iconColor === 'blue' ? 'bg-gradient-to-br from-accent-blue/20 to-accent-blue/10 shadow-accent-blue/20' :
+              iconColor === 'green' ? 'bg-gradient-to-br from-green-100 to-green-50 shadow-green-200' :
+              iconColor === 'coral' ? 'bg-gradient-to-br from-accent-coral/20 to-accent-coral/10 shadow-accent-coral/20' :
+              'bg-gradient-to-br from-primary-light to-primary/20 shadow-primary/20'
+            }`}>
+              <Icon className={`w-7 h-7 ${
+                iconColor === 'primary' ? 'text-primary' :
+                iconColor === 'blue' ? 'text-accent-blue' :
+                iconColor === 'green' ? 'text-green-600' :
+                iconColor === 'coral' ? 'text-accent-coral' :
+                'text-primary'
+              }`} strokeWidth={2} />
+            </div>
           </div>
         )}
       </div>
