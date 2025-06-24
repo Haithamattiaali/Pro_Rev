@@ -1,8 +1,8 @@
 import React from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
-import { formatPercentage } from '../../utils/formatters'
+import { formatPercentage, formatCurrency } from '../../utils/formatters'
 
-const GaugeChart = ({ value, title }) => {
+const GaugeChart = ({ value, title, targetAmount = 0, currentAmount = 0 }) => {
   const data = [
     { value: value },
     { value: 100 - value }
@@ -33,9 +33,19 @@ const GaugeChart = ({ value, title }) => {
           </Pie>
         </PieChart>
       </ResponsiveContainer>
-      <div className="mt-4">
+      <div className="mt-2">
         <p className="text-3xl font-bold text-primary">{formatPercentage(value)}</p>
-        <p className="text-sm text-neutral-mid mt-1">{title}</p>
+        <p className="text-sm text-neutral-mid mt-0">{title}</p>
+        {value < 100 && targetAmount > 0 && (
+          <p className="text-xs text-amber-600 mt-0 font-semibold">
+            {formatPercentage(100 - value)} to go • {formatCurrency(targetAmount - currentAmount)}
+          </p>
+        )}
+        {value >= 100 && (
+          <p className="text-xs text-green-600 mt-0 font-semibold">
+            Target Achieved!
+          </p>
+        )}
       </div>
     </div>
   )

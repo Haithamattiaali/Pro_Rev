@@ -110,10 +110,14 @@ const Overview = () => {
       <div className="dashboard-card">
         <h2 className="section-title">Overall Achievement</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <GaugeChart
-            value={overview.achievement}
-            title={`${periodFilter.period} Achievement`}
-          />
+          <div className="text-center">
+            <GaugeChart
+              value={overview.achievement}
+              title={`${periodFilter.period} Achievement`}
+              targetAmount={overview.target}
+              currentAmount={overview.revenue}
+            />
+          </div>
           
           <div className="col-span-2">
             <h3 className="text-lg font-semibold text-secondary mb-4">Business Unit Performance</h3>
