@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { DollarSign, Target, TrendingUp, Percent, Loader2 } from 'lucide-react'
+import { DollarSign, Target, TrendingUp, Percent, Loader2, Truck, Warehouse } from 'lucide-react'
 import MetricCard from '../components/cards/MetricCard'
 import GaugeChart from '../components/charts/GaugeChart'
 import PeriodFilter from '../components/filters/PeriodFilter'
@@ -115,12 +115,31 @@ const Overview = () => {
             <h3 className="text-lg font-semibold text-secondary mb-4">Business Unit Performance</h3>
             <div className="space-y-4">
               {serviceBreakdown.map((unit) => (
-                <div key={unit.service_type} className="flex items-center justify-between p-4 bg-secondary-pale rounded-lg">
-                  <div>
-                    <p className="font-semibold text-neutral-dark">{unit.service_type}</p>
-                    <p className="text-sm text-neutral-mid mt-1">
-                      Revenue: {formatCurrency(unit.revenue)} | Target: {formatCurrency(unit.target)}
+                <div key={unit.service_type} className="flex items-center justify-between p-4 bg-secondary-pale rounded-lg transition-all hover:shadow-md">
+                  <div className="flex items-start space-x-3">
+                    <div className="p-2 bg-white rounded-lg shadow-sm">
+                      {unit.service_type === 'Transportation' ? (
+                        <Truck className="w-6 h-6 text-accent-blue" />
+                      ) : (
+                        <Warehouse className="w-6 h-6 text-primary" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-neutral-dark text-lg">{unit.service_type}</p>
+                    <p className="text-sm mt-1">
+                      <span className="font-semibold">Revenue:</span>{' '}
+                      <span className={`font-bold ${
+                        unit.revenue >= unit.target ? 'text-green-600' : 'text-amber-600'
+                      }`}>
+                        {formatCurrency(unit.revenue)}
+                      </span>
+                      <span className="text-neutral-mid mx-2">|</span>
+                      <span className="font-semibold">Target:</span>{' '}
+                      <span className="font-bold text-accent-blue">
+                        {formatCurrency(unit.target)}
+                      </span>
                     </p>
+                    </div>
                   </div>
                   <div className="text-right">
                     <p className={`text-lg font-bold ${
