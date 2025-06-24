@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react'
+import dataService from '../services/dataService'
 
 const DataRefreshContext = createContext()
 
@@ -25,6 +26,9 @@ export const DataRefreshProvider = ({ children }) => {
 
     console.log('🔄 DataRefreshContext: Triggering global data refresh...')
     setRefreshing(true)
+    
+    // Clear the data service cache to force fresh API calls
+    dataService.clearCache()
     
     // Update both trigger and timestamp
     const refreshTime = Date.now()

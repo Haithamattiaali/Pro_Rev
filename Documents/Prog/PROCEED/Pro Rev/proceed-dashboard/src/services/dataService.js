@@ -6,6 +6,11 @@ class DataService {
     this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
   }
 
+  clearCache() {
+    console.log('🗑️ DataService: Clearing all cached data');
+    this.cache.clear();
+  }
+
   getCacheKey(method, ...args) {
     return `${method}_${args.join('_')}`;
   }
