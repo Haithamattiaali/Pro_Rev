@@ -10,9 +10,49 @@ const db = require('./database/db-wrapper');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Enhanced CORS configuration
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:5174',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173'
+    ];
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  optionsSuccessStatus: 200
+};
+
 // Middleware
-app.use(cors());
-app.use(express.json());
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Referrer-Policy', 'no-referrer-when-downgrade');
+  next();
+});
+
+// Import request handling middleware
+const { ensureConnection, requestTimeout, errorRecovery } = require('./middleware/requestHandler');
+
+// Apply middleware
+app.use(requestTimeout(30000)); // 30 second timeout
+app.use('/api', ensureConnection); // Ensure DB connection for all API routes
 
 // Configure multer for file uploads
 const upload = multer({
@@ -116,8 +156,8 @@ app.get('/api/customers', async (req, res) => {
 // Get monthly trend data
 app.get('/api/trends/monthly', async (req, res) => {
   try {
-    const { year = new Date().getFullYear() } = req.query;
-    const data = await dataService.getMonthlyTrends(parseInt(year));
+    const { year = new Date().getFullYear(), serviceType = null } = req.query;
+    const data = await dataService.getMonthlyTrends(parseInt(year), serviceType);
     res.json(data);
   } catch (error) {
     console.error('Monthly trends error:', error);
@@ -144,6 +184,29 @@ app.get('/api/customers/achievement', async (req, res) => {
     res.json(data);
   } catch (error) {
     console.error('Customer achievement error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get customer service breakdown
+app.get('/api/customers/service-breakdown', async (req, res) => {
+  try {
+    const { 
+      year = new Date().getFullYear(), 
+      period = 'YTD',
+      month = null,
+      quarter = null
+    } = req.query;
+    
+    const data = await dataService.getCustomerServiceBreakdown(
+      parseInt(year), 
+      period,
+      month ? (month === 'all' ? 'all' : parseInt(month)) : null,
+      quarter ? (quarter === 'all' ? 'all' : parseInt(quarter)) : null
+    );
+    res.json(data);
+  } catch (error) {
+    console.error('Customer service breakdown error:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -180,6 +243,7 @@ app.get('/api/health', async (req, res) => {
 });
 
 // Error handling middleware
+app.use(errorRecovery);
 app.use((err, req, res, next) => {
   console.error('Server error:', err.stack);
   res.status(500).json({ 

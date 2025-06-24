@@ -185,27 +185,52 @@ class DataService {
     }));
   }
 
-  async getMonthlyTrends(year) {
-    const sql = `
-      SELECT 
-        month,
-        SUM(revenue) as revenue,
-        SUM(target) as target,
-        SUM(cost) as cost,
-        SUM(receivables_collected) as receivables
-      FROM revenue_data
-      WHERE year = ?
-      GROUP BY month
-      ORDER BY 
-        CASE month
-          WHEN 'Jan' THEN 1 WHEN 'Feb' THEN 2 WHEN 'Mar' THEN 3
-          WHEN 'Apr' THEN 4 WHEN 'May' THEN 5 WHEN 'Jun' THEN 6
-          WHEN 'Jul' THEN 7 WHEN 'Aug' THEN 8 WHEN 'Sep' THEN 9
-          WHEN 'Oct' THEN 10 WHEN 'Nov' THEN 11 WHEN 'Dec' THEN 12
-        END
-    `;
+  async getMonthlyTrends(year, serviceType = null) {
+    let sql;
+    let params = [year];
     
-    return await db.all(sql, [year]);
+    if (serviceType) {
+      sql = `
+        SELECT 
+          month,
+          SUM(revenue) as revenue,
+          SUM(target) as target,
+          SUM(cost) as cost,
+          SUM(receivables_collected) as receivables
+        FROM revenue_data
+        WHERE year = ? AND service_type = ?
+        GROUP BY month
+        ORDER BY 
+          CASE month
+            WHEN 'Jan' THEN 1 WHEN 'Feb' THEN 2 WHEN 'Mar' THEN 3
+            WHEN 'Apr' THEN 4 WHEN 'May' THEN 5 WHEN 'Jun' THEN 6
+            WHEN 'Jul' THEN 7 WHEN 'Aug' THEN 8 WHEN 'Sep' THEN 9
+            WHEN 'Oct' THEN 10 WHEN 'Nov' THEN 11 WHEN 'Dec' THEN 12
+          END
+      `;
+      params.push(serviceType);
+    } else {
+      sql = `
+        SELECT 
+          month,
+          SUM(revenue) as revenue,
+          SUM(target) as target,
+          SUM(cost) as cost,
+          SUM(receivables_collected) as receivables
+        FROM revenue_data
+        WHERE year = ?
+        GROUP BY month
+        ORDER BY 
+          CASE month
+            WHEN 'Jan' THEN 1 WHEN 'Feb' THEN 2 WHEN 'Mar' THEN 3
+            WHEN 'Apr' THEN 4 WHEN 'May' THEN 5 WHEN 'Jun' THEN 6
+            WHEN 'Jul' THEN 7 WHEN 'Aug' THEN 8 WHEN 'Sep' THEN 9
+            WHEN 'Oct' THEN 10 WHEN 'Nov' THEN 11 WHEN 'Dec' THEN 12
+          END
+      `;
+    }
+    
+    return await db.all(sql, params);
   }
 
   async getCustomerAchievement(year, period, month = null, quarter = null) {
@@ -259,6 +284,46 @@ class DataService {
         ? (customer.totalRevenue / customer.totalTarget) * 100 
         : 0
     }));
+  }
+
+  async getCustomerServiceBreakdown(year, period, month = null, quarter = null) {
+    const months = this.getPeriodMonths(year, period, month, quarter);
+    const placeholders = months.map(() => '?').join(',');
+    
+    const sql = `
+      SELECT 
+        customer,
+        service_type,
+        SUM(revenue) as revenue
+      FROM revenue_data
+      WHERE year = ? AND month IN (${placeholders})
+      GROUP BY customer, service_type
+      ORDER BY customer, revenue DESC
+    `;
+    
+    const data = await db.all(sql, [year, ...months]);
+    
+    // Group by customer
+    const grouped = {};
+    data.forEach(row => {
+      if (!grouped[row.customer]) {
+        grouped[row.customer] = {
+          customer: row.customer,
+          transportation: 0,
+          warehouses: 0,
+          total: 0
+        };
+      }
+      
+      if (row.service_type === 'Transportation') {
+        grouped[row.customer].transportation = row.revenue;
+      } else if (row.service_type === 'Warehouses') {
+        grouped[row.customer].warehouses = row.revenue;
+      }
+      grouped[row.customer].total += row.revenue;
+    });
+    
+    return Object.values(grouped);
   }
 
   async getAvailableYears() {

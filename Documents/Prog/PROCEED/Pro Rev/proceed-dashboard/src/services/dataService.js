@@ -36,14 +36,19 @@ class DataService {
     return this.getCachedData(key, () => apiService.getCustomerData(year, period, month, quarter));
   }
 
-  async getMonthlyTrends(year = new Date().getFullYear()) {
-    const key = this.getCacheKey('monthlyTrends', year);
-    return this.getCachedData(key, () => apiService.getMonthlyTrends(year));
+  async getMonthlyTrends(year = new Date().getFullYear(), serviceType = null) {
+    const key = this.getCacheKey('monthlyTrends', year, serviceType);
+    return this.getCachedData(key, () => apiService.getMonthlyTrends(year, serviceType));
   }
 
   async getCustomerAchievement(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
     const key = this.getCacheKey('customerAchievement', year, period, month, quarter);
     return this.getCachedData(key, () => apiService.getCustomerAchievement(year, period, month, quarter));
+  }
+
+  async getCustomerServiceBreakdown(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
+    const key = this.getCacheKey('customerServiceBreakdown', year, period, month, quarter);
+    return this.getCachedData(key, () => apiService.getCustomerServiceBreakdown(year, period, month, quarter));
   }
 
   async getAvailableYears() {
@@ -99,6 +104,64 @@ class DataService {
       monthName: now.toLocaleString('en-US', { month: 'short' }),
       quarterName: `Q${quarter}`
     };
+  }
+
+  // Get period months based on year, period type, and optional month/quarter
+  getPeriodMonths(year, period, month = null, quarter = null) {
+    const monthMap = {
+      'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4,
+      'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8,
+      'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
+    };
+    
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth() + 1;
+    const currentYear = currentDate.getFullYear();
+    
+    let monthStart, monthEnd;
+    
+    // Adjust for current year vs past years
+    const maxMonth = year < currentYear ? 12 : currentMonth;
+    
+    switch (period) {
+      case 'MTD':
+        // If specific month is provided, use it; otherwise use current/max month
+        if (month && month !== 'all') {
+          monthStart = month;
+          monthEnd = month;
+        } else if (month === 'all') {
+          monthStart = 1;
+          monthEnd = maxMonth;
+        } else {
+          monthStart = maxMonth;
+          monthEnd = maxMonth;
+        }
+        break;
+      case 'QTD':
+        // If specific quarter is provided, use it; otherwise use current quarter
+        let targetQuarter;
+        if (quarter && quarter !== 'all') {
+          targetQuarter = quarter;
+        } else if (quarter === 'all') {
+          monthStart = 1;
+          monthEnd = maxMonth;
+          break;
+        } else {
+          targetQuarter = Math.ceil(maxMonth / 3);
+        }
+        monthStart = (targetQuarter - 1) * 3 + 1;
+        monthEnd = Math.min(targetQuarter * 3, maxMonth);
+        break;
+      case 'YTD':
+      default:
+        monthStart = 1;
+        monthEnd = maxMonth;
+        break;
+    }
+    
+    return Object.entries(monthMap)
+      .filter(([name, num]) => num >= monthStart && num <= monthEnd)
+      .map(([name]) => name);
   }
 }
 

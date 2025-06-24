@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Users, Award, TrendingUp, Loader2 } from 'lucide-react'
+import { Users, Award, TrendingUp, Loader2, Trophy, Star, Crown } from 'lucide-react'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
 import PeriodFilter from '../components/filters/PeriodFilter'
 import { useFilter } from '../contexts/FilterContext'
@@ -11,6 +11,7 @@ const Customers = () => {
   const [error, setError] = useState(null)
   const [customers, setCustomers] = useState([])
   const [customerAchievement, setCustomerAchievement] = useState([])
+  const [serviceBreakdown, setServiceBreakdown] = useState([])
   const [selectedCustomer, setSelectedCustomer] = useState(null)
 
   useEffect(() => {
@@ -19,7 +20,7 @@ const Customers = () => {
       setError(null)
       
       try {
-        const [customersData, achievementData] = await Promise.all([
+        const [customersData, achievementData, breakdownData] = await Promise.all([
           dataService.getCustomerData(
             periodFilter.year, 
             periodFilter.period,
@@ -31,11 +32,18 @@ const Customers = () => {
             periodFilter.period,
             periodFilter.month,
             periodFilter.quarter
+          ),
+          dataService.getCustomerServiceBreakdown(
+            periodFilter.year, 
+            periodFilter.period,
+            periodFilter.month,
+            periodFilter.quarter
           )
         ])
         
         setCustomers(customersData)
         setCustomerAchievement(achievementData)
+        setServiceBreakdown(breakdownData)
         
         // Set first customer as selected by default
         if (customersData.length > 0 && !selectedCustomer) {
@@ -94,27 +102,110 @@ const Customers = () => {
       <div className="dashboard-card">
         <h2 className="section-title">Top Customers by Revenue</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {sortedCustomers.slice(0, 3).map((customer, index) => (
-            <div key={customer.customer} className="bg-secondary-pale rounded-lg p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center space-x-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white font-bold ${
-                    index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : 'bg-orange-600'
-                  }`}>
-                    {index + 1}
+          {sortedCustomers.slice(0, 3).map((customer, index) => {
+            // Calculate total revenue for percentage
+            const totalRevenue = sortedCustomers.reduce((sum, c) => sum + c.revenue, 0);
+            const revenuePercentage = ((customer.revenue / totalRevenue) * 100).toFixed(1);
+            
+            return (
+              <div key={customer.customer} className="relative overflow-hidden rounded-lg bg-secondary-pale p-4 border border-secondary-light/50 hover:shadow-md transition-all">
+                {/* Decorative gradient overlay */}
+                <div className={`absolute top-0 right-0 w-20 h-20 rounded-full -mr-10 -mt-10 ${
+                  index === 0 ? 'bg-primary-light/20' : 
+                  index === 1 ? 'bg-accent-blue/10' : 
+                  'bg-accent-coral/10'
+                }`}></div>
+                
+                <div className="relative">
+                  {/* Ranking Badge and Icon */}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <div className={`w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border ${
+                        index === 0 ? 'border-primary-light/50' : 
+                        index === 1 ? 'border-accent-blue/20' : 
+                        'border-accent-coral/20'
+                      }`}>
+                        {index === 0 ? <Crown className="w-5 h-5 text-primary" /> :
+                         index === 1 ? <Trophy className="w-5 h-5 text-accent-blue" /> :
+                         <Star className="w-5 h-5 text-accent-coral" />}
+                      </div>
+                      <div>
+                        <p className={`text-xs font-bold uppercase tracking-wider ${
+                          index === 0 ? 'text-primary' : 
+                          index === 1 ? 'text-accent-blue' : 
+                          'text-accent-coral'
+                        }`}>
+                          {index === 0 ? '1st' : index === 1 ? '2nd' : '3rd'}
+                        </p>
+                        <h3 className="text-sm font-bold text-neutral-dark">{customer.customer}</h3>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="font-semibold text-neutral-dark">{customer.customer}</h3>
+
+                  {/* Revenue Information */}
+                  <div className="space-y-2">
+                    <div>
+                      <div className="flex items-baseline justify-between">
+                        <p className="text-xs font-semibold text-neutral-mid uppercase tracking-wide">Revenue</p>
+                        <div className="flex items-baseline gap-1">
+                          <p className="text-xs text-neutral-mid">Share:</p>
+                          <p className="text-sm font-bold text-primary">{revenuePercentage}%</p>
+                        </div>
+                      </div>
+                      <p className="text-xl font-bold text-neutral-dark mt-1">
+                        {formatCurrency(customer.revenue)}
+                      </p>
+                    </div>
+                    
+                    {/* Achievement with Progress Bar */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-xs font-semibold text-neutral-mid uppercase tracking-wide">Achievement</p>
+                        <p className="text-xs font-bold text-primary-dark">
+                          {formatPercentage(customer.achievement)}
+                        </p>
+                      </div>
+                      <div className="h-1.5 bg-secondary-light rounded-full overflow-hidden">
+                        <div 
+                          className="h-full rounded-full transition-all"
+                          style={{ 
+                            width: `${Math.min(customer.achievement, 100)}%`,
+                            backgroundColor: '#721548'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Service Revenue Breakdown */}
+                    <div className="pt-2 border-t border-secondary-light">
+                      {(() => {
+                        const breakdown = serviceBreakdown.find(sb => sb.customer === customer.customer);
+                        if (breakdown) {
+                          return (
+                            <div className="space-y-1">
+                              {breakdown.transportation > 0 && (
+                                <div className="flex justify-between items-center">
+                                  <p className="text-xs text-neutral-mid">Transportation:</p>
+                                  <p className="text-xs font-semibold text-neutral-dark">{formatCurrency(breakdown.transportation)}</p>
+                                </div>
+                              )}
+                              {breakdown.warehouses > 0 && (
+                                <div className="flex justify-between items-center">
+                                  <p className="text-xs text-neutral-mid">Warehouses:</p>
+                                  <p className="text-xs font-semibold text-neutral-dark">{formatCurrency(breakdown.warehouses)}</p>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        }
+                        return <p className="text-xs text-neutral-mid">No service data</p>;
+                      })()}
+                    </div>
+                  </div>
                 </div>
-                <Award className={`w-5 h-5 ${
-                  index === 0 ? 'text-yellow-500' : index === 1 ? 'text-gray-400' : 'text-orange-600'
-                }`} />
               </div>
-              <div className="space-y-1">
-                <p className="text-sm text-neutral-mid">Revenue: {formatCurrency(customer.revenue)}</p>
-                <p className="text-sm text-neutral-mid">Achievement: {formatPercentage(customer.achievement)}</p>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -257,7 +348,8 @@ const Customers = () => {
                 <th>Revenue</th>
                 <th>Target</th>
                 <th>Achievement %</th>
-                <th>Services</th>
+                <th>Transportation Revenue</th>
+                <th>Warehouses Revenue</th>
                 <th>Profit Margin</th>
               </tr>
             </thead>
@@ -280,7 +372,18 @@ const Customers = () => {
                       {formatPercentage(customer.achievement)}
                     </span>
                   </td>
-                  <td>{customer.services.join(', ')}</td>
+                  <td>
+                    {(() => {
+                      const breakdown = serviceBreakdown.find(sb => sb.customer === customer.customer);
+                      return breakdown?.transportation > 0 ? formatCurrency(breakdown.transportation) : '-';
+                    })()}
+                  </td>
+                  <td>
+                    {(() => {
+                      const breakdown = serviceBreakdown.find(sb => sb.customer === customer.customer);
+                      return breakdown?.warehouses > 0 ? formatCurrency(breakdown.warehouses) : '-';
+                    })()}
+                  </td>
                   <td className="text-center">{formatPercentage(customer.profitMargin)}</td>
                 </tr>
               ))}
