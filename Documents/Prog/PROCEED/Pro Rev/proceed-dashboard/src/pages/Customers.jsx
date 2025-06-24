@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Users, Award, TrendingUp, Loader2, Trophy, Star, Crown } from 'lucide-react'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
-import PeriodFilter from '../components/filters/PeriodFilter'
+import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { useFilter } from '../contexts/FilterContext'
 import dataService from '../services/dataService'
 
@@ -91,7 +91,7 @@ const Customers = () => {
   return (
     <div className="space-y-6">
       {/* Period Filter */}
-      <PeriodFilter />
+      <StickyPeriodFilter />
       
       <div>
         <h1 className="text-3xl font-bold text-primary-dark tracking-tight">Customer Performance</h1>
@@ -165,7 +165,7 @@ const Customers = () => {
                           {formatPercentage(customer.achievement)}
                         </p>
                       </div>
-                      <div className="h-1.5 bg-secondary-light rounded-full overflow-hidden">
+                      <div className="h-1.5 bg-neutral-light/50 rounded-full overflow-hidden">
                         <div 
                           className="h-full rounded-full transition-all"
                           style={{ 
@@ -274,7 +274,7 @@ const Customers = () => {
                   
                   {/* Achievement Progress Bar */}
                   <div className={`h-1 rounded-full overflow-hidden ${
-                    selectedCustomer === customer.customer ? 'bg-white/30' : 'bg-secondary-light'
+                    selectedCustomer === customer.customer ? 'bg-white/20' : 'bg-neutral-light/50'
                   }`}>
                     <div 
                       className={`h-full rounded-full transition-all ${

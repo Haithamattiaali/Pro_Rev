@@ -4,8 +4,8 @@ import { formatPercentage, formatCurrency } from '../../utils/formatters'
 
 const GaugeChart = ({ value, title, targetAmount = 0, currentAmount = 0 }) => {
   const data = [
-    { value: value },
-    { value: 100 - value }
+    { value: Math.min(value, 100) },
+    { value: Math.max(0, 100 - value) }
   ]
 
   const getColor = () => {
@@ -41,9 +41,14 @@ const GaugeChart = ({ value, title, targetAmount = 0, currentAmount = 0 }) => {
             {formatPercentage(100 - value)} to go • {formatCurrency(targetAmount - currentAmount)}
           </p>
         )}
-        {value >= 100 && (
+        {value >= 100 && value <= 100 && (
           <p className="text-xs text-green-600 mt-0 font-semibold">
             Target Achieved!
+          </p>
+        )}
+        {value > 100 && (
+          <p className="text-xs text-green-600 mt-0 font-semibold">
+            Target Exceeded by {formatPercentage(value - 100)} • +{formatCurrency(currentAmount - targetAmount)}
           </p>
         )}
       </div>

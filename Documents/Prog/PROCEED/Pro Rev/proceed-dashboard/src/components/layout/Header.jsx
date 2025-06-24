@@ -10,7 +10,7 @@ const Header = () => {
       <div className="px-6 py-4 flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-primary-dark tracking-tight">Revenue Performance Dashboard</h2>
-          <p className="text-sm text-neutral-mid mt-1">Real-time insights for strategic decision making</p>
+          <p className="text-sm text-neutral-mid mt-1">Insights for strategic decision making</p>
         </div>
         
         <div className="flex items-center space-x-4">

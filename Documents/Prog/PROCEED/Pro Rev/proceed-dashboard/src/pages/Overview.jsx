@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Banknote, Target, TrendingUp, Percent, Loader2, Truck, Warehouse } from 'lucide-react'
 import MetricCard from '../components/cards/MetricCard'
 import GaugeChart from '../components/charts/GaugeChart'
-import PeriodFilter from '../components/filters/PeriodFilter'
+import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
 import { useFilter } from '../contexts/FilterContext'
 import dataService from '../services/dataService'
@@ -64,7 +64,7 @@ const Overview = () => {
   return (
     <div className="space-y-6">
       {/* Period Filter */}
-      <PeriodFilter />
+      <StickyPeriodFilter />
       
       <div>
         <h1 className="text-3xl font-bold text-primary-dark tracking-tight">
@@ -212,23 +212,38 @@ const Overview = () => {
             </div>
           </div>
 
-          {/* To Go */}
+          {/* To Go / Over Achievement */}
           <div className="relative overflow-hidden rounded-lg bg-secondary-pale p-6 border border-secondary-light/50 hover:shadow-md transition-all">
-            <div className="absolute top-0 right-0 w-20 h-20 bg-accent-coral/10 rounded-full -mr-10 -mt-10"></div>
+            <div className={`absolute top-0 right-0 w-20 h-20 rounded-full -mr-10 -mt-10 ${
+              overview.achievement >= 100 ? 'bg-green-100/30' : 'bg-accent-coral/10'
+            }`}></div>
             <div className="relative">
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-accent-coral/20">
-                  <TrendingUp className="w-5 h-5 text-accent-coral" />
+                <div className={`w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border ${
+                  overview.achievement >= 100 ? 'border-green-200' : 'border-accent-coral/20'
+                }`}>
+                  <TrendingUp className={`w-5 h-5 ${
+                    overview.achievement >= 100 ? 'text-green-600' : 'text-accent-coral'
+                  }`} />
                 </div>
-                <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">To Go</p>
+                <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">
+                  {overview.achievement >= 100 ? 'Over Achievement' : 'To Go'}
+                </p>
               </div>
               <p className="text-3xl font-bold text-neutral-dark">
-                {formatCurrency(Math.max(0, overview.target - overview.revenue))}
+                {overview.achievement >= 100 
+                  ? `+${formatCurrency(overview.revenue - overview.target)}`
+                  : formatCurrency(overview.target - overview.revenue)
+                }
               </p>
-              <p className="text-xs text-neutral-mid mt-1">
+              <p className={`text-xs mt-1 ${
+                overview.achievement >= 100 ? 'text-green-600 font-semibold' : 'text-neutral-mid'
+              }`}>
                 {overview.achievement < 100 
                   ? `${formatPercentage(100 - overview.achievement)} remaining`
-                  : 'Target Achieved!'
+                  : overview.achievement === 100
+                  ? 'Target Achieved!'
+                  : `Exceeded by ${formatPercentage(overview.achievement - 100)}`
                 }
               </p>
             </div>

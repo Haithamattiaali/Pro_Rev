@@ -1,14 +1,45 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
 import { LayoutDashboard, Building2, Users, TrendingUp } from 'lucide-react'
+import { useFilter } from '../../contexts/FilterContext'
 
 const navItems = [
-  { path: '/overview', label: 'Overview', icon: LayoutDashboard },
-  { path: '/business-units', label: 'Business Units', icon: Building2 },
-  { path: '/customers', label: 'Customers', icon: Users },
+  { path: '/overview', label: 'Executive Overview', icon: LayoutDashboard },
+  { path: '/business-units', label: 'Business Units Performance', icon: Building2 },
+  { path: '/customers', label: 'Customer Performance', icon: Users },
 ]
 
 const Sidebar = () => {
+  const { periodFilter } = useFilter()
+  
+  // Create dynamic period prefix
+  const getPeriodPrefix = () => {
+    const { period, month, quarter, year } = periodFilter
+    
+    switch (period) {
+      case 'MTD':
+        if (month && month !== 'all') {
+          return `${month} ${year}`
+        } else if (month === 'all') {
+          return `Full Year ${year}`
+        } else {
+          return `MTD ${year}`
+        }
+      case 'QTD':
+        if (quarter && quarter !== 'all') {
+          return `Q${quarter} ${year}`
+        } else if (quarter === 'all') {
+          return `Full Year ${year}`
+        } else {
+          return `QTD ${year}`
+        }
+      case 'YTD':
+      default:
+        return `YTD ${year}`
+    }
+  }
+  
+  const periodPrefix = getPeriodPrefix()
   return (
     <aside className="w-64 bg-white shadow-lg">
       <div className="p-6">
@@ -24,6 +55,9 @@ const Sidebar = () => {
       </div>
       
       <nav className="px-4 pb-6">
+        <div className="mb-4 px-4">
+          <p className="text-xs font-semibold text-neutral-mid uppercase tracking-wider">{periodPrefix}</p>
+        </div>
         {navItems.map((item) => {
           const Icon = item.icon
           return (
@@ -38,7 +72,7 @@ const Sidebar = () => {
                 }`
               }
             >
-              <Icon className="w-5 h-5" />
+              <Icon className="w-5 h-5 flex-shrink-0" />
               <span className="font-medium">{item.label}</span>
             </NavLink>
           )

@@ -111,6 +111,49 @@ class PersistentDatabase {
       this.db = null;
     }
   }
+
+  // Check if database is connected
+  isConnected() {
+    try {
+      if (!this.db) return false;
+      // Test connection with a simple query
+      this.db.prepare('SELECT 1').get();
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  // Reconnect to database
+  async reconnect() {
+    console.log('Reconnecting to database...');
+    try {
+      // Close existing connection if any
+      if (this.db) {
+        try {
+          this.db.close();
+        } catch (error) {
+          console.error('Error closing database:', error);
+        }
+      }
+      
+      // Re-initialize connection
+      this.initializeDatabase();
+      console.log('Database reconnected successfully');
+    } catch (error) {
+      console.error('Failed to reconnect to database:', error);
+      throw error;
+    }
+  }
+
+  // Get database instance with connection check
+  getDatabase() {
+    if (!this.db || !this.isConnected()) {
+      console.log('Database connection lost, attempting to reconnect...');
+      this.initializeDatabase();
+    }
+    return this.db;
+  }
 }
 
 // Export singleton instance

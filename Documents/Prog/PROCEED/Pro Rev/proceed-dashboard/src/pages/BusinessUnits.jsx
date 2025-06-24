@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Truck, Package, Loader2, Users, TrendingUp, FileText } from 'lucide-react'
 import { formatCurrency, formatPercentage, getAchievementStatus, getGrossProfitStatus } from '../utils/formatters'
 import BusinessUnitBarChart from '../components/charts/BusinessUnitBarChart'
-import PeriodFilter from '../components/filters/PeriodFilter'
+import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { useFilter } from '../contexts/FilterContext'
 import dataService from '../services/dataService'
 
@@ -87,7 +87,7 @@ const BusinessUnits = () => {
   return (
     <div className="space-y-6">
       {/* Period Filter */}
-      <PeriodFilter />
+      <StickyPeriodFilter />
       
       <div>
         <h1 className="text-3xl font-bold text-primary-dark tracking-tight">Business Units Performance</h1>
