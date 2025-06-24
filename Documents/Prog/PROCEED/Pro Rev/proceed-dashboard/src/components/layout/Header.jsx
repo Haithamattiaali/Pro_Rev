@@ -1,6 +1,6 @@
 import React from 'react'
 import { format } from 'date-fns'
-import { Calendar, RefreshCw } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 
 const Header = () => {
   const currentDate = format(new Date(), 'MMMM dd, yyyy')
@@ -13,16 +13,9 @@ const Header = () => {
           <p className="text-sm text-neutral-mid mt-1">Insights for strategic decision making</p>
         </div>
         
-        <div className="flex items-center space-x-4">
-          <div className="flex items-center space-x-2 text-neutral-mid">
-            <Calendar className="w-4 h-4" />
-            <span className="text-sm font-medium">{currentDate}</span>
-          </div>
-          
-          <button className="flex items-center space-x-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors">
-            <RefreshCw className="w-4 h-4" />
-            <span className="text-sm font-semibold">Refresh Data</span>
-          </button>
+        <div className="flex items-center space-x-2 text-neutral-mid">
+          <Calendar className="w-4 h-4" />
+          <span className="text-sm font-medium">{currentDate}</span>
         </div>
       </div>
     </header>

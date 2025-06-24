@@ -10,11 +10,18 @@ import dataService from '../services/dataService'
 const BusinessUnits = () => {
   const [selectedUnit, setSelectedUnit] = useState('Transportation')
   const { periodFilter } = useFilter()
-  const { refreshTrigger } = useDataRefresh()
+  const { refreshTrigger, triggerRefresh } = useDataRefresh()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [businessUnits, setBusinessUnits] = useState([])
   const [monthlyTrends, setMonthlyTrends] = useState([])
+
+  const handleRetry = async () => {
+    await triggerRefresh({
+      showNotification: false,
+      message: 'Retrying data fetch...'
+    });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -58,7 +65,7 @@ const BusinessUnits = () => {
       <div className="text-center py-12">
         <p className="text-red-600">{error}</p>
         <button 
-          onClick={() => window.location.reload()} 
+          onClick={handleRetry} 
           className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
         >
           Retry

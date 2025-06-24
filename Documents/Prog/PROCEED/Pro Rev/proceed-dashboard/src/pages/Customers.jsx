@@ -8,13 +8,20 @@ import dataService from '../services/dataService'
 
 const Customers = () => {
   const { periodFilter } = useFilter()
-  const { refreshTrigger } = useDataRefresh()
+  const { refreshTrigger, triggerRefresh } = useDataRefresh()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [customers, setCustomers] = useState([])
   const [customerAchievement, setCustomerAchievement] = useState([])
   const [serviceBreakdown, setServiceBreakdown] = useState([])
   const [selectedCustomer, setSelectedCustomer] = useState(null)
+
+  const handleRetry = async () => {
+    await triggerRefresh({
+      showNotification: false,
+      message: 'Retrying data fetch...'
+    });
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,7 +82,7 @@ const Customers = () => {
       <div className="text-center py-12">
         <p className="text-red-600">{error}</p>
         <button 
-          onClick={() => window.location.reload()} 
+          onClick={handleRetry} 
           className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
         >
           Retry
