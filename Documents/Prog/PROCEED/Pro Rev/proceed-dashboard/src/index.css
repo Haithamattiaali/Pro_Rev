@@ -1,0 +1,63 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-neutral-light text-neutral-dark;
+  }
+}
+
+@layer components {
+  .dashboard-card {
+    @apply bg-white rounded-lg shadow-sm border border-secondary-pale p-6 transition-shadow hover:shadow-md;
+  }
+
+  .metric-value {
+    @apply text-3xl font-bold text-primary tracking-tighter;
+  }
+
+  .metric-label {
+    @apply text-sm font-semibold text-neutral-mid uppercase tracking-wider;
+  }
+
+  .section-title {
+    @apply text-2xl font-bold text-primary-dark mb-6 tracking-tight;
+  }
+
+  .data-table {
+    @apply w-full border-collapse;
+  }
+
+  .data-table th {
+    @apply text-left px-4 py-3 bg-secondary-pale text-secondary font-semibold text-sm uppercase tracking-wider;
+  }
+
+  .data-table td {
+    @apply px-4 py-3 border-b border-secondary-pale;
+  }
+
+  .data-table tr:hover {
+    @apply bg-neutral-light;
+  }
+
+  .achievement-badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold;
+  }
+
+  .achievement-high {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .achievement-medium {
+    @apply bg-yellow-100 text-yellow-800;
+  }
+
+  .achievement-low {
+    @apply bg-red-100 text-red-800;
+  }
+}
