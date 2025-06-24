@@ -24,7 +24,7 @@ export const DataRefreshProvider = ({ children }) => {
       duration = 3000 
     } = options
 
-    console.log('🔄 DataRefreshContext: Triggering global data refresh...')
+    console.log('🔄 Triggering data refresh...')
     setRefreshing(true)
     
     // Clear the data service cache to force fresh API calls
@@ -33,21 +33,15 @@ export const DataRefreshProvider = ({ children }) => {
     // Update both trigger and timestamp
     const refreshTime = Date.now()
     setLastRefreshTime(refreshTime)
-    setRefreshTrigger(prev => {
-      const newValue = prev + 1
-      console.log('🔄 DataRefreshContext: Refresh trigger updated:', prev, '->', newValue, 'at', new Date(refreshTime).toLocaleTimeString())
-      return newValue
-    })
+    setRefreshTrigger(prev => prev + 1)
     
     // Show notification if requested
     if (showNotification) {
-      // You could integrate with a toast notification system here
-      console.log('📢 DataRefreshContext:', message)
+      console.log('📢', message)
     }
     
     // Small delay to ensure all components have time to start their refresh
     setTimeout(() => {
-      console.log('🔄 DataRefreshContext: Refresh completed')
       setRefreshing(false)
     }, 1000)
     

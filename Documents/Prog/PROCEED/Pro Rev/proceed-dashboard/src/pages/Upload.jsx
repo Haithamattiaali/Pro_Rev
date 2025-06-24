@@ -88,13 +88,11 @@ const Upload = () => {
       if (fileInput) fileInput.value = ''
       
       // Trigger global data refresh to update all dashboard components
-      console.log('📤 Upload: Triggering refresh after successful upload');
       await triggerRefresh({
         showNotification: true,
         message: `Upload successful! Updated ${result.updated} records, added ${result.inserted} new records.`,
         duration: 4000
       })
-      console.log('📤 Upload: Refresh trigger completed');
       
     } catch (err) {
       console.error('Upload error:', err)
@@ -256,14 +254,6 @@ const Upload = () => {
                 {uploadResult.errors > 0 && (
                   <p className="text-amber-600">Errors: {uploadResult.errors}</p>
                 )}
-              </div>
-              <div className="mt-3">
-                <button 
-                  onClick={() => triggerRefresh({ showNotification: true, message: 'Manual refresh triggered from upload' })}
-                  className="px-3 py-1 text-xs bg-primary text-white rounded hover:bg-primary-dark"
-                >
-                  Test Manual Refresh
-                </button>
               </div>
             </div>
           )}

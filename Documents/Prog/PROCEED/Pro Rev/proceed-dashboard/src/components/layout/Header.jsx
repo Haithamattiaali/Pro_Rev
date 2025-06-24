@@ -36,13 +36,6 @@ const Header = () => {
             )}
           </div>
           
-          {/* Manual Test Refresh Button - Temporary for debugging */}
-          <button 
-            onClick={() => triggerRefresh({ showNotification: true, message: 'Manual refresh triggered' })}
-            className="px-3 py-1 text-xs bg-secondary text-white rounded hover:bg-secondary-light"
-          >
-            Test Refresh
-          </button>
         </div>
       </div>
     </header>
