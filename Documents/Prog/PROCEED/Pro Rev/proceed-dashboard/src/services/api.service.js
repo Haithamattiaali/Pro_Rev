@@ -76,16 +76,13 @@ class ApiService {
     const formData = new FormData();
     formData.append('file', file);
 
-    const response = await fetch(`${API_BASE_URL}/upload`, {
+    return this.request('/upload', {
       method: 'POST',
       body: formData,
+      headers: {
+        // Don't set Content-Type - let browser set it for FormData
+      }
     });
-
-    if (!response.ok) {
-      throw new Error(`Upload Error: ${response.statusText}`);
-    }
-
-    return await response.json();
   }
 
   // Health check

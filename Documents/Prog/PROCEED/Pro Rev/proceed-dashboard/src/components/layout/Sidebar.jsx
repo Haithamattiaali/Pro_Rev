@@ -1,12 +1,16 @@
 import React from 'react'
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, Building2, Users, TrendingUp } from 'lucide-react'
+import { LayoutDashboard, Building2, Users, TrendingUp, Upload } from 'lucide-react'
 import { useFilter } from '../../contexts/FilterContext'
 
 const navItems = [
   { path: '/overview', label: 'Executive Overview', icon: LayoutDashboard },
   { path: '/business-units', label: 'Business Units Performance', icon: Building2 },
   { path: '/customers', label: 'Customer Performance', icon: Users },
+]
+
+const utilityItems = [
+  { path: '/upload', label: 'Data Upload', icon: Upload },
 ]
 
 const Sidebar = () => {
@@ -68,6 +72,33 @@ const Sidebar = () => {
                 `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors mb-2 ${
                   isActive
                     ? 'bg-primary text-white'
+                    : 'text-neutral-dark hover:bg-secondary-pale'
+                }`
+              }
+            >
+              <Icon className="w-5 h-5 flex-shrink-0" />
+              <span className="font-medium">{item.label}</span>
+            </NavLink>
+          )
+        })}
+        
+        {/* Divider and Utility Section */}
+        <div className="my-6 px-4">
+          <div className="border-t border-neutral-light"></div>
+        </div>
+        <div className="mb-4 px-4">
+          <p className="text-xs font-semibold text-neutral-mid uppercase tracking-wider">Management</p>
+        </div>
+        {utilityItems.map((item) => {
+          const Icon = item.icon
+          return (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              className={({ isActive }) =>
+                `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors mb-2 ${
+                  isActive
+                    ? 'bg-accent-blue text-white'
                     : 'text-neutral-dark hover:bg-secondary-pale'
                 }`
               }
