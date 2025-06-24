@@ -1,9 +1,11 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
 const etlService = require('./services/etl.service');
 const dataService = require('./services/data.service');
+const db = require('./database/db-wrapper');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -158,8 +160,23 @@ app.get('/api/years', async (req, res) => {
 });
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+  try {
+    // Test database connection
+    await db.get('SELECT 1 as test');
+    res.json({ 
+      status: 'OK', 
+      timestamp: new Date().toISOString(),
+      database: 'connected'
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'ERROR', 
+      timestamp: new Date().toISOString(),
+      database: 'disconnected',
+      error: error.message
+    });
+  }
 });
 
 // Error handling middleware

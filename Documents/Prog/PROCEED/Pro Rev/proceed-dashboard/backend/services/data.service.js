@@ -1,4 +1,4 @@
-const db = require('../database/connection');
+const db = require('../database/db-wrapper');
 
 class DataService {
   constructor() {
@@ -7,14 +7,6 @@ class DataService {
       'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8,
       'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
     };
-    this.initialized = false;
-  }
-
-  async initialize() {
-    if (!this.initialized) {
-      await db.connect();
-      this.initialized = true;
-    }
   }
 
   getPeriodMonths(year, period, month = null, quarter = null) {
@@ -69,8 +61,6 @@ class DataService {
   }
 
   async getOverviewData(year, period, month = null, quarter = null) {
-    await this.initialize();
-    
     const months = this.getPeriodMonths(year, period, month, quarter);
     const placeholders = months.map(() => '?').join(',');
     
@@ -132,8 +122,6 @@ class DataService {
   }
 
   async getBusinessUnitData(year, period, month = null, quarter = null) {
-    await this.initialize();
-    
     const months = this.getPeriodMonths(year, period, month, quarter);
     const placeholders = months.map(() => '?').join(',');
     
@@ -165,8 +153,6 @@ class DataService {
   }
 
   async getCustomerData(year, period, month = null, quarter = null) {
-    await this.initialize();
-    
     const months = this.getPeriodMonths(year, period, month, quarter);
     const placeholders = months.map(() => '?').join(',');
     
@@ -200,8 +186,6 @@ class DataService {
   }
 
   async getMonthlyTrends(year) {
-    await this.initialize();
-    
     const sql = `
       SELECT 
         month,
@@ -225,8 +209,6 @@ class DataService {
   }
 
   async getCustomerAchievement(year, period, month = null, quarter = null) {
-    await this.initialize();
-    
     const months = this.getPeriodMonths(year, period, month, quarter);
     const placeholders = months.map(() => '?').join(',');
     
@@ -280,8 +262,6 @@ class DataService {
   }
 
   async getAvailableYears() {
-    await this.initialize();
-    
     const sql = `
       SELECT DISTINCT year 
       FROM revenue_data 

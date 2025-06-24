@@ -1,5 +1,5 @@
 const xlsx = require('xlsx');
-const db = require('../database/connection');
+const db = require('../database/db-wrapper');
 const fs = require('fs').promises;
 
 class ETLService {
@@ -41,8 +41,6 @@ class ETLService {
   }
 
   async insertData(data) {
-    await db.connect();
-    
     let inserted = 0;
     let updated = 0;
     let errors = 0;
