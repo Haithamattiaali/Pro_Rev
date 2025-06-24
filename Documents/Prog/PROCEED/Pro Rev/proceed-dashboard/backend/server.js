@@ -20,13 +20,35 @@ const corsOptions = {
       'http://localhost:5173',
       'http://localhost:5174',
       'http://localhost:3000',
-      'http://127.0.0.1:5173'
+      'http://127.0.0.1:5173',
+      'https://proceed-revenue-dashboard-1750804938.netlify.app',
+      'https://*.netlify.app' // Allow all Netlify preview URLs
     ];
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
+    // In production, be more permissive
+    if (process.env.NODE_ENV === 'production') {
+      // Allow any HTTPS origin in production
+      if (origin && origin.startsWith('https://')) {
+        callback(null, true);
+      } else {
+        callback(null, true); // Allow non-browser requests
+      }
     } else {
-      callback(new Error('Not allowed by CORS'));
+      // Development: Check against allowed origins
+      const isAllowed = allowedOrigins.some(allowed => {
+        if (allowed.includes('*')) {
+          // Handle wildcard
+          const pattern = new RegExp(allowed.replace('*', '.*'));
+          return pattern.test(origin);
+        }
+        return allowed === origin;
+      });
+      
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
     }
   },
   credentials: true,
@@ -37,6 +59,9 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
 
 // Security headers
 app.use((req, res, next) => {
@@ -55,8 +80,9 @@ app.use(requestTimeout(30000)); // 30 second timeout
 app.use('/api', ensureConnection); // Ensure DB connection for all API routes
 
 // Configure multer for file uploads
+const uploadDir = process.env.NODE_ENV === 'production' ? '/var/data/uploads' : 'uploads/';
 const upload = multer({
-  dest: 'uploads/',
+  dest: uploadDir,
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     if (ext === '.xlsx' || ext === '.xls') {
