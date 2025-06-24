@@ -10,50 +10,25 @@ const db = require('./database/db-wrapper');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Enhanced CORS configuration
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    const allowedOrigins = [
-      'http://localhost:5173',
-      'http://localhost:5174',
-      'http://localhost:3000',
-      'http://127.0.0.1:5173',
-      'https://proceed-revenue-dashboard-1750804938.netlify.app',
-      'https://*.netlify.app' // Allow all Netlify preview URLs
-    ];
-    
-    // In production, be more permissive
-    if (process.env.NODE_ENV === 'production') {
-      // Allow any HTTPS origin in production
-      if (origin && origin.startsWith('https://')) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Allow non-browser requests
-      }
-    } else {
-      // Development: Check against allowed origins
-      const isAllowed = allowedOrigins.some(allowed => {
-        if (allowed.includes('*')) {
-          // Handle wildcard
-          const pattern = new RegExp(allowed.replace('*', '.*'));
-          return pattern.test(origin);
-        }
-        return allowed === origin;
-      });
-      
-      if (isAllowed) {
-        callback(null, true);
-      } else {
-        callback(new Error('Not allowed by CORS'));
-      }
+// Simple CORS configuration for production
+const corsOptions = process.env.NODE_ENV === 'production' 
+  ? {
+      origin: true, // Allow all origins in production
+      credentials: true,
+      optionsSuccessStatus: 200,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization']
     }
-  },
-  credentials: true,
-  optionsSuccessStatus: 200
-};
+  : {
+      origin: [
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:3000',
+        'http://127.0.0.1:5173'
+      ],
+      credentials: true,
+      optionsSuccessStatus: 200
+    };
 
 // Middleware
 app.use(cors(corsOptions));
@@ -94,6 +69,16 @@ const upload = multer({
 });
 
 // API Routes
+
+// Test endpoint
+app.get('/api/test', (req, res) => {
+  res.json({ 
+    message: 'Backend is working!',
+    cors: 'CORS is configured',
+    origin: req.headers.origin || 'No origin header',
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Upload and process Excel file
 app.post('/api/upload', upload.single('file'), async (req, res) => {
