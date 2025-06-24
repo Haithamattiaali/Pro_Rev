@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
-import { Truck, Package, Loader2 } from 'lucide-react'
+import { Truck, Package, Loader2, Users, TrendingUp, FileText } from 'lucide-react'
 import { formatCurrency, formatPercentage, getAchievementStatus, getGrossProfitStatus } from '../utils/formatters'
-import PeriodComparisonChart from '../components/charts/PeriodComparisonChart'
+import BusinessUnitBarChart from '../components/charts/BusinessUnitBarChart'
 import PeriodFilter from '../components/filters/PeriodFilter'
 import { useFilter } from '../contexts/FilterContext'
 import dataService from '../services/dataService'
@@ -27,7 +27,7 @@ const BusinessUnits = () => {
             periodFilter.month,
             periodFilter.quarter
           ),
-          dataService.getMonthlyTrends(periodFilter.year)
+          dataService.getMonthlyTrends(periodFilter.year, selectedUnit)
         ])
         
         setBusinessUnits(unitsData)
@@ -41,7 +41,7 @@ const BusinessUnits = () => {
     }
 
     fetchData()
-  }, [periodFilter])
+  }, [periodFilter, selectedUnit])
 
   if (loading) {
     return (
@@ -66,12 +66,23 @@ const BusinessUnits = () => {
   }
 
   const selectedUnitData = businessUnits.find(unit => unit.businessUnit === selectedUnit)
-  const unitMonthlyData = monthlyTrends.map(month => ({
-    ...month,
-    achievement: month.target > 0 ? (month.revenue / month.target) * 100 : 0,
-    grossProfit: month.revenue - month.cost,
-    grossProfitMargin: month.revenue > 0 ? ((month.revenue - month.cost) / month.revenue) * 100 : 0
-  }))
+  
+  // Filter monthly data based on period selection
+  const periodMonths = dataService.getPeriodMonths(
+    periodFilter.year, 
+    periodFilter.period, 
+    periodFilter.month, 
+    periodFilter.quarter
+  )
+  
+  const unitMonthlyData = monthlyTrends
+    .filter(month => periodMonths.includes(month.month))
+    .map(month => ({
+      ...month,
+      achievement: month.target > 0 ? (month.revenue / month.target) * 100 : 0,
+      grossProfit: month.revenue - month.cost,
+      grossProfitMargin: month.revenue > 0 ? ((month.revenue - month.cost) / month.revenue) * 100 : 0
+    }))
 
   return (
     <div className="space-y-6">
@@ -146,12 +157,12 @@ const BusinessUnits = () => {
         </div>
       )}
 
-      {/* Period Comparison Chart */}
+      {/* Monthly Performance Bar Chart */}
       <div className="dashboard-card">
-        <h2 className="section-title">Monthly Trends</h2>
-        <PeriodComparisonChart 
-          data={{ [selectedUnit]: unitMonthlyData }} 
-          serviceType={selectedUnit} 
+        <h2 className="section-title">Monthly Performance - {selectedUnit}</h2>
+        <BusinessUnitBarChart 
+          data={unitMonthlyData} 
+          title={`${dataService.getPeriodLabel(periodFilter.period)} Performance Analysis`}
         />
       </div>
 
@@ -209,21 +220,48 @@ const BusinessUnits = () => {
         <div className="dashboard-card">
           <h2 className="section-title">Key Metrics</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-primary-light/20 rounded-lg">
-              <p className="text-sm font-semibold text-neutral-mid uppercase">Customer Count</p>
-              <p className="text-3xl font-bold text-primary mt-2">{selectedUnitData.customerCount || 0}</p>
+            <div className="relative overflow-hidden rounded-lg bg-secondary-pale p-6 border border-secondary-light/50 hover:shadow-md transition-all">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-primary-light/20 rounded-full -mr-10 -mt-10"></div>
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-primary-light/50">
+                    <Users className="w-5 h-5 text-primary" />
+                  </div>
+                  <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Customer Count</p>
+                </div>
+                <p className="text-3xl font-bold text-neutral-dark">{selectedUnitData.customerCount || 0}</p>
+                <p className="text-xs text-neutral-mid mt-1">Active customers</p>
+              </div>
             </div>
-            <div className="text-center p-6 bg-accent-blue/20 rounded-lg">
-              <p className="text-sm font-semibold text-neutral-mid uppercase">Avg Revenue per Customer</p>
-              <p className="text-3xl font-bold text-accent-blue mt-2">
-                {formatCurrency(selectedUnitData.customerCount > 0 ? selectedUnitData.revenue / selectedUnitData.customerCount : 0)}
-              </p>
+            <div className="relative overflow-hidden rounded-lg bg-secondary-pale p-6 border border-secondary-light/50 hover:shadow-md transition-all">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-accent-blue/10 rounded-full -mr-10 -mt-10"></div>
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-accent-blue/20">
+                    <TrendingUp className="w-5 h-5 text-accent-blue" />
+                  </div>
+                  <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Avg Revenue per Customer</p>
+                </div>
+                <p className="text-3xl font-bold text-neutral-dark">
+                  {formatCurrency(selectedUnitData.customerCount > 0 ? selectedUnitData.revenue / selectedUnitData.customerCount : 0)}
+                </p>
+                <p className="text-xs text-neutral-mid mt-1">Per customer revenue</p>
+              </div>
             </div>
-            <div className="text-center p-6 bg-accent-coral/20 rounded-lg">
-              <p className="text-sm font-semibold text-neutral-mid uppercase">Receivables</p>
-              <p className="text-3xl font-bold text-accent-coral mt-2">
-                {formatCurrency(selectedUnitData.receivables)}
-              </p>
+            <div className="relative overflow-hidden rounded-lg bg-secondary-pale p-6 border border-secondary-light/50 hover:shadow-md transition-all">
+              <div className="absolute top-0 right-0 w-20 h-20 bg-accent-coral/10 rounded-full -mr-10 -mt-10"></div>
+              <div className="relative">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-accent-coral/20">
+                    <FileText className="w-5 h-5 text-accent-coral" />
+                  </div>
+                  <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Receivables</p>
+                </div>
+                <p className="text-3xl font-bold text-neutral-dark">
+                  {formatCurrency(selectedUnitData.receivables)}
+                </p>
+                <p className="text-xs text-neutral-mid mt-1">Outstanding amount</p>
+              </div>
             </div>
           </div>
         </div>

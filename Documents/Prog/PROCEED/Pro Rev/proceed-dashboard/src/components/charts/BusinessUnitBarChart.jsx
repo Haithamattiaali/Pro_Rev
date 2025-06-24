@@ -120,7 +120,7 @@ const BusinessUnitBarChart = ({ data, title = 'Monthly Performance' }) => {
       <ResponsiveContainer width="100%" height={400}>
         <BarChart 
           data={data} 
-          margin={{ top: 20, right: 30, left: 40, bottom: 60 }}
+          margin={{ top: 20, right: 80, left: 60, bottom: 60 }}
         >
           <CartesianGrid strokeDasharray="3 3" stroke="#e2e1e6" />
           <XAxis 
@@ -154,7 +154,7 @@ const BusinessUnitBarChart = ({ data, title = 'Monthly Performance' }) => {
             tick={{ fontSize: 12, fontWeight: 'bold' }}
             domain={[0, 120]}
             tickFormatter={(value) => `${Math.round(value)}%`}
-            label={{ value: 'Achievement %', angle: 90, position: 'insideRight', style: { fontSize: 14, fontWeight: 'bold' } }}
+            label={{ value: 'Achievement %', angle: 90, position: 'insideRight', offset: 10, style: { fontSize: 14, fontWeight: 'bold', textAnchor: 'middle' } }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend 
@@ -214,10 +214,10 @@ const BusinessUnitBarChart = ({ data, title = 'Monthly Performance' }) => {
           </p>
         </div>
         <div className="text-center p-3 bg-secondary-pale rounded-lg">
-          <p className="text-xs text-neutral-mid uppercase font-semibold">Avg Achievement</p>
+          <p className="text-xs text-neutral-mid uppercase font-semibold">Total Achievement</p>
           <p className="text-xl font-bold text-primary-dark mt-1">
             {formatPercentage(
-              data.reduce((sum, d) => sum + (d.achievement || 0), 0) / data.length
+              data.reduce((sum, d) => sum + (d.revenue || 0), 0) / data.reduce((sum, d) => sum + (d.target || 0), 0) * 100
             )}
           </p>
         </div>
