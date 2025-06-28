@@ -2,9 +2,9 @@ const Database = require('better-sqlite3');
 const path = require('path');
 const fs = require('fs');
 
-// Use /tmp for production if disk is not mounted
+// Use Render's persistent disk in production
 const DB_PATH = process.env.NODE_ENV === 'production' 
-  ? '/tmp/proceed_revenue.db'
+  ? '/var/data/proceed_revenue.db'
   : path.join(__dirname, 'proceed_revenue.db');
 const SCHEMA_PATH = path.join(__dirname, 'schema.sql');
 

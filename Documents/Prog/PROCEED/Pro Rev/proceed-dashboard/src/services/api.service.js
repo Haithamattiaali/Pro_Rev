@@ -103,6 +103,11 @@ class ApiService {
   async checkHealth() {
     return this.request('/health');
   }
+
+  // Get analysis period validation
+  async getAnalysisValidation(year) {
+    return this.request(`/analysis-validation/${year}`);
+  }
 }
 
 export default new ApiService();

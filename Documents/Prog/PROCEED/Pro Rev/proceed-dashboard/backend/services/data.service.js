@@ -61,7 +61,31 @@ class DataService {
   }
 
   async getOverviewData(year, period, month = null, quarter = null) {
-    const months = this.getPeriodMonths(year, period, month, quarter);
+    // Get validated months and validation info
+    const validatedData = await this.getValidatedPeriodMonths(year, period, month, quarter);
+    const months = validatedData.months;
+    
+    // If no valid months, return empty data with validation message
+    if (months.length === 0) {
+      return {
+        period,
+        year,
+        overview: {
+          revenue: 0,
+          target: 0,
+          cost: 0,
+          receivables: 0,
+          achievement: 0,
+          customerCount: 0,
+          serviceCount: 0,
+          profit: 0,
+          profitMargin: 0
+        },
+        serviceBreakdown: [],
+        validation: validatedData.validation
+      };
+    }
+    
     const placeholders = months.map(() => '?').join(',');
     
     const sql = `
@@ -117,12 +141,20 @@ class DataService {
           ? ((overview.total_revenue - overview.total_cost) / overview.total_revenue) * 100 
           : 0
       },
-      serviceBreakdown
+      serviceBreakdown,
+      validation: validatedData.validation
     };
   }
 
   async getBusinessUnitData(year, period, month = null, quarter = null) {
-    const months = this.getPeriodMonths(year, period, month, quarter);
+    // Get validated months
+    const validatedData = await this.getValidatedPeriodMonths(year, period, month, quarter);
+    const months = validatedData.months;
+    
+    if (months.length === 0) {
+      return [];
+    }
+    
     const placeholders = months.map(() => '?').join(',');
     
     const sql = `
@@ -153,7 +185,14 @@ class DataService {
   }
 
   async getCustomerData(year, period, month = null, quarter = null) {
-    const months = this.getPeriodMonths(year, period, month, quarter);
+    // Get validated months
+    const validatedData = await this.getValidatedPeriodMonths(year, period, month, quarter);
+    const months = validatedData.months;
+    
+    if (months.length === 0) {
+      return [];
+    }
+    
     const placeholders = months.map(() => '?').join(',');
     
     const sql = `
@@ -335,6 +374,123 @@ class DataService {
     
     const years = await db.all(sql);
     return years.map(row => row.year);
+  }
+
+  // Get analysis period validation for a specific year
+  async getAnalysisPeriodValidation(year) {
+    const sql = `
+      SELECT 
+        month,
+        COUNT(CASE WHEN revenue > 0 THEN 1 END) as has_revenue,
+        COUNT(CASE WHEN cost > 0 THEN 1 END) as has_cost,
+        COUNT(CASE WHEN target > 0 THEN 1 END) as has_target,
+        SUM(revenue) as total_revenue,
+        SUM(cost) as total_cost,
+        SUM(target) as total_target
+      FROM revenue_data
+      WHERE year = ?
+      GROUP BY month
+      ORDER BY 
+        CASE month
+          WHEN 'Jan' THEN 1 WHEN 'Feb' THEN 2 WHEN 'Mar' THEN 3
+          WHEN 'Apr' THEN 4 WHEN 'May' THEN 5 WHEN 'Jun' THEN 6
+          WHEN 'Jul' THEN 7 WHEN 'Aug' THEN 8 WHEN 'Sep' THEN 9
+          WHEN 'Oct' THEN 10 WHEN 'Nov' THEN 11 WHEN 'Dec' THEN 12
+        END
+    `;
+    
+    const monthsData = await db.all(sql, [year]);
+    
+    // Analyze which months have complete data (revenue, cost, and target)
+    const compliantMonths = [];
+    const nonCompliantMonths = [];
+    const missingDataDetails = {};
+    
+    monthsData.forEach(month => {
+      const isCompliant = month.has_revenue > 0 && month.has_cost > 0 && month.has_target > 0;
+      
+      if (isCompliant) {
+        compliantMonths.push(month.month);
+      } else {
+        nonCompliantMonths.push(month.month);
+        
+        const missing = [];
+        if (month.has_revenue === 0 || month.total_revenue === 0) missing.push('revenue');
+        if (month.has_cost === 0 || month.total_cost === 0) missing.push('cost');
+        if (month.has_target === 0 || month.total_target === 0) missing.push('target');
+        
+        missingDataDetails[month.month] = missing;
+      }
+    });
+    
+    // Determine the analysis period boundaries
+    let analysisPeriodStart = null;
+    let analysisPeriodEnd = null;
+    
+    if (compliantMonths.length > 0) {
+      // Find the first and last compliant months
+      const monthNumbers = compliantMonths.map(m => this.monthMap[m]);
+      analysisPeriodStart = compliantMonths[monthNumbers.indexOf(Math.min(...monthNumbers))];
+      analysisPeriodEnd = compliantMonths[monthNumbers.indexOf(Math.max(...monthNumbers))];
+    }
+    
+    return {
+      year,
+      compliantMonths,
+      nonCompliantMonths,
+      missingDataDetails,
+      analysisPeriod: {
+        start: analysisPeriodStart,
+        end: analysisPeriodEnd,
+        isComplete: compliantMonths.length === 12,
+        monthCount: compliantMonths.length
+      },
+      validationMessage: this.generateValidationMessage(compliantMonths, nonCompliantMonths, missingDataDetails)
+    };
+  }
+
+  generateValidationMessage(compliantMonths, nonCompliantMonths, missingDataDetails) {
+    if (compliantMonths.length === 0) {
+      return {
+        type: 'error',
+        message: 'No analysis period available. Please upload data with revenue, cost, and target for at least one month.'
+      };
+    }
+    
+    if (nonCompliantMonths.length === 0) {
+      return {
+        type: 'success',
+        message: 'All months have complete data for analysis.'
+      };
+    }
+    
+    // Generate detailed message about missing data
+    const missingDetails = nonCompliantMonths.map(month => {
+      const missing = missingDataDetails[month];
+      return `${month} (missing: ${missing.join(', ')})`;
+    });
+    
+    return {
+      type: 'warning',
+      message: `Analysis period: ${compliantMonths[0]} to ${compliantMonths[compliantMonths.length - 1]}. ` +
+               `Some months have incomplete data: ${missingDetails.join(', ')}. ` +
+               `Consider uploading the missing data for complete analysis.`
+    };
+  }
+
+  // Get filtered period months based on analysis period validation
+  async getValidatedPeriodMonths(year, period, month = null, quarter = null) {
+    const validation = await this.getAnalysisPeriodValidation(year);
+    const requestedMonths = this.getPeriodMonths(year, period, month, quarter);
+    
+    // Filter to only include compliant months
+    const validMonths = requestedMonths.filter(m => validation.compliantMonths.includes(m));
+    
+    return {
+      months: validMonths,
+      validation: validation,
+      hasNonCompliantMonths: requestedMonths.length > validMonths.length
+    };
   }
 }
 

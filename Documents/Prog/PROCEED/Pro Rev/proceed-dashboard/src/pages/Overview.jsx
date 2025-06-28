@@ -3,6 +3,7 @@ import { Banknote, Target, TrendingUp, Percent, Loader2, Truck, Warehouse } from
 import MetricCard from '../components/cards/MetricCard'
 import GaugeChart from '../components/charts/GaugeChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
+import ValidationAlert from '../components/alerts/ValidationAlert'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
@@ -68,12 +69,17 @@ const Overview = () => {
     );
   }
 
-  const { overview, serviceBreakdown } = overviewData || { overview: {}, serviceBreakdown: [] };
+  const { overview, serviceBreakdown, validation } = overviewData || { overview: {}, serviceBreakdown: [], validation: null };
 
   return (
     <div className="space-y-6">
       {/* Period Filter */}
       <StickyPeriodFilter />
+      
+      {/* Validation Alert */}
+      {validation && validation.validationMessage && validation.validationMessage.type !== 'success' && (
+        <ValidationAlert validation={validation} />
+      )}
       
       <div>
         <h1 className="text-3xl font-bold text-primary-dark tracking-tight">

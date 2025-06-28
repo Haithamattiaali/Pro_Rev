@@ -240,6 +240,18 @@ app.get('/api/years', async (req, res) => {
   }
 });
 
+// Get analysis period validation for a specific year
+app.get('/api/analysis-validation/:year', async (req, res) => {
+  try {
+    const { year } = req.params;
+    const validation = await dataService.getAnalysisPeriodValidation(parseInt(year));
+    res.json(validation);
+  } catch (error) {
+    console.error('Analysis validation error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Health check
 app.get('/api/health', async (req, res) => {
   try {

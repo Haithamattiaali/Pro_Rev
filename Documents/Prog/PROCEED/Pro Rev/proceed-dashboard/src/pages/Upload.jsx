@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Upload as UploadIcon, FileSpreadsheet, CheckCircle, AlertCircle, X, Loader2 } from 'lucide-react'
 import apiService from '../services/api.service'
+import ValidationAlert from '../components/alerts/ValidationAlert'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
 
 const Upload = () => {
@@ -9,6 +10,7 @@ const Upload = () => {
   const [uploadResult, setUploadResult] = useState(null)
   const [error, setError] = useState(null)
   const [dragActive, setDragActive] = useState(false)
+  const [validation, setValidation] = useState(null)
   const { triggerRefresh } = useDataRefresh()
 
   const handleDrag = (e) => {
@@ -91,6 +93,15 @@ const Upload = () => {
       const fileInput = document.getElementById('file-input')
       if (fileInput) fileInput.value = ''
       
+      // Fetch validation for the current year after upload
+      const currentYear = new Date().getFullYear()
+      try {
+        const validationData = await apiService.getAnalysisValidation(currentYear)
+        setValidation(validationData)
+      } catch (validationErr) {
+        console.error('Failed to fetch validation:', validationErr)
+      }
+      
       // Trigger global data refresh to update all dashboard components
       await triggerRefresh({
         showNotification: true,
@@ -110,6 +121,7 @@ const Upload = () => {
     setFile(null)
     setError(null)
     setUploadResult(null)
+    setValidation(null)
     
     // Reset file input
     const fileInput = document.getElementById('file-input')
@@ -249,6 +261,13 @@ const Upload = () => {
                   <p className="text-amber-600">Errors: {uploadResult.errors}</p>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* Validation Alert */}
+          {validation && (
+            <div className="mt-4">
+              <ValidationAlert validation={validation} />
             </div>
           )}
         </div>

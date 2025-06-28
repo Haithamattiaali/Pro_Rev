@@ -18,8 +18,15 @@ async function initializeDatabase() {
       }
     }
     
-    // Read the JSON file
-    const jsonPath = '/Users/haithamdata/Documents/Prog/Occasional/New ETL/master_table.json';
+    // Check if we have initial data file
+    const jsonPath = process.env.INIT_DATA_PATH || path.join(__dirname, '../data/master_table.json');
+    
+    if (!fs.existsSync(jsonPath)) {
+      console.log('No initial data file found. Database will start empty.');
+      console.log('Upload data through the web interface.');
+      return;
+    }
+    
     const jsonData = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
     
     console.log(`Found ${jsonData.length} records to import`);
