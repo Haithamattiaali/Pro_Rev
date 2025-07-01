@@ -85,7 +85,6 @@ class DataService {
           profitMargin: 0
         },
         serviceBreakdown: [],
-        validation: validatedData.validation
       };
     }
     
@@ -146,8 +145,7 @@ class DataService {
           ? ((overview.total_revenue - overview.total_cost) / overview.total_revenue) * 100 
           : 0
       },
-      serviceBreakdown,
-      validation: validatedData.validation
+      serviceBreakdown
     };
   }
 
@@ -399,7 +397,6 @@ class DataService {
         achievement: 0,
         profitMargin: 0,
         serviceBreakdown: [],
-        validation: validatedData.validation
       };
     }
     
@@ -465,7 +462,6 @@ class DataService {
       achievement: data.achievement_percentage || 0,
       profitMargin,
       serviceBreakdown,
-      validation: validatedData.validation,
       proRating: {
         isProRated: data.total_target < data.total_original_target,
         proRatePercentage: data.total_original_target > 0 

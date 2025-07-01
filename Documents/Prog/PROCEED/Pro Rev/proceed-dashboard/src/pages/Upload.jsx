@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Upload as UploadIcon, FileSpreadsheet, CheckCircle, AlertCircle, X, Loader2 } from 'lucide-react'
 import apiService from '../services/api.service'
 import ValidationAlert from '../components/alerts/ValidationAlert'
@@ -12,6 +12,21 @@ const Upload = () => {
   const [dragActive, setDragActive] = useState(false)
   const [validation, setValidation] = useState(null)
   const { triggerRefresh } = useDataRefresh()
+  
+  // Fetch validation on component mount to show existing analysis period info
+  useEffect(() => {
+    const fetchValidation = async () => {
+      try {
+        const currentYear = new Date().getFullYear()
+        const validationData = await apiService.getAnalysisValidation(currentYear)
+        setValidation(validationData)
+      } catch (err) {
+        // Silently fail - validation is not critical for upload page to function
+        console.log('Could not fetch validation data:', err)
+      }
+    }
+    fetchValidation()
+  }, [])
 
   const handleDrag = (e) => {
     e.preventDefault()
@@ -121,7 +136,7 @@ const Upload = () => {
     setFile(null)
     setError(null)
     setUploadResult(null)
-    setValidation(null)
+    // Keep validation visible until next upload
     
     // Reset file input
     const fileInput = document.getElementById('file-input')
@@ -246,28 +261,36 @@ const Upload = () => {
             </div>
           )}
 
-          {/* Success Message */}
-          {uploadResult && (
-            <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle className="w-5 h-5 text-green-600" />
-                <p className="text-green-700 font-medium">Upload Successful</p>
-              </div>
-              <div className="text-sm text-green-600 space-y-1">
-                <p>Total Records: {uploadResult.totalRecords}</p>
-                <p>New Records: {uploadResult.inserted}</p>
-                <p>Updated Records: {uploadResult.updated}</p>
-                {uploadResult.errors > 0 && (
-                  <p className="text-amber-600">Errors: {uploadResult.errors}</p>
-                )}
-              </div>
-            </div>
-          )}
+          {/* Upload Results Section */}
+          {(uploadResult || validation) && (
+            <div className="mt-4 space-y-4">
+              {/* Success Message */}
+              {uploadResult && (
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center gap-2 mb-2">
+                    <CheckCircle className="w-5 h-5 text-green-600" />
+                    <p className="text-green-700 font-medium">Upload Successful</p>
+                  </div>
+                  <div className="text-sm text-green-600 space-y-1">
+                    <p>Total Records: {uploadResult.totalRecords}</p>
+                    <p>New Records: {uploadResult.inserted}</p>
+                    <p>Updated Records: {uploadResult.updated}</p>
+                    {uploadResult.errors > 0 && (
+                      <p className="text-amber-600">Errors: {uploadResult.errors}</p>
+                    )}
+                  </div>
+                </div>
+              )}
 
-          {/* Validation Alert */}
-          {validation && (
-            <div className="mt-4">
-              <ValidationAlert validation={validation} />
+              {/* Validation Alert - Shown prominently after upload */}
+              {validation && validation.validationMessage && (
+                <div className="bg-amber-50 border-2 border-amber-200 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold text-amber-800 mb-2">
+                    Data Analysis Period Information
+                  </h3>
+                  <ValidationAlert validation={validation} />
+                </div>
+              )}
             </div>
           )}
         </div>
