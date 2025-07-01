@@ -50,8 +50,15 @@ app.use((req, res, next) => {
 // Import request handling middleware
 const { ensureConnection, requestTimeout, errorRecovery } = require('./middleware/requestHandler');
 
-// Apply middleware
-app.use(requestTimeout(30000)); // 30 second timeout
+// Apply middleware with longer timeout for uploads
+app.use((req, res, next) => {
+  // Set longer timeout for upload endpoints
+  if (req.path === '/api/upload') {
+    req.setTimeout(5 * 60 * 1000); // 5 minutes for uploads
+  }
+  next();
+});
+app.use(requestTimeout(120000)); // 2 minute default timeout
 app.use('/api', ensureConnection); // Ensure DB connection for all API routes
 
 // Configure multer for file uploads
@@ -65,6 +72,9 @@ if (!fs.existsSync(uploadDir)) {
 
 const upload = multer({
   dest: uploadDir,
+  limits: {
+    fileSize: 50 * 1024 * 1024 // 50MB max file size
+  },
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
     if (ext === '.xlsx' || ext === '.xls') {
@@ -202,6 +212,29 @@ app.get('/api/customers/achievement', async (req, res) => {
     res.json(data);
   } catch (error) {
     console.error('Customer achievement error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get gross profit data with pro-rated targets
+app.get('/api/gross-profit', async (req, res) => {
+  try {
+    const { 
+      year = new Date().getFullYear(), 
+      period = 'YTD',
+      month = null,
+      quarter = null
+    } = req.query;
+    
+    const data = await dataService.getGrossProfitData(
+      parseInt(year), 
+      period,
+      month ? (month === 'all' ? 'all' : parseInt(month)) : null,
+      quarter ? (quarter === 'all' ? 'all' : parseInt(quarter)) : null
+    );
+    res.json(data);
+  } catch (error) {
+    console.error('Gross profit error:', error);
     res.status(500).json({ error: error.message });
   }
 });

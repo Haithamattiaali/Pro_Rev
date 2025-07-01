@@ -16,6 +16,32 @@ class PersistentDatabase {
 
   initializeDatabase() {
     try {
+      // Ensure directory exists before creating database
+      const dbDir = path.dirname(DB_PATH);
+      if (!fs.existsSync(dbDir)) {
+        try {
+          fs.mkdirSync(dbDir, { recursive: true });
+          console.log(`Created database directory: ${dbDir}`);
+        } catch (err) {
+          // If we can't create the directory (e.g., /var/data in development), fall back to local
+          if (err.code === 'EACCES' && DB_PATH.startsWith('/var/')) {
+            console.log('Cannot create /var/data in development, using local directory');
+            // Use local directory instead
+            const localDbPath = path.join(__dirname, 'proceed_revenue.db');
+            this.db = new Database(localDbPath, {
+              verbose: console.log,
+              fileMustExist: false,
+              timeout: 60000,
+            });
+            this.configurePragmas();
+            this.initializeSchema();
+            console.log('Database initialized with persistent connection (fallback to local)');
+            return;
+          }
+          throw err;
+        }
+      }
+      
       // Create database with optimal settings for persistence
       this.db = new Database(DB_PATH, {
         verbose: console.log,
@@ -23,16 +49,7 @@ class PersistentDatabase {
         timeout: 60000, // 60 second timeout
       });
 
-      // Configure for maximum persistence and performance
-      this.db.pragma('journal_mode = WAL'); // Write-Ahead Logging
-      this.db.pragma('busy_timeout = 60000'); // 60 second busy timeout
-      this.db.pragma('synchronous = NORMAL'); // Balance between safety and speed
-      this.db.pragma('cache_size = -64000'); // 64MB cache
-      this.db.pragma('page_size = 4096'); // Optimal page size
-      this.db.pragma('temp_store = MEMORY'); // Use memory for temp tables
-      this.db.pragma('mmap_size = 134217728'); // 128MB memory map
-      this.db.pragma('locking_mode = NORMAL'); // Normal locking
-      this.db.pragma('auto_vacuum = INCREMENTAL'); // Incremental auto vacuum
+      this.configurePragmas();
       
       // Initialize schema if needed
       this.initializeSchema();
@@ -42,6 +59,19 @@ class PersistentDatabase {
       console.error('Database initialization error:', error);
       throw error;
     }
+  }
+
+  configurePragmas() {
+    // Configure for maximum persistence and performance
+    this.db.pragma('journal_mode = WAL'); // Write-Ahead Logging
+    this.db.pragma('busy_timeout = 60000'); // 60 second busy timeout
+    this.db.pragma('synchronous = NORMAL'); // Balance between safety and speed
+    this.db.pragma('cache_size = -64000'); // 64MB cache
+    this.db.pragma('page_size = 4096'); // Optimal page size
+    this.db.pragma('temp_store = MEMORY'); // Use memory for temp tables
+    this.db.pragma('mmap_size = 134217728'); // 128MB memory map
+    this.db.pragma('locking_mode = NORMAL'); // Normal locking
+    this.db.pragma('auto_vacuum = INCREMENTAL'); // Incremental auto vacuum
   }
 
   initializeSchema() {
@@ -64,6 +94,41 @@ class PersistentDatabase {
           }
         }
       }
+    }
+    
+    // Run migrations
+    this.runMigrations();
+  }
+  
+  runMigrations() {
+    try {
+      // Check if original_target column exists
+      const columns = this.db.prepare("PRAGMA table_info(revenue_data)").all();
+      const hasOriginalTarget = columns.some(col => col.name === 'original_target');
+      const hasAnalysisDate = columns.some(col => col.name === 'analysis_date');
+      const hasOriginalCost = columns.some(col => col.name === 'original_cost');
+      
+      if (!hasOriginalTarget) {
+        console.log('Adding original_target column...');
+        this.db.prepare('ALTER TABLE revenue_data ADD COLUMN original_target REAL DEFAULT 0').run();
+        this.db.prepare('UPDATE revenue_data SET original_target = target WHERE original_target = 0').run();
+      }
+      
+      if (!hasAnalysisDate) {
+        console.log('Adding analysis_date column...');
+        this.db.prepare('ALTER TABLE revenue_data ADD COLUMN analysis_date DATE').run();
+        this.db.prepare("UPDATE revenue_data SET analysis_date = date('now') WHERE analysis_date IS NULL").run();
+      }
+      
+      if (!hasOriginalCost) {
+        console.log('Adding original_cost column...');
+        this.db.prepare('ALTER TABLE revenue_data ADD COLUMN original_cost REAL DEFAULT 0').run();
+        this.db.prepare('UPDATE revenue_data SET original_cost = cost WHERE original_cost = 0').run();
+      }
+      
+      console.log('Migrations completed');
+    } catch (error) {
+      console.log('Migration error (may be already applied):', error.message);
     }
   }
 

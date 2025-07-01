@@ -16,21 +16,23 @@ class DataService {
     
     let monthStart, monthEnd;
     
-    // Adjust for current year vs past years
-    const maxMonth = year < currentYear ? 12 : currentMonth;
+    // For MTD, use the current month
+    // For QTD/YTD, use all months up to current month
+    const maxMonth = 12; // Allow all months since we have data for full year
     
     switch (period) {
       case 'MTD':
-        // If specific month is provided, use it; otherwise use current/max month
+        // If specific month is provided, use it; otherwise use current month
         if (month && month !== 'all') {
           monthStart = month;
           monthEnd = month;
         } else if (month === 'all') {
           monthStart = 1;
-          monthEnd = maxMonth;
+          monthEnd = 12;
         } else {
-          monthStart = maxMonth;
-          monthEnd = maxMonth;
+          // Use current month for MTD
+          monthStart = currentMonth;
+          monthEnd = currentMonth;
         }
         break;
       case 'QTD':
@@ -40,18 +42,19 @@ class DataService {
           targetQuarter = quarter;
         } else if (quarter === 'all') {
           monthStart = 1;
-          monthEnd = maxMonth;
+          monthEnd = 12;
           break;
         } else {
-          targetQuarter = Math.ceil(maxMonth / 3);
+          // Use current quarter
+          targetQuarter = Math.ceil(currentMonth / 3);
         }
         monthStart = (targetQuarter - 1) * 3 + 1;
-        monthEnd = Math.min(targetQuarter * 3, maxMonth);
+        monthEnd = Math.min(targetQuarter * 3, currentMonth);
         break;
       case 'YTD':
       default:
         monthStart = 1;
-        monthEnd = maxMonth;
+        monthEnd = currentMonth; // YTD should be from Jan to current month
         break;
     }
     
@@ -91,13 +94,15 @@ class DataService {
     const sql = `
       SELECT 
         SUM(revenue) as total_revenue,
-        SUM(target) as total_target,
-        SUM(cost) as total_cost,
+        SUM(COALESCE(target, 0)) as total_target,
+        SUM(COALESCE(original_target, target, 0)) as total_original_target,
+        SUM(COALESCE(cost, 0)) as total_cost,
+        SUM(COALESCE(original_cost, cost, 0)) as total_original_cost,
         SUM(receivables_collected) as total_receivables,
         COUNT(DISTINCT customer) as customer_count,
         COUNT(DISTINCT service_type) as service_count,
         CASE 
-          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          WHEN SUM(COALESCE(target, 0)) > 0 THEN (SUM(revenue) / SUM(COALESCE(target, 0))) * 100 
           ELSE 0 
         END as achievement_percentage
       FROM revenue_data
@@ -374,6 +379,104 @@ class DataService {
     
     const years = await db.all(sql);
     return years.map(row => row.year);
+  }
+
+  // Get gross profit data with pro-rated targets
+  async getGrossProfitData(year, period, month = null, quarter = null) {
+    // Get validated months
+    const validatedData = await this.getValidatedPeriodMonths(year, period, month, quarter);
+    const months = validatedData.months;
+    
+    if (months.length === 0) {
+      return {
+        period,
+        year,
+        grossProfit: 0,
+        revenue: 0,
+        cost: 0,
+        target: 0,
+        originalTarget: 0,
+        achievement: 0,
+        profitMargin: 0,
+        serviceBreakdown: [],
+        validation: validatedData.validation
+      };
+    }
+    
+    const placeholders = months.map(() => '?').join(',');
+    
+    // Get aggregated data with both target and original_target
+    const sql = `
+      SELECT 
+        SUM(revenue) as total_revenue,
+        SUM(COALESCE(cost, 0)) as total_cost,
+        SUM(COALESCE(original_cost, cost, 0)) as total_original_cost,
+        SUM(COALESCE(target, 0)) as total_target,
+        SUM(COALESCE(original_target, target, 0)) as total_original_target,
+        CASE 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          ELSE 0 
+        END as achievement_percentage
+      FROM revenue_data
+      WHERE year = ? AND month IN (${placeholders})
+    `;
+    
+    const data = await db.get(sql, [year, ...months]);
+    
+    // Get service type breakdown
+    const serviceBreakdownSql = `
+      SELECT 
+        service_type,
+        SUM(revenue) as revenue,
+        SUM(cost) as cost,
+        SUM(target) as target,
+        SUM(COALESCE(original_target, target)) as original_target,
+        SUM(revenue) - SUM(cost) as profit,
+        CASE 
+          WHEN SUM(revenue) > 0 THEN ((SUM(revenue) - SUM(cost)) / SUM(revenue)) * 100 
+          ELSE 0 
+        END as profit_margin,
+        CASE 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          ELSE 0 
+        END as achievement
+      FROM revenue_data
+      WHERE year = ? AND month IN (${placeholders})
+      GROUP BY service_type
+      ORDER BY revenue DESC
+    `;
+    
+    const serviceBreakdown = await db.all(serviceBreakdownSql, [year, ...months]);
+    
+    const grossProfit = (data.total_revenue || 0) - (data.total_cost || 0);
+    const profitMargin = data.total_revenue > 0 
+      ? (grossProfit / data.total_revenue) * 100 
+      : 0;
+    
+    return {
+      period,
+      year,
+      grossProfit,
+      revenue: data.total_revenue || 0,
+      cost: data.total_cost || 0,
+      originalCost: data.total_original_cost || 0,
+      target: data.total_target || 0,
+      originalTarget: data.total_original_target || 0,
+      achievement: data.achievement_percentage || 0,
+      profitMargin,
+      serviceBreakdown,
+      validation: validatedData.validation,
+      proRating: {
+        isProRated: data.total_target < data.total_original_target,
+        proRatePercentage: data.total_original_target > 0 
+          ? (data.total_target / data.total_original_target) * 100 
+          : 100,
+        costProRated: data.total_cost < data.total_original_cost,
+        costProRatePercentage: data.total_original_cost > 0
+          ? (data.total_cost / data.total_original_cost) * 100
+          : 100
+      }
+    };
   }
 
   // Get analysis period validation for a specific year

@@ -79,17 +79,22 @@ class ApiService {
     // For file uploads, we need to bypass the connection manager's
     // Content-Type header setting and make a direct fetch request
     try {
+      console.log('Starting file upload...');
       await connectionManager.ensureConnection();
       
+      console.log('Uploading to:', `${connectionManager.baseUrl}/upload`);
       const response = await fetch(`${connectionManager.baseUrl}/upload`, {
         method: 'POST',
         body: formData,
+        credentials: 'include', // Include credentials for CORS
         // Don't set Content-Type - let browser set it automatically for FormData
-        signal: AbortSignal.timeout(30000)
+        signal: AbortSignal.timeout(300000) // 5 minutes timeout for uploads
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Upload failed:', response.status, errorText);
+        throw new Error(`Upload failed: ${response.status} - ${errorText}`);
       }
 
       return await response.json();
