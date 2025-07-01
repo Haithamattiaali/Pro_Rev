@@ -3,10 +3,12 @@ import { Banknote, Target, TrendingUp, Percent, Loader2, Truck, Warehouse } from
 import MetricCard from '../components/cards/MetricCard'
 import GaugeChart from '../components/charts/GaugeChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
+import ExportButton from '../components/buttons/ExportButton'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
 import dataService from '../services/dataService'
+import exportService from '../services/exportService'
 
 const Overview = () => {
   const { periodFilter } = useFilter();
@@ -75,13 +77,25 @@ const Overview = () => {
       {/* Period Filter */}
       <StickyPeriodFilter />
       
-      <div>
-        <h1 className="text-3xl font-bold text-primary-dark tracking-tight">
-          Executive Overview - {periodFilter.year}
-        </h1>
-        <p className="text-neutral-mid mt-2">
-          {dataService.getPeriodLabel(periodFilter.period)} performance metrics and key insights
-        </p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-primary-dark tracking-tight">
+            Executive Overview - {periodFilter.year}
+          </h1>
+          <p className="text-neutral-mid mt-2">
+            {dataService.getPeriodLabel(periodFilter.period)} performance metrics and key insights
+          </p>
+        </div>
+        <ExportButton 
+          onClick={() => exportService.exportOverview(
+            periodFilter.year, 
+            periodFilter.period, 
+            periodFilter.month, 
+            periodFilter.quarter
+          )}
+          variant="secondary"
+          size="medium"
+        />
       </div>
 
       {/* Key Metrics Grid */}

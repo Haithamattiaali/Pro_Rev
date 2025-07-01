@@ -61,10 +61,6 @@ class DataService {
     return this.getCachedData(key, () => apiService.getAvailableYears());
   }
 
-  clearCache() {
-    this.cache.clear();
-  }
-
   // Format currency
   formatCurrency(value) {
     return new Intl.NumberFormat('en-SA', {
@@ -142,7 +138,7 @@ class DataService {
           monthEnd = maxMonth;
         }
         break;
-      case 'QTD':
+      case 'QTD': {
         // If specific quarter is provided, use it; otherwise use current quarter
         let targetQuarter;
         if (quarter && quarter !== 'all') {
@@ -157,6 +153,7 @@ class DataService {
         monthStart = (targetQuarter - 1) * 3 + 1;
         monthEnd = Math.min(targetQuarter * 3, maxMonth);
         break;
+      }
       case 'YTD':
       default:
         monthStart = 1;
@@ -165,7 +162,7 @@ class DataService {
     }
     
     return Object.entries(monthMap)
-      .filter(([name, num]) => num >= monthStart && num <= monthEnd)
+      .filter(([_name, num]) => num >= monthStart && num <= monthEnd)
       .map(([name]) => name);
   }
 }

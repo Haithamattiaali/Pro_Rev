@@ -5,6 +5,7 @@ const multer = require('multer');
 const path = require('path');
 const etlService = require('./services/etl.service');
 const dataService = require('./services/data.service');
+const excelExportService = require('./services/excel-export.service');
 const db = require('./database/db-wrapper');
 
 const app = express();
@@ -281,6 +282,132 @@ app.get('/api/analysis-validation/:year', async (req, res) => {
     res.json(validation);
   } catch (error) {
     console.error('Analysis validation error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Export endpoints
+// Export overview data to Excel
+app.get('/api/export/overview', async (req, res) => {
+  try {
+    const { 
+      year = new Date().getFullYear(), 
+      period = 'YTD',
+      month = null,
+      quarter = null
+    } = req.query;
+    
+    const data = await dataService.getOverviewData(
+      parseInt(year), 
+      period,
+      month ? (month === 'all' ? 'all' : parseInt(month)) : null,
+      quarter ? (quarter === 'all' ? 'all' : parseInt(quarter)) : null
+    );
+    
+    const workbook = excelExportService.exportOverviewData(data);
+    const buffer = excelExportService.workbookToBuffer(workbook);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=proceed-overview-${period}-${year}.xlsx`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('Export overview error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Export business unit data to Excel
+app.get('/api/export/business-units', async (req, res) => {
+  try {
+    const { 
+      year = new Date().getFullYear(), 
+      period = 'YTD',
+      month = null,
+      quarter = null
+    } = req.query;
+    
+    const data = await dataService.getBusinessUnitData(
+      parseInt(year), 
+      period,
+      month ? (month === 'all' ? 'all' : parseInt(month)) : null,
+      quarter ? (quarter === 'all' ? 'all' : parseInt(quarter)) : null
+    );
+    
+    const workbook = excelExportService.exportBusinessUnitData(data, year, period);
+    const buffer = excelExportService.workbookToBuffer(workbook);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=proceed-business-units-${period}-${year}.xlsx`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('Export business units error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Export customer data to Excel
+app.get('/api/export/customers', async (req, res) => {
+  try {
+    const { 
+      year = new Date().getFullYear(), 
+      period = 'YTD',
+      month = null,
+      quarter = null
+    } = req.query;
+    
+    const [customerData, achievementData, serviceBreakdown] = await Promise.all([
+      dataService.getCustomerData(parseInt(year), period, month ? (month === 'all' ? 'all' : parseInt(month)) : null, quarter ? (quarter === 'all' ? 'all' : parseInt(quarter)) : null),
+      dataService.getCustomerAchievement(parseInt(year), period, month ? (month === 'all' ? 'all' : parseInt(month)) : null, quarter ? (quarter === 'all' ? 'all' : parseInt(quarter)) : null),
+      dataService.getCustomerServiceBreakdown(parseInt(year), period, month ? (month === 'all' ? 'all' : parseInt(month)) : null, quarter ? (quarter === 'all' ? 'all' : parseInt(quarter)) : null)
+    ]);
+    
+    const workbook = excelExportService.exportCustomerData(customerData, achievementData, serviceBreakdown, year, period);
+    const buffer = excelExportService.workbookToBuffer(workbook);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=proceed-customers-${period}-${year}.xlsx`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('Export customers error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Export monthly trends to Excel
+app.get('/api/export/trends', async (req, res) => {
+  try {
+    const { year = new Date().getFullYear(), serviceType = null } = req.query;
+    const data = await dataService.getMonthlyTrends(parseInt(year), serviceType);
+    
+    const workbook = excelExportService.exportMonthlyTrends(data, year);
+    const buffer = excelExportService.workbookToBuffer(workbook);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=proceed-trends-${year}.xlsx`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('Export trends error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Export generic table data
+app.post('/api/export/table', express.json(), async (req, res) => {
+  try {
+    const { data, headers, title, filename } = req.body;
+    
+    if (!data || !headers) {
+      return res.status(400).json({ error: 'Data and headers are required' });
+    }
+    
+    const workbook = excelExportService.exportTableData(data, headers, title);
+    const buffer = excelExportService.workbookToBuffer(workbook);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename=${filename || 'table-export'}.xlsx`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('Export table error:', error);
     res.status(500).json({ error: error.message });
   }
 });

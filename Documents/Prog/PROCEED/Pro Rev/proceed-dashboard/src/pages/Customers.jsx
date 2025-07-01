@@ -2,9 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { Users, Award, TrendingUp, Loader2, Trophy, Star, Crown } from 'lucide-react'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
+import ExportButton from '../components/buttons/ExportButton'
+import TableExportButton from '../components/buttons/TableExportButton'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
 import dataService from '../services/dataService'
+import exportService from '../services/exportService'
 
 const Customers = () => {
   const { periodFilter } = useFilter()
@@ -102,9 +105,21 @@ const Customers = () => {
       {/* Period Filter */}
       <StickyPeriodFilter />
       
-      <div>
-        <h1 className="text-3xl font-bold text-primary-dark tracking-tight">Customer Performance</h1>
-        <p className="text-neutral-mid mt-2">Analyze customer-specific achievements and contributions</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-primary-dark tracking-tight">Customer Performance</h1>
+          <p className="text-neutral-mid mt-2">Analyze customer-specific achievements and contributions</p>
+        </div>
+        <ExportButton 
+          onClick={() => exportService.exportCustomers(
+            periodFilter.year, 
+            periodFilter.period, 
+            periodFilter.month, 
+            periodFilter.quarter
+          )}
+          variant="secondary"
+          size="medium"
+        />
       </div>
 
       {/* Top Customers Overview */}
@@ -356,7 +371,14 @@ const Customers = () => {
           {/* Service Breakdown */}
           {selectedAchievementData && selectedAchievementData.services.length > 0 && (
             <div>
-              <h3 className="text-lg font-semibold text-secondary mb-4">Service Breakdown</h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold text-secondary">Service Breakdown</h3>
+                <TableExportButton
+                  data={selectedAchievementData.services}
+                  filename={`${selectedCustomer}-service-breakdown`}
+                  headers={['serviceType', 'revenue', 'target', 'achievement']}
+                />
+              </div>
               <div className="overflow-x-auto">
                 <table className="data-table">
                   <thead>
@@ -410,7 +432,26 @@ const Customers = () => {
 
       {/* All Customers Summary Table */}
       <div className="dashboard-card">
-        <h2 className="section-title">All Customers Summary</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="section-title mb-0">All Customers Summary</h2>
+          <TableExportButton
+            data={sortedCustomers.map((customer, index) => {
+              const breakdown = serviceBreakdown.find(sb => sb.customer === customer.customer);
+              return {
+                rank: index + 1,
+                customer: customer.customer,
+                revenue: customer.revenue,
+                target: customer.target,
+                achievement: customer.achievement,
+                transportation: breakdown?.transportation || 0,
+                warehouses: breakdown?.warehouses || 0,
+                profitMargin: customer.profitMargin
+              };
+            })}
+            filename="all-customers-summary"
+            headers={['rank', 'customer', 'revenue', 'target', 'achievement', 'transportation', 'warehouses', 'profitMargin']}
+          />
+        </div>
         <div className="overflow-x-auto">
           <table className="data-table">
             <thead>

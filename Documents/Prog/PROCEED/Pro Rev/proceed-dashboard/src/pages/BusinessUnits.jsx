@@ -3,9 +3,11 @@ import { Truck, Package, Loader2, Users, TrendingUp, FileText } from 'lucide-rea
 import { formatCurrency, formatPercentage, getAchievementStatus, getGrossProfitStatus } from '../utils/formatters'
 import BusinessUnitBarChart from '../components/charts/BusinessUnitBarChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
+import ExportButton from '../components/buttons/ExportButton'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
 import dataService from '../services/dataService'
+import exportService from '../services/exportService'
 
 const BusinessUnits = () => {
   const [selectedUnit, setSelectedUnit] = useState('Transportation')
@@ -98,9 +100,21 @@ const BusinessUnits = () => {
       {/* Period Filter */}
       <StickyPeriodFilter />
       
-      <div>
-        <h1 className="text-3xl font-bold text-primary-dark tracking-tight">Business Units Performance</h1>
-        <p className="text-neutral-mid mt-2">Deep dive into service-specific metrics and trends</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-primary-dark tracking-tight">Business Units Performance</h1>
+          <p className="text-neutral-mid mt-2">Deep dive into service-specific metrics and trends</p>
+        </div>
+        <ExportButton 
+          onClick={() => exportService.exportBusinessUnits(
+            periodFilter.year, 
+            periodFilter.period, 
+            periodFilter.month, 
+            periodFilter.quarter
+          )}
+          variant="secondary"
+          size="medium"
+        />
       </div>
 
       {/* Business Unit Selector */}
@@ -177,7 +191,16 @@ const BusinessUnits = () => {
 
       {/* Detailed Period Breakdown */}
       <div className="dashboard-card">
-        <h2 className="section-title">Monthly Breakdown</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="section-title mb-0">Monthly Breakdown</h2>
+          <ExportButton
+            onClick={() => exportService.exportTrends(periodFilter.year, selectedUnit)}
+            variant="inline"
+            size="small"
+            label=""
+            className="opacity-70 hover:opacity-100"
+          />
+        </div>
         <div className="overflow-x-auto">
           <table className="data-table">
             <thead>
