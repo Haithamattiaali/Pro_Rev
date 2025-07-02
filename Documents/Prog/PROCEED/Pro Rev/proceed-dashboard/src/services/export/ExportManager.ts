@@ -130,6 +130,9 @@ export class ExportManager {
     // Create export session
     const sessionId = this.createSession(options);
     const session = this.sessions.get(sessionId)!;
+    
+    // Store dashboard element in request for later use
+    (session.request as any).dashboardElement = dashboardElement;
 
     // Queue or process immediately
     if (this.activeExports >= this.config.maxConcurrentExports) {
@@ -289,6 +292,14 @@ export class ExportManager {
           percentage: (i / formats.length) * 100,
           message: `Compiling ${format} document...`
         });
+
+        // Pass dashboard element to image compiler if needed
+        if (format === 'image' && compiler.setDashboardElement) {
+          const dashboardElement = (session.request as any).dashboardElement;
+          if (dashboardElement) {
+            compiler.setDashboardElement(dashboardElement);
+          }
+        }
 
         const document = await compiler.compile(uer);
         documents.push(document);

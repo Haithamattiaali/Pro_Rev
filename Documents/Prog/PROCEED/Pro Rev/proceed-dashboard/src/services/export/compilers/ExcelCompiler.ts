@@ -1,10 +1,17 @@
 import { UniversalExportRepresentation, ExportDocument } from '../core/types';
-import * as XLSX from 'xlsx';
 import { formatCurrency, formatPercentage } from '../../../utils/formatters';
+
+// Dynamic import for XLSX to avoid build issues
+let XLSX: any = null;
 
 export class ExcelCompiler {
   async compile(uer: UniversalExportRepresentation): Promise<ExportDocument> {
     try {
+      // Dynamically import XLSX if not already loaded
+      if (!XLSX) {
+        XLSX = await import('xlsx');
+      }
+      
       // Create a new workbook
       const wb = XLSX.utils.book_new();
 
@@ -44,7 +51,7 @@ export class ExcelCompiler {
       };
     } catch (error) {
       console.error('Excel compilation error:', error);
-      throw error;
+      throw new Error(`Excel export failed: ${error.message || 'Unknown error'}`);
     }
   }
 

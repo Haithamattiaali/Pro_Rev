@@ -1,5 +1,7 @@
 import { UniversalExportRepresentation, ExportDocument } from '../core/types';
-import html2canvas from 'html2canvas';
+
+// Dynamic import for html2canvas to avoid build issues
+let html2canvas: any = null;
 
 export class ImageCompiler {
   private dashboardElement: HTMLElement | null = null;
@@ -10,6 +12,12 @@ export class ImageCompiler {
 
   async compile(uer: UniversalExportRepresentation): Promise<ExportDocument> {
     try {
+      // Dynamically import html2canvas if not already loaded
+      if (!html2canvas) {
+        const module = await import('html2canvas');
+        html2canvas = module.default || module;
+      }
+      
       // Get the dashboard element
       const targetElement = this.dashboardElement || 
         document.querySelector('[data-dashboard="true"]') || 
