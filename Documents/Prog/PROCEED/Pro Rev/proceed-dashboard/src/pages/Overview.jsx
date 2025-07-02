@@ -1,14 +1,13 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Banknote, Target, TrendingUp, Percent, Loader2, Truck, Warehouse } from 'lucide-react'
 import MetricCard from '../components/cards/MetricCard'
 import GaugeChart from '../components/charts/GaugeChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
-import ExportButton from '../components/buttons/ExportButton'
+import { ExportButton } from '../components/export'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
 import dataService from '../services/dataService'
-import exportService from '../services/exportService'
 
 const Overview = () => {
   const { periodFilter } = useFilter();
@@ -16,6 +15,7 @@ const Overview = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [overviewData, setOverviewData] = useState(null);
+  const dashboardRef = useRef(null);
 
   const handleRetry = async () => {
     await triggerRefresh({
@@ -73,7 +73,7 @@ const Overview = () => {
   const { overview, serviceBreakdown } = overviewData || { overview: {}, serviceBreakdown: [] };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" ref={dashboardRef} data-dashboard="true">
       {/* Period Filter */}
       <StickyPeriodFilter />
       
@@ -87,12 +87,7 @@ const Overview = () => {
           </p>
         </div>
         <ExportButton 
-          onClick={() => exportService.exportOverview(
-            periodFilter.year, 
-            periodFilter.period, 
-            periodFilter.month, 
-            periodFilter.quarter
-          )}
+          dashboardRef={dashboardRef}
           variant="secondary"
           size="medium"
         />

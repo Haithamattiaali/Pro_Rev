@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Export Test - Proceed Dashboard</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            padding: 40px;
+            background-color: #f5f5f5;
+        }
+        .test-dashboard {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .metric-card {
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .metric-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #9e1f63;
+        }
+        .metric-label {
+            font-size: 0.875rem;
+            color: #666;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background-color: #f5f5f5;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <h1 style="color: #9e1f63;">Export System Test</h1>
+    
+    <div id="test-dashboard" class="test-dashboard">
+        <h2>Revenue Dashboard - 2025</h2>
+        
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+            <div class="metric-card">
+                <div class="metric-label">Total Revenue</div>
+                <div class="metric-value">SAR 12.5M</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Achievement</div>
+                <div class="metric-value">87.3%</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Gross Profit</div>
+                <div class="metric-value">SAR 3.8M</div>
+            </div>
+        </div>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Business Unit</th>
+                    <th>Revenue</th>
+                    <th>Target</th>
+                    <th>Achievement</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Transportation</td>
+                    <td>SAR 5,234,567</td>
+                    <td>SAR 6,000,000</td>
+                    <td>87.2%</td>
+                </tr>
+                <tr>
+                    <td>Warehousing</td>
+                    <td>SAR 7,265,433</td>
+                    <td>SAR 8,000,000</td>
+                    <td>90.8%</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <button id="export-btn" style="
+        background-color: #9e1f63;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    ">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="12" y1="18" x2="12" y2="12" />
+            <polyline points="9 15 12 18 15 15" />
+        </svg>
+        Test Export System
+    </button>
+    
+    <div id="export-status" style="margin-top: 20px; padding: 16px; background: #f0f0f0; border-radius: 6px; display: none;">
+        <h3>Export Status</h3>
+        <pre id="status-text"></pre>
+    </div>
+
+    <script type="module">
+        import { exportManager } from './src/services/export/ExportManager.ts';
+        
+        const exportBtn = document.getElementById('export-btn');
+        const dashboard = document.getElementById('test-dashboard');
+        const statusDiv = document.getElementById('export-status');
+        const statusText = document.getElementById('status-text');
+        
+        exportBtn.addEventListener('click', async () => {
+            statusDiv.style.display = 'block';
+            statusText.textContent = 'Starting export...';
+            
+            try {
+                const options = {
+                    scope: { type: 'full' },
+                    formats: ['pdf', 'powerpoint'],
+                    quality: 'high',
+                    includeInteractions: false,
+                    includeAnimations: false,
+                    preserveLinks: true
+                };
+                
+                const sessionId = await exportManager.export(dashboard, options);
+                statusText.textContent = `Export started with session ID: ${sessionId}\n`;
+                
+                // Monitor progress
+                const interval = setInterval(() => {
+                    const session = exportManager.getSession(sessionId);
+                    if (!session) {
+                        clearInterval(interval);
+                        return;
+                    }
+                    
+                    statusText.textContent += `\nStatus: ${session.status}\nPhase: ${session.progress.phase}\nProgress: ${session.progress.percentage}%`;
+                    
+                    if (session.status === 'completed') {
+                        clearInterval(interval);
+                        statusText.textContent += '\n\nExport completed successfully!';
+                        
+                        // Download results
+                        exportManager.downloadResults(sessionId);
+                    } else if (session.status === 'failed') {
+                        clearInterval(interval);
+                        statusText.textContent += '\n\nExport failed: ' + (session.errors?.[0]?.message || 'Unknown error');
+                    }
+                }, 500);
+                
+            } catch (error) {
+                statusText.textContent = 'Error: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>

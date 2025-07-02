@@ -4,13 +4,19 @@
   "description": "Professional revenue dashboard for Proceed logistics",
   "private": true,
   "dependencies": {
+    "@headlessui/react": "^2.2.4",
+    "@heroicons/react": "^2.2.0",
+    "clsx": "^2.1.0",
+    "date-fns": "^3.3.1",
+    "framer-motion": "^12.22.0",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.1",
+    "lucide-react": "^0.356.0",
+    "pptxgenjs": "^4.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-router-dom": "^6.22.0",
-    "recharts": "^2.12.0",
-    "lucide-react": "^0.356.0",
-    "clsx": "^2.1.0",
-    "date-fns": "^3.3.1"
+    "recharts": "^2.12.0"
   },
   "scripts": {
     "dev": "vite",
@@ -25,13 +31,14 @@
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.17",
+    "chokidar": "^3.6.0",
     "eslint": "^8.56.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.5",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
-    "vite": "^5.1.0",
-    "chokidar": "^3.6.0"
+    "typescript": "^5.8.3",
+    "vite": "^5.1.0"
   }
 }
