@@ -40,14 +40,10 @@ export class ExcelCompiler {
 
       return {
         format: 'excel',
-        content: blob,
-        metadata: {
-          filename: `proceed-dashboard-export-${new Date().toISOString().split('T')[0]}.xlsx`,
-          mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          size: buffer.byteLength,
-          sheets: Object.keys(wb.Sheets),
-          timestamp: new Date().toISOString()
-        }
+        data: blob,
+        filename: `proceed-dashboard-export-${new Date().toISOString().split('T')[0]}.xlsx`,
+        size: buffer.byteLength,
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       };
     } catch (error) {
       console.error('Excel compilation error:', error);

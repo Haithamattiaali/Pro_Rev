@@ -293,6 +293,8 @@ export class ExportManager {
           message: `Compiling ${format} document...`
         });
 
+        console.log(`Compiling format: ${format}`);
+
         // Pass dashboard element to image compiler if needed
         if (format === 'image' && compiler.setDashboardElement) {
           const dashboardElement = (session.request as any).dashboardElement;
@@ -301,8 +303,14 @@ export class ExportManager {
           }
         }
 
-        const document = await compiler.compile(uer);
-        documents.push(document);
+        try {
+          const document = await compiler.compile(uer);
+          documents.push(document);
+          console.log(`Successfully compiled ${format} document`);
+        } catch (error) {
+          console.error(`Failed to compile ${format}:`, error);
+          throw error;
+        }
       }
 
       // Store results
@@ -509,11 +517,12 @@ export class ExportManager {
 
   private downloadDocument(doc: ExportDocument): void {
     // Create blob and trigger download
-    const blob = doc.data instanceof Blob ? doc.data : new Blob([doc.data]);
+    const data = doc.content || doc.data; // Support both content and data properties
+    const blob = data instanceof Blob ? data : new Blob([data]);
     const url = URL.createObjectURL(blob);
     const a = window.document.createElement('a');
     a.href = url;
-    a.download = doc.filename;
+    a.download = doc.metadata?.filename || doc.filename || `export.${doc.format}`;
     window.document.body.appendChild(a);
     a.click();
     window.document.body.removeChild(a);

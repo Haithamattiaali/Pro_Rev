@@ -33,6 +33,7 @@ const ExportDialog = ({ isOpen, onClose, dashboardRef }) => {
       return;
     }
 
+    console.log('Starting export with options:', exportOptions);
     setExportState({ ...exportState, status: 'exporting', error: null });
 
     try {

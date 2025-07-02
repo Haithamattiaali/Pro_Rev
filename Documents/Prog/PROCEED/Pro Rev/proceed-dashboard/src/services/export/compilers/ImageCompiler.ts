@@ -63,15 +63,10 @@ export class ImageCompiler {
 
       return {
         format: 'image',
-        content: blob,
-        metadata: {
-          filename: `proceed-dashboard-${new Date().toISOString().split('T')[0]}.png`,
-          mimeType: 'image/png',
-          size: blob.size,
-          width: canvas.width,
-          height: canvas.height,
-          timestamp: new Date().toISOString()
-        }
+        data: blob,
+        filename: `proceed-dashboard-${new Date().toISOString().split('T')[0]}.png`,
+        size: blob.size,
+        mimeType: 'image/png'
       };
     } catch (error) {
       console.error('Image compilation error:', error);
