@@ -22,6 +22,8 @@ import { DashboardCaptureEngine } from './capture/DashboardCaptureEngine';
 import { UERTranslator } from './translation/UERTranslator';
 import { PowerPointCompiler } from './compilers/PowerPointCompiler';
 import { PDFCompiler } from './compilers/PDFCompiler';
+import { ExcelCompiler } from './compilers/ExcelCompiler';
+import { ImageCompiler } from './compilers/ImageCompiler';
 
 // Export Error class implementation
 class ExportError extends Error implements IExportError {
@@ -111,8 +113,8 @@ export class ExportManager {
   private registerCompilers(): void {
     this.compilers.set('pdf', new PDFCompiler());
     this.compilers.set('powerpoint', new PowerPointCompiler());
-    
-    // TODO: Add Excel, Image, HTML compilers
+    this.compilers.set('excel', new ExcelCompiler());
+    this.compilers.set('image', new ImageCompiler());
   }
 
   /**

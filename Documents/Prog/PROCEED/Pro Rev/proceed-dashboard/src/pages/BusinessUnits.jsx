@@ -3,7 +3,7 @@ import { Truck, Package, Loader2, Users, TrendingUp, FileText } from 'lucide-rea
 import { formatCurrency, formatPercentage, getAchievementStatus, getGrossProfitStatus } from '../utils/formatters'
 import BusinessUnitBarChart from '../components/charts/BusinessUnitBarChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
-import SelectiveExportButton from '../components/buttons/SelectiveExportButton'
+import { ExportButton } from '../components/export'
 import TableExportButton from '../components/buttons/TableExportButton'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
@@ -106,19 +106,8 @@ const BusinessUnits = () => {
           <h1 className="text-3xl font-bold text-primary-dark tracking-tight">Business Units Performance</h1>
           <p className="text-neutral-mid mt-2">Deep dive into service-specific metrics and trends</p>
         </div>
-        <SelectiveExportButton 
-          pageType="business-units"
-          data={{
-            businessUnits: businessUnits,
-            monthlyBreakdown: unitMonthlyData.map(month => ({
-              month: month.month,
-              businessUnit: selectedUnit,
-              revenue: month.revenue,
-              cost: month.cost,
-              profit: month.grossProfit
-            }))
-          }}
-          period={periodFilter}
+        <ExportButton 
+          dashboardRef={null}
           variant="secondary"
           size="medium"
         />

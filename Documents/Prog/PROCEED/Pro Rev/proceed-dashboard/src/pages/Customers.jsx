@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Users, Award, TrendingUp, Loader2, Trophy, Star, Crown } from 'lucide-react'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
-import SelectiveExportButton from '../components/buttons/SelectiveExportButton'
+import { ExportButton } from '../components/export'
 import TableExportButton from '../components/buttons/TableExportButton'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
@@ -110,15 +110,8 @@ const Customers = () => {
           <h1 className="text-3xl font-bold text-primary-dark tracking-tight">Customer Performance</h1>
           <p className="text-neutral-mid mt-2">Analyze customer-specific achievements and contributions</p>
         </div>
-        <SelectiveExportButton 
-          pageType="customers"
-          data={{
-            topCustomers: sortedCustomers.slice(0, 10),
-            allCustomers: customers,
-            serviceBreakdown: serviceBreakdown,
-            achievements: customerAchievement
-          }}
-          period={periodFilter}
+        <ExportButton 
+          dashboardRef={null}
           variant="secondary"
           size="medium"
         />

@@ -33,8 +33,7 @@ const ExportFormatSelector = ({ selectedFormats, onFormatsChange }) => {
       description: 'Data analysis and manipulation',
       icon: TableCellsIcon,
       features: ['Raw data', 'Formulas', 'Pivot tables'],
-      available: false,
-      comingSoon: true
+      available: true
     },
     {
       id: 'image',
@@ -42,8 +41,7 @@ const ExportFormatSelector = ({ selectedFormats, onFormatsChange }) => {
       description: 'PNG or JPG screenshots',
       icon: PhotoIcon,
       features: ['High resolution', 'Easy sharing', 'Web ready'],
-      available: false,
-      comingSoon: true
+      available: true
     }
   ];
 
