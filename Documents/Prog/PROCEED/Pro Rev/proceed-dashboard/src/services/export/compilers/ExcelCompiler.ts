@@ -7,6 +7,8 @@ let XLSX: any = null;
 export class ExcelCompiler {
   async compile(uer: UniversalExportRepresentation): Promise<ExportDocument> {
     try {
+      console.log('Excel compiler - UER received:', uer);
+      
       // Dynamically import XLSX if not already loaded
       if (!XLSX) {
         XLSX = await import('xlsx');
@@ -16,7 +18,8 @@ export class ExcelCompiler {
       const wb = XLSX.utils.book_new();
 
       // Process sections and create worksheets
-      if (uer.sections) {
+      if (uer && uer.sections && uer.sections.length > 0) {
+        console.log('Processing sections:', uer.sections.length);
         uer.sections.forEach((section, index) => {
           const sheetName = section.title || `Sheet${index + 1}`;
           const sheetData = this.extractSectionData(section);
@@ -28,15 +31,35 @@ export class ExcelCompiler {
             XLSX.utils.book_append_sheet(wb, ws, sheetName.substring(0, 31)); // Excel sheet name limit
           }
         });
+      } else {
+        console.log('No sections found in UER, creating default sheet');
+        // Create a default sheet with basic info
+        const defaultData = [
+          ['Proceed Revenue Dashboard Export'],
+          [`Generated on: ${new Date().toLocaleDateString()}`],
+          [],
+          ['No data available for export']
+        ];
+        const ws = XLSX.utils.aoa_to_sheet(defaultData);
+        XLSX.utils.book_append_sheet(wb, ws, 'Dashboard');
       }
 
       // Generate Excel buffer
-      const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
+      console.log('Generating Excel buffer...');
+      let buffer;
+      try {
+        buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
+        console.log('Excel buffer generated, size:', buffer.byteLength);
+      } catch (writeError) {
+        console.error('XLSX.write failed:', writeError);
+        throw new Error(`Failed to generate Excel file: ${writeError.message}`);
+      }
       
       // Create blob from buffer
       const blob = new Blob([buffer], { 
         type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
       });
+      console.log('Blob created, size:', blob.size);
 
       return {
         format: 'excel',

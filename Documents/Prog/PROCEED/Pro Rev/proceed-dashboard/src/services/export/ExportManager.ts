@@ -23,6 +23,7 @@ import { UERTranslator } from './translation/UERTranslator';
 import { PowerPointCompiler } from './compilers/PowerPointCompiler';
 import { PDFCompiler } from './compilers/PDFCompiler';
 import { ExcelCompiler } from './compilers/ExcelCompiler';
+import { SimpleExcelCompiler } from './compilers/SimpleExcelCompiler';
 import { ImageCompiler } from './compilers/ImageCompiler';
 
 // Export Error class implementation
@@ -113,7 +114,8 @@ export class ExportManager {
   private registerCompilers(): void {
     this.compilers.set('pdf', new PDFCompiler());
     this.compilers.set('powerpoint', new PowerPointCompiler());
-    this.compilers.set('excel', new ExcelCompiler());
+    // Use SimpleExcelCompiler for now due to UER structure issues
+    this.compilers.set('excel', new SimpleExcelCompiler());
     this.compilers.set('image', new ImageCompiler());
   }
 
@@ -274,8 +276,11 @@ export class ExportManager {
 
     try {
       const uer = (session as any).uer as UniversalExportRepresentation;
+      console.log('UER for compilation:', uer);
+      
       const documents: ExportDocument[] = [];
       const formats = session.request.options.formats;
+      console.log('Requested formats:', formats);
 
       // Compile for each requested format
       for (let i = 0; i < formats.length; i++) {

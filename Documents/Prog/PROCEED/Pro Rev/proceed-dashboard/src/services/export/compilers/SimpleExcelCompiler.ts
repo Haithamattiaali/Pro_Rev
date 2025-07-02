@@ -23,14 +23,22 @@ export class SimpleExcelCompiler {
       // Create main sheet
       const ws = XLSX.utils.aoa_to_sheet(dashboardData);
       
+      // Apply formatting
+      this.applyFormatting(ws, dashboardData);
+      
       // Auto-size columns
-      const colWidths = dashboardData[0]?.map((_, i) => ({ wch: 20 })) || [];
+      const colWidths = this.calculateOptimalColumnWidths(dashboardData);
       ws['!cols'] = colWidths;
       
       XLSX.utils.book_append_sheet(wb, ws, 'Dashboard Data');
 
-      // Generate Excel buffer
-      const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'buffer' });
+      // Generate Excel buffer with styles
+      const buffer = XLSX.write(wb, { 
+        bookType: 'xlsx', 
+        type: 'buffer',
+        cellStyles: true,
+        bookSST: true
+      });
       
       // Create blob
       const blob = new Blob([buffer], { 
@@ -213,6 +221,166 @@ export class SimpleExcelCompiler {
     }
 
     return data;
+  }
+
+  private applyFormatting(ws: any, data: any[][]): void {
+    if (!data || data.length === 0) return;
+
+    // Define styles based on brand guidelines
+    const styles = {
+      mainTitle: {
+        font: { name: 'Verdana', sz: 24, bold: true, color: { rgb: '9E1F63' } },
+        alignment: { horizontal: 'center', vertical: 'center' },
+        fill: { fgColor: { rgb: 'F5F5F5' } }
+      },
+      sectionHeader: {
+        font: { name: 'Verdana', sz: 16, bold: true, color: { rgb: '721548' } },
+        alignment: { horizontal: 'left', vertical: 'center' },
+        fill: { fgColor: { rgb: 'E2E1E6' } }
+      },
+      tableHeader: {
+        font: { name: 'Verdana', sz: 12, bold: true, color: { rgb: 'FFFFFF' } },
+        alignment: { horizontal: 'center', vertical: 'center' },
+        fill: { fgColor: { rgb: '9E1F63' } },
+        border: {
+          top: { style: 'thin', color: { rgb: '721548' } },
+          bottom: { style: 'thin', color: { rgb: '721548' } },
+          left: { style: 'thin', color: { rgb: '721548' } },
+          right: { style: 'thin', color: { rgb: '721548' } }
+        }
+      },
+      bodyText: {
+        font: { name: 'Verdana', sz: 11, color: { rgb: '2D2D2D' } },
+        alignment: { horizontal: 'left', vertical: 'center' }
+      },
+      currency: {
+        font: { name: 'Verdana', sz: 11, color: { rgb: '2D2D2D' } },
+        alignment: { horizontal: 'right', vertical: 'center' },
+        numFmt: '"SAR "#,##0.00'
+      },
+      percentage: {
+        font: { name: 'Verdana', sz: 11, color: { rgb: '2D2D2D' } },
+        alignment: { horizontal: 'center', vertical: 'center' },
+        numFmt: '0.0%'
+      },
+      positive: {
+        font: { name: 'Verdana', sz: 11, color: { rgb: '00A854' } }, // Green for growth
+        alignment: { horizontal: 'right', vertical: 'center' }
+      },
+      negative: {
+        font: { name: 'Verdana', sz: 11, color: { rgb: 'E05E3D' } }, // Red for decline
+        alignment: { horizontal: 'right', vertical: 'center' }
+      }
+    };
+
+    // Apply styles to cells
+    data.forEach((row, rowIndex) => {
+      row.forEach((cell, colIndex) => {
+        const cellRef = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
+        
+        if (!ws[cellRef]) return;
+
+        // Main title (first row)
+        if (rowIndex === 0) {
+          ws[cellRef].s = styles.mainTitle;
+        }
+        // Section headers
+        else if (cell && (cell.toString().includes('Key Metrics') || 
+                         cell.toString().includes('Section') || 
+                         cell.toString().includes('Table') ||
+                         cell.toString().includes('Dashboard Content') ||
+                         cell.toString().includes('Performance Indicators'))) {
+          ws[cellRef].s = styles.sectionHeader;
+        }
+        // Table headers (rows that have 'Metric', 'Value', etc.)
+        else if (row.some(c => c === 'Metric' || c === 'Value' || c === 'Customer' || c === 'Revenue')) {
+          ws[cellRef].s = styles.tableHeader;
+        }
+        // Currency values
+        else if (cell && (cell.toString().includes('SAR') || cell.toString().match(/^\d+(\.\d+)?[KMB]?$/))) {
+          ws[cellRef].s = styles.currency;
+          // Convert string to number if possible
+          const numValue = this.parseNumericValue(cell.toString());
+          if (!isNaN(numValue)) {
+            ws[cellRef].v = numValue;
+            ws[cellRef].t = 'n';
+          }
+        }
+        // Percentage values
+        else if (cell && cell.toString().includes('%')) {
+          ws[cellRef].s = styles.percentage;
+          // Convert percentage string to decimal
+          const percentValue = parseFloat(cell.toString().replace('%', '')) / 100;
+          if (!isNaN(percentValue)) {
+            ws[cellRef].v = percentValue;
+            ws[cellRef].t = 'n';
+          }
+        }
+        // Positive/negative indicators
+        else if (cell && (cell.toString().includes('↑') || cell.toString().includes('+') || cell.toString().includes('growth'))) {
+          ws[cellRef].s = styles.positive;
+        }
+        else if (cell && (cell.toString().includes('↓') || cell.toString().includes('-') || cell.toString().includes('decline'))) {
+          ws[cellRef].s = styles.negative;
+        }
+        // Default body text
+        else {
+          ws[cellRef].s = styles.bodyText;
+        }
+      });
+    });
+
+    // Merge cells for main title
+    if (data.length > 0 && data[0].length > 0) {
+      const maxCols = Math.max(...data.map(row => row.length));
+      ws['!merges'] = ws['!merges'] || [];
+      ws['!merges'].push({ 
+        s: { r: 0, c: 0 }, 
+        e: { r: 0, c: Math.max(maxCols - 1, 2) } 
+      });
+    }
+  }
+
+  private parseNumericValue(value: string): number {
+    // Remove SAR prefix and any spaces
+    let cleanValue = value.replace(/SAR\s*/i, '').replace(/,/g, '').trim();
+    
+    // Handle K, M, B suffixes
+    const multipliers: { [key: string]: number } = {
+      'K': 1000,
+      'M': 1000000,
+      'B': 1000000000
+    };
+    
+    for (const [suffix, multiplier] of Object.entries(multipliers)) {
+      if (cleanValue.toUpperCase().endsWith(suffix)) {
+        cleanValue = cleanValue.slice(0, -1);
+        return parseFloat(cleanValue) * multiplier;
+      }
+    }
+    
+    return parseFloat(cleanValue);
+  }
+
+  private calculateOptimalColumnWidths(data: any[][]): any[] {
+    if (!data || data.length === 0) return [];
+    
+    const maxCols = Math.max(...data.map(row => row.length));
+    const widths: number[] = new Array(maxCols).fill(10); // Minimum width
+    
+    // Calculate optimal width for each column
+    data.forEach(row => {
+      row.forEach((cell, colIndex) => {
+        if (cell) {
+          const cellLength = cell.toString().length;
+          // Add some padding and consider font size
+          const estimatedWidth = Math.min(cellLength * 1.2 + 2, 50); // Max width 50
+          widths[colIndex] = Math.max(widths[colIndex], estimatedWidth);
+        }
+      });
+    });
+    
+    return widths.map(w => ({ wch: Math.ceil(w) }));
   }
 }
 
