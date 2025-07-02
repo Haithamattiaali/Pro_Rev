@@ -1,6 +1,7 @@
 import React from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useFilter } from '../../contexts/FilterContext';
+import companyLogo from '../../assets/logo.png';
 
 const PeriodFilter = () => {
   const { periodFilter, handlePeriodChange } = useFilter();
@@ -67,40 +68,41 @@ const PeriodFilter = () => {
 
   return (
     <div className="bg-white p-4 rounded-lg shadow-sm border border-secondary-pale">
-      <div className="flex items-center space-x-4">
-        {/* Period Type Selection */}
-        <div className="flex space-x-2">
-          <button
-            onClick={() => updatePeriod('MTD')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              selectedPeriod === 'MTD'
-                ? 'bg-primary text-white'
-                : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
-            }`}
-          >
-            MTD
-          </button>
-          <button
-            onClick={() => updatePeriod('QTD')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              selectedPeriod === 'QTD'
-                ? 'bg-primary text-white'
-                : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
-            }`}
-          >
-            QTD
-          </button>
-          <button
-            onClick={() => updatePeriod('YTD')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              selectedPeriod === 'YTD'
-                ? 'bg-primary text-white'
-                : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
-            }`}
-          >
-            YTD
-          </button>
-        </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-4">
+          {/* Period Type Selection */}
+          <div className="flex space-x-2">
+            <button
+              onClick={() => updatePeriod('MTD')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                selectedPeriod === 'MTD'
+                  ? 'bg-primary text-white'
+                  : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
+              }`}
+            >
+              MTD
+            </button>
+            <button
+              onClick={() => updatePeriod('QTD')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                selectedPeriod === 'QTD'
+                  ? 'bg-primary text-white'
+                  : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
+              }`}
+            >
+              QTD
+            </button>
+            <button
+              onClick={() => updatePeriod('YTD')}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                selectedPeriod === 'YTD'
+                  ? 'bg-primary text-white'
+                  : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
+              }`}
+            >
+              YTD
+            </button>
+          </div>
 
         {/* Month Selector - Visible when MTD is selected */}
         {selectedPeriod === 'MTD' && (
@@ -138,9 +140,19 @@ const PeriodFilter = () => {
           </div>
         )}
 
-        {/* Year Display */}
-        <div className="text-sm text-neutral-mid">
-          <span className="font-medium">Year:</span> {selectedYear}
+          {/* Year Display */}
+          <div className="text-sm text-neutral-mid">
+            <span className="font-medium">Year:</span> {selectedYear}
+          </div>
+        </div>
+        
+        {/* Company Logo */}
+        <div className="flex items-center">
+          <img 
+            src={companyLogo} 
+            alt="Company Logo" 
+            className="h-10 w-auto object-contain"
+          />
         </div>
       </div>
     </div>
