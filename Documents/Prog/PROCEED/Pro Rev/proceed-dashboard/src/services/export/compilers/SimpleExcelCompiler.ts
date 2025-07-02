@@ -17,20 +17,36 @@ export class SimpleExcelCompiler {
       // Create a new workbook
       const wb = XLSX.utils.book_new();
 
-      // Extract dashboard data from DOM directly as fallback
-      const dashboardData = this.extractDashboardData();
+      // Check if this is an executive overview export
+      const isExecutiveOverview = document.querySelector('h1')?.textContent?.includes('Executive Overview');
       
-      // Create main sheet
-      const ws = XLSX.utils.aoa_to_sheet(dashboardData);
-      
-      // Apply formatting
-      this.applyFormatting(ws, dashboardData);
-      
-      // Auto-size columns
-      const colWidths = this.calculateOptimalColumnWidths(dashboardData);
-      ws['!cols'] = colWidths;
-      
-      XLSX.utils.book_append_sheet(wb, ws, 'Dashboard Data');
+      if (isExecutiveOverview) {
+        // Create multiple sheets for executive overview
+        const sheets = this.extractExecutiveOverviewSheets();
+        
+        sheets.forEach(sheet => {
+          const ws = XLSX.utils.aoa_to_sheet(sheet.data);
+          this.applyFormatting(ws, sheet.data);
+          const colWidths = this.calculateOptimalColumnWidths(sheet.data);
+          ws['!cols'] = colWidths;
+          XLSX.utils.book_append_sheet(wb, ws, sheet.name);
+        });
+      } else {
+        // Extract dashboard data from DOM directly as fallback
+        const dashboardData = this.extractDashboardData();
+        
+        // Create main sheet
+        const ws = XLSX.utils.aoa_to_sheet(dashboardData);
+        
+        // Apply formatting
+        this.applyFormatting(ws, dashboardData);
+        
+        // Auto-size columns
+        const colWidths = this.calculateOptimalColumnWidths(dashboardData);
+        ws['!cols'] = colWidths;
+        
+        XLSX.utils.book_append_sheet(wb, ws, 'Dashboard Data');
+      }
 
       // Generate Excel buffer with styles
       const buffer = XLSX.write(wb, { 
@@ -48,7 +64,7 @@ export class SimpleExcelCompiler {
       return {
         format: 'excel',
         data: blob,
-        filename: `proceed-dashboard-${new Date().toISOString().split('T')[0]}.xlsx`,
+        filename: `proceed-revenue-executive-overview-${new Date().toISOString().split('T')[0]}.xlsx`,
         size: buffer.byteLength,
         mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       };
@@ -66,28 +82,37 @@ export class SimpleExcelCompiler {
     ];
 
     try {
-      // Extract metric cards - look for the actual class names used
-      const metricCards = document.querySelectorAll('.bg-white.rounded-lg.shadow-sm.p-6, .dashboard-card');
-      console.log('Found metric cards:', metricCards.length);
+      // Extract Key Metrics from MetricCard components
+      const metricCards = document.querySelectorAll('[class*="grid"] > div');
+      const keyMetrics: any[] = [];
       
-      if (metricCards.length > 0) {
+      metricCards.forEach(card => {
+        // Look for metric card structure with icon and content
+        const titleElement = card.querySelector('.text-sm.font-medium.text-gray-500, [class*="text-gray-500"]');
+        const valueElement = card.querySelector('.text-3xl, .text-2xl, [class*="text-3xl"], [class*="text-2xl"]');
+        const trendElement = card.querySelector('.text-green-600, .text-red-600, [class*="text-green"], [class*="text-red"]');
+        
+        if (titleElement && valueElement) {
+          const title = titleElement.textContent?.trim() || '';
+          const value = valueElement.textContent?.trim() || '';
+          const trend = trendElement?.textContent?.trim() || '';
+          
+          if (title && value) {
+            keyMetrics.push({
+              metric: title,
+              value: value,
+              additionalInfo: trend
+            });
+          }
+        }
+      });
+
+      // Add Key Metrics section
+      if (keyMetrics.length > 0) {
         data.push(['Key Metrics']);
         data.push(['Metric', 'Value', 'Additional Info']);
-        
-        metricCards.forEach(card => {
-          // Look for title in various possible locations
-          const title = card.querySelector('h3, .text-sm.font-medium, .text-gray-500, .metric-label')?.textContent || 
-                       card.querySelector('p')?.textContent || '';
-          
-          // Look for value in various formats
-          const value = card.querySelector('.text-3xl, .text-2xl, .text-xl, .font-bold:not(h3), .metric-value')?.textContent || '';
-          
-          // Look for trend or additional info
-          const trend = card.querySelector('.text-green-600, .text-red-600, .text-sm:not(.font-medium)')?.textContent || '';
-          
-          if (title || value) {
-            data.push([title.trim(), value.trim(), trend.trim()]);
-          }
+        keyMetrics.forEach(metric => {
+          data.push([metric.metric, metric.value, metric.additionalInfo]);
         });
         data.push([]);
       }
@@ -140,17 +165,60 @@ export class SimpleExcelCompiler {
         data.push([]);
       });
 
-      // Try to extract gauge/chart values
-      const gauges = document.querySelectorAll('[class*="gauge"], [class*="chart"]');
-      if (gauges.length > 0) {
+      // Extract Achievement Gauge
+      const gaugeSection = document.querySelector('.dashboard-card');
+      if (gaugeSection) {
+        // Look for gauge chart values
+        const gaugeTitle = gaugeSection.querySelector('.section-title')?.textContent || 'Overall Achievement';
+        const gaugeValue = gaugeSection.querySelector('.text-4xl, [class*="text-4xl"]')?.textContent || '';
+        const targetAmount = gaugeSection.querySelector('[class*="target"]')?.textContent || '';
+        
         data.push(['Performance Indicators']);
-        gauges.forEach(gauge => {
-          const label = gauge.querySelector('[class*="label"], [class*="title"]')?.textContent || '';
-          const value = gauge.querySelector('[class*="value"], [class*="percent"]')?.textContent || '';
-          if (label && value) {
-            data.push([label.trim(), value.trim()]);
+        data.push(['Indicator', 'Value', 'Target']);
+        if (gaugeValue) {
+          data.push([gaugeTitle, gaugeValue, targetAmount]);
+        }
+        
+        // Extract Business Unit Performance
+        const businessUnitSection = document.querySelector('.col-span-2');
+        if (businessUnitSection) {
+          const businessUnits = businessUnitSection.querySelectorAll('.bg-secondary-pale');
+          if (businessUnits.length > 0) {
+            data.push([]);
+            data.push(['Business Unit Performance']);
+            data.push(['Service Type', 'Revenue', 'Achievement %', 'Target']);
+            
+            businessUnits.forEach(unit => {
+              // Service type (Transportation or Warehousing)
+              const serviceType = unit.querySelector('.font-medium')?.textContent || '';
+              
+              // Revenue value (formatted as SAR X.XM)
+              const revenueElement = unit.querySelector('.text-lg.font-bold');
+              const revenue = revenueElement?.textContent || '';
+              
+              // Achievement percentage (e.g., "95.5% Achievement")
+              const achievementSpan = Array.from(unit.querySelectorAll('.text-sm')).find(el => 
+                el.textContent?.includes('Achievement')
+              );
+              const achievement = achievementSpan?.textContent || '';
+              
+              // Target value (e.g., "Target: SAR X.XM")
+              const targetSpan = Array.from(unit.querySelectorAll('.text-sm')).find(el => 
+                el.textContent?.includes('Target')
+              );
+              const target = targetSpan?.textContent?.replace('Target: ', '') || '';
+              
+              if (serviceType && revenue) {
+                data.push([
+                  serviceType.trim(), 
+                  revenue.trim(), 
+                  achievement.replace('Achievement', '').trim(),
+                  target.trim()
+                ]);
+              }
+            });
           }
-        });
+        }
         data.push([]);
       }
 
@@ -381,6 +449,113 @@ export class SimpleExcelCompiler {
     });
     
     return widths.map(w => ({ wch: Math.ceil(w) }));
+  }
+
+  private extractExecutiveOverviewSheets(): Array<{ name: string; data: any[][] }> {
+    const sheets: Array<{ name: string; data: any[][] }> = [];
+    
+    // Sheet 1: Summary
+    const summaryData: any[][] = [
+      ['Proceed Revenue Dashboard Export'],
+      [`Generated: ${new Date().toLocaleString()}`],
+      [],
+      ['Executive Overview Summary'],
+      []
+    ];
+    
+    // Extract Key Metrics
+    const metricCards = document.querySelectorAll('[class*="grid"] > div');
+    const keyMetrics: any[] = [];
+    
+    metricCards.forEach(card => {
+      const titleElement = card.querySelector('.text-sm.font-medium.text-gray-500, [class*="text-gray-500"]');
+      const valueElement = card.querySelector('.text-3xl, .text-2xl, [class*="text-3xl"], [class*="text-2xl"]');
+      const trendElement = card.querySelector('.text-green-600, .text-red-600, [class*="text-green"], [class*="text-red"]');
+      
+      if (titleElement && valueElement) {
+        keyMetrics.push({
+          metric: titleElement.textContent?.trim() || '',
+          value: valueElement.textContent?.trim() || '',
+          additionalInfo: trendElement?.textContent?.trim() || ''
+        });
+      }
+    });
+    
+    if (keyMetrics.length > 0) {
+      summaryData.push(['Key Metrics']);
+      summaryData.push(['Metric', 'Value', 'Additional Info']);
+      keyMetrics.forEach(metric => {
+        summaryData.push([metric.metric, metric.value, metric.additionalInfo]);
+      });
+    }
+    
+    sheets.push({ name: 'Summary', data: summaryData });
+    
+    // Sheet 2: Business Unit Performance
+    const businessUnitData: any[][] = [
+      ['Business Unit Performance'],
+      [`Generated: ${new Date().toLocaleString()}`],
+      [],
+      ['Service Type', 'Revenue', 'Achievement %', 'Target']
+    ];
+    
+    const businessUnitSection = document.querySelector('.col-span-2');
+    if (businessUnitSection) {
+      const businessUnits = businessUnitSection.querySelectorAll('.bg-secondary-pale');
+      businessUnits.forEach(unit => {
+        const serviceType = unit.querySelector('.font-medium')?.textContent?.trim() || '';
+        const revenue = unit.querySelector('.text-lg.font-bold')?.textContent?.trim() || '';
+        const achievementSpan = Array.from(unit.querySelectorAll('.text-sm')).find(el => 
+          el.textContent?.includes('Achievement')
+        );
+        const achievement = achievementSpan?.textContent?.replace('Achievement', '').trim() || '';
+        const targetSpan = Array.from(unit.querySelectorAll('.text-sm')).find(el => 
+          el.textContent?.includes('Target')
+        );
+        const target = targetSpan?.textContent?.replace('Target: ', '').trim() || '';
+        
+        if (serviceType && revenue) {
+          businessUnitData.push([serviceType, revenue, achievement, target]);
+        }
+      });
+    }
+    
+    sheets.push({ name: 'Business Units', data: businessUnitData });
+    
+    // Sheet 3: Performance Indicators
+    const performanceData: any[][] = [
+      ['Performance Indicators'],
+      [`Generated: ${new Date().toLocaleString()}`],
+      [],
+      ['Indicator', 'Value', 'Status']
+    ];
+    
+    // Extract gauge data
+    const gaugeSection = document.querySelector('.dashboard-card');
+    if (gaugeSection) {
+      const gaugeTitle = gaugeSection.querySelector('.section-title')?.textContent || 'Overall Achievement';
+      const gaugeValue = gaugeSection.querySelector('.text-4xl, [class*="text-4xl"]')?.textContent || '';
+      
+      if (gaugeValue) {
+        performanceData.push([gaugeTitle, gaugeValue, 'Current']);
+      }
+      
+      // Extract period info
+      const periodText = document.querySelector('h1')?.textContent || '';
+      const yearMatch = periodText.match(/\d{4}/);
+      if (yearMatch) {
+        performanceData.push(['Year', yearMatch[0], 'Active']);
+      }
+      
+      const periodLabel = document.querySelector('.text-neutral-mid')?.textContent || '';
+      if (periodLabel) {
+        performanceData.push(['Period', periodLabel, 'Selected']);
+      }
+    }
+    
+    sheets.push({ name: 'Performance Indicators', data: performanceData });
+    
+    return sheets;
   }
 }
 

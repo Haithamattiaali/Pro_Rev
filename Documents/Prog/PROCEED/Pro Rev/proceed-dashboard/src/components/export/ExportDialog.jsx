@@ -5,8 +5,10 @@ import { exportManager } from '../../services/export/ExportManager';
 import ExportProgress from './ExportProgress';
 import ExportPreview from './ExportPreview';
 import ExportFormatSelector from './ExportFormatSelector';
+import { useFilter } from '../../contexts/FilterContext';
 
 const ExportDialog = ({ isOpen, onClose, dashboardRef }) => {
+  const { periodFilter } = useFilter();
   const [exportOptions, setExportOptions] = useState({
     scope: { type: 'full' },
     formats: ['pdf'],
@@ -26,6 +28,15 @@ const ExportDialog = ({ isOpen, onClose, dashboardRef }) => {
 
   const [showPreview, setShowPreview] = useState(false);
 
+  // Detect export type based on current route
+  const detectExportType = () => {
+    const path = window.location.pathname;
+    if (path.includes('business-units')) return 'businessUnits';
+    if (path.includes('customers')) return 'customers';
+    if (path.includes('trends')) return 'trends';
+    return 'overview'; // default
+  };
+
   // Start export
   const handleExport = async () => {
     if (!dashboardRef.current) {
@@ -37,9 +48,16 @@ const ExportDialog = ({ isOpen, onClose, dashboardRef }) => {
     setExportState({ ...exportState, status: 'exporting', error: null });
 
     try {
+      // Prepare dashboard state with filter context
+      const dashboardState = {
+        periodFilter,
+        exportType: detectExportType() // Detect based on current route
+      };
+      
       const sessionId = await exportManager.export(
         dashboardRef.current,
-        exportOptions
+        exportOptions,
+        dashboardState
       );
 
       setExportState(prev => ({ ...prev, sessionId }));

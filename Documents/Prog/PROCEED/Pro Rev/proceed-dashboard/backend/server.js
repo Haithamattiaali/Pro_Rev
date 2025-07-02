@@ -5,7 +5,9 @@ const multer = require('multer');
 const path = require('path');
 const etlService = require('./services/etl.service');
 const dataService = require('./services/data.service');
-const excelExportService = require('./services/excel-export.service');
+// Use new sustainable Excel export system
+const ExcelExportService = require('./services/excel');
+const legacyExcelExportService = require('./services/excel-export.service'); // Keep for fallback
 const db = require('./database/db-wrapper');
 
 const app = express();
@@ -86,6 +88,9 @@ const upload = multer({
   }
 });
 
+// Initialize the new Excel export service
+const excelExportService = new ExcelExportService(dataService);
+
 // API Routes
 
 // Test endpoint
@@ -94,7 +99,8 @@ app.get('/api/test', (req, res) => {
     message: 'Backend is working!',
     cors: 'CORS is configured',
     origin: req.headers.origin || 'No origin header',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    excelSystem: 'New sustainable Excel export system active'
   });
 });
 
@@ -287,7 +293,7 @@ app.get('/api/analysis-validation/:year', async (req, res) => {
 });
 
 // Export endpoints
-// Export overview data to Excel
+// Export overview data to Excel (using new sustainable system)
 app.get('/api/export/overview', async (req, res) => {
   try {
     const { 
@@ -297,19 +303,17 @@ app.get('/api/export/overview', async (req, res) => {
       quarter = null
     } = req.query;
     
-    const data = await dataService.getOverviewData(
-      parseInt(year), 
+    // Use the new export service
+    const result = await excelExportService.exportOverview({
+      year: parseInt(year),
       period,
-      month ? (month === 'all' ? 'all' : parseInt(month)) : null,
-      quarter ? (quarter === 'all' ? 'all' : parseInt(quarter)) : null
-    );
-    
-    const workbook = excelExportService.exportOverviewData(data);
-    const buffer = excelExportService.workbookToBuffer(workbook);
+      month: month ? (month === 'all' ? 'all' : parseInt(month)) : null,
+      quarter: quarter ? (quarter === 'all' ? 'all' : parseInt(quarter)) : null
+    });
     
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=proceed-overview-${period}-${year}.xlsx`);
-    res.send(buffer);
+    res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+    res.send(result.buffer);
   } catch (error) {
     console.error('Export overview error:', error);
     res.status(500).json({ error: error.message });
@@ -391,7 +395,7 @@ app.get('/api/export/trends', async (req, res) => {
   }
 });
 
-// Export generic table data
+// Export generic table data (using new sustainable system)
 app.post('/api/export/table', express.json(), async (req, res) => {
   try {
     const { data, headers, title, filename } = req.body;
@@ -400,28 +404,40 @@ app.post('/api/export/table', express.json(), async (req, res) => {
       return res.status(400).json({ error: 'Data and headers are required' });
     }
     
-    const workbook = excelExportService.exportTableData(data, headers, title);
-    const buffer = excelExportService.workbookToBuffer(workbook);
+    // Use the new export service for table exports
+    const result = await excelExportService.exportTable({
+      data,
+      headers,
+      title,
+      filename,
+      includeTotals: req.body.includeTotals
+    });
     
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename=${filename || 'table-export'}.xlsx`);
-    res.send(buffer);
+    res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+    res.send(result.buffer);
   } catch (error) {
     console.error('Export table error:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Custom export endpoints for selective exports
+// Custom export endpoints for selective exports (using new sustainable system)
 app.post('/api/export/custom/overview', async (req, res) => {
   try {
     const { sections, period, data } = req.body;
-    const workbook = await excelExportService.exportCustomOverview(sections, period, data);
-    const buffer = excelExportService.workbookToBuffer(workbook);
+    
+    // Use the new export service for custom exports
+    const result = await excelExportService.exportCustom('overview', {
+      sections,
+      period,
+      data,
+      year: req.body.year || new Date().getFullYear()
+    });
     
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', `attachment; filename="proceed_overview_custom.xlsx"`);
-    res.send(buffer);
+    res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`);
+    res.send(result.buffer);
   } catch (error) {
     console.error('Export error:', error);
     res.status(500).json({ error: error.message });

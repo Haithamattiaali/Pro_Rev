@@ -24,6 +24,7 @@ import { PowerPointCompiler } from './compilers/PowerPointCompiler';
 import { PDFCompiler } from './compilers/PDFCompiler';
 import { ExcelCompiler } from './compilers/ExcelCompiler';
 import { SimpleExcelCompiler } from './compilers/SimpleExcelCompiler';
+import { BackendExcelCompiler } from './compilers/BackendExcelCompiler';
 import { ImageCompiler } from './compilers/ImageCompiler';
 
 // Export Error class implementation
@@ -45,7 +46,8 @@ class ExportError extends Error implements IExportError {
 
 // Compiler interface
 interface Compiler {
-  compile(uer: UniversalExportRepresentation): Promise<ExportDocument>;
+  compile(uer: UniversalExportRepresentation, context?: any): Promise<ExportDocument>;
+  setDashboardElement?(element: HTMLElement): void;
 }
 
 // Export manager configuration
@@ -114,8 +116,10 @@ export class ExportManager {
   private registerCompilers(): void {
     this.compilers.set('pdf', new PDFCompiler());
     this.compilers.set('powerpoint', new PowerPointCompiler());
-    // Use SimpleExcelCompiler for now due to UER structure issues
-    this.compilers.set('excel', new SimpleExcelCompiler());
+    // Use BackendExcelCompiler for sustainable Excel exports
+    this.compilers.set('excel', new BackendExcelCompiler());
+    // Keep SimpleExcelCompiler as fallback if needed
+    this.compilers.set('excel-simple', new SimpleExcelCompiler());
     this.compilers.set('image', new ImageCompiler());
   }
 
@@ -129,8 +133,8 @@ export class ExportManager {
   ): Promise<string> {
     console.log('📤 Starting export process...');
 
-    // Create export session
-    const sessionId = this.createSession(options);
+    // Create export session with dashboard state
+    const sessionId = this.createSession(options, dashboardState);
     const session = this.sessions.get(sessionId)!;
     
     // Store dashboard element in request for later use
@@ -309,7 +313,14 @@ export class ExportManager {
         }
 
         try {
-          const document = await compiler.compile(uer);
+          // Prepare context for compiler
+          const context = {
+            periodFilter: (session.request as any).periodFilter,
+            exportType: (session.request as any).exportType,
+            dashboardState: (session.request as any).dashboardState
+          };
+          
+          const document = await compiler.compile(uer, context);
           documents.push(document);
           console.log(`Successfully compiled ${format} document`);
         } catch (error) {
@@ -425,7 +436,7 @@ export class ExportManager {
    * Utility methods
    */
 
-  private createSession(options: ExportOptions): string {
+  private createSession(options: ExportOptions, dashboardState?: any): string {
     const sessionId = `export_${this.sessionIdCounter++}_${Date.now()}`;
     const session: ExportSession = {
       id: sessionId,
@@ -442,6 +453,13 @@ export class ExportManager {
         message: 'Export initiated'
       }
     };
+
+    // Store dashboard state in the request for later use
+    if (dashboardState) {
+      (session.request as any).dashboardState = dashboardState;
+      (session.request as any).periodFilter = dashboardState.periodFilter;
+      (session.request as any).exportType = dashboardState.exportType;
+    }
 
     this.sessions.set(sessionId, session);
     return sessionId;
