@@ -3,7 +3,8 @@ import { Truck, Package, Loader2, Users, TrendingUp, FileText } from 'lucide-rea
 import { formatCurrency, formatPercentage, getAchievementStatus, getGrossProfitStatus } from '../utils/formatters'
 import BusinessUnitBarChart from '../components/charts/BusinessUnitBarChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
-import ExportButton from '../components/buttons/ExportButton'
+import SelectiveExportButton from '../components/buttons/SelectiveExportButton'
+import TableExportButton from '../components/buttons/TableExportButton'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
 import dataService from '../services/dataService'
@@ -105,13 +106,19 @@ const BusinessUnits = () => {
           <h1 className="text-3xl font-bold text-primary-dark tracking-tight">Business Units Performance</h1>
           <p className="text-neutral-mid mt-2">Deep dive into service-specific metrics and trends</p>
         </div>
-        <ExportButton 
-          onClick={() => exportService.exportBusinessUnits(
-            periodFilter.year, 
-            periodFilter.period, 
-            periodFilter.month, 
-            periodFilter.quarter
-          )}
+        <SelectiveExportButton 
+          pageType="business-units"
+          data={{
+            businessUnits: businessUnits,
+            monthlyBreakdown: unitMonthlyData.map(month => ({
+              month: month.month,
+              businessUnit: selectedUnit,
+              revenue: month.revenue,
+              cost: month.cost,
+              profit: month.grossProfit
+            }))
+          }}
+          period={periodFilter}
           variant="secondary"
           size="medium"
         />
@@ -193,12 +200,19 @@ const BusinessUnits = () => {
       <div className="dashboard-card">
         <div className="flex justify-between items-center mb-4">
           <h2 className="section-title mb-0">Monthly Breakdown</h2>
-          <ExportButton
-            onClick={() => exportService.exportTrends(periodFilter.year, selectedUnit)}
+          <TableExportButton
+            data={unitMonthlyData.map(month => ({
+              Month: month.month,
+              Target: month.target,
+              Revenue: month.revenue,
+              Cost: month.cost,
+              'Achievement %': month.achievement,
+              'Gross Profit': month.grossProfit,
+              'GP Margin': month.grossProfitMargin
+            }))}
+            filename={`${selectedUnit}_monthly_breakdown_${periodFilter.year}`}
             variant="inline"
             size="small"
-            label=""
-            className="opacity-70 hover:opacity-100"
           />
         </div>
         <div className="overflow-x-auto">

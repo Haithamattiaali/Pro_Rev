@@ -89,6 +89,95 @@ class ExportService {
     
     await this.downloadFile(url, filename);
   }
+
+  async exportCustomOverview(exportData) {
+    const { sections, period, data } = exportData;
+    const response = await fetch(`${this.baseURL}/export/custom/overview`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      },
+      body: JSON.stringify({ sections, period, data })
+    });
+
+    if (!response.ok) {
+      throw new Error('Export failed');
+    }
+
+    const blob = await response.blob();
+    const filename = `proceed-overview-custom-${new Date().toISOString().split('T')[0]}.xlsx`;
+    this.downloadBlob(blob, filename);
+  }
+
+  async exportCustomBusinessUnits(exportData) {
+    const { sections, period, data } = exportData;
+    const response = await fetch(`${this.baseURL}/export/custom/business-units`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      },
+      body: JSON.stringify({ sections, period, data })
+    });
+
+    if (!response.ok) {
+      throw new Error('Export failed');
+    }
+
+    const blob = await response.blob();
+    const filename = `proceed-business-units-custom-${new Date().toISOString().split('T')[0]}.xlsx`;
+    this.downloadBlob(blob, filename);
+  }
+
+  async exportCustomCustomers(exportData) {
+    const { sections, period, data } = exportData;
+    const response = await fetch(`${this.baseURL}/export/custom/customers`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      },
+      body: JSON.stringify({ sections, period, data })
+    });
+
+    if (!response.ok) {
+      throw new Error('Export failed');
+    }
+
+    const blob = await response.blob();
+    const filename = `proceed-customers-custom-${new Date().toISOString().split('T')[0]}.xlsx`;
+    this.downloadBlob(blob, filename);
+  }
+
+  async exportTable(data, filename = 'export') {
+    const response = await fetch(`${this.baseURL}/export/table`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+      },
+      body: JSON.stringify({ data, filename })
+    });
+
+    if (!response.ok) {
+      throw new Error('Export failed');
+    }
+
+    const blob = await response.blob();
+    this.downloadBlob(blob, `${filename}-${new Date().toISOString().split('T')[0]}.xlsx`);
+  }
+
+  downloadBlob(blob, filename) {
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
+  }
 }
 
 export default new ExportService();

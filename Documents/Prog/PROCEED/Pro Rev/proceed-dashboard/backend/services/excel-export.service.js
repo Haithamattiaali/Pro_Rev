@@ -361,6 +361,243 @@ class ExcelExportService {
   workbookToBuffer(workbook) {
     return XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
   }
+
+  // Custom export methods for selective exports
+  async exportCustomOverview(sections, period, data) {
+    const wb = this.createWorkbook();
+    
+    if (sections.includes('summary')) {
+      const summaryData = [
+        ['PROCEED REVENUE DASHBOARD - OVERVIEW SUMMARY'],
+        [`Period: ${period}`],
+        [],
+        ['Key Metrics'],
+        ['Metric', 'Value'],
+        ['Total Revenue', this.formatCurrency(data?.overview?.revenue)],
+        ['Target', this.formatCurrency(data?.overview?.target)],
+        ['Achievement', `${this.formatPercentage(data?.overview?.achievement)}%`],
+        ['Total Cost', this.formatCurrency(data?.overview?.cost)],
+        ['Gross Profit', this.formatCurrency(data?.overview?.profit)],
+        ['Profit Margin', `${this.formatPercentage(data?.overview?.profitMargin)}%`]
+      ];
+      
+      const ws = XLSX.utils.aoa_to_sheet(summaryData);
+      ws['!cols'] = [{ wch: 25 }, { wch: 20 }];
+      XLSX.utils.book_append_sheet(wb, ws, 'Summary');
+    }
+    
+    if (sections.includes('serviceBreakdown') && data?.serviceBreakdown) {
+      const serviceData = [
+        ['Service Type Breakdown'],
+        [],
+        ['Service Type', 'Revenue', 'Target', 'Achievement %', 'Cost', 'Profit']
+      ];
+      
+      data.serviceBreakdown.forEach(service => {
+        serviceData.push([
+          service.service_type,
+          this.formatCurrency(service.revenue),
+          this.formatCurrency(service.target),
+          `${this.formatPercentage(service.achievement_percentage)}%`,
+          this.formatCurrency(service.cost),
+          this.formatCurrency(service.revenue - service.cost)
+        ]);
+      });
+      
+      const ws = XLSX.utils.aoa_to_sheet(serviceData);
+      ws['!cols'] = [{ wch: 20 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, ws, 'Service Breakdown');
+    }
+    
+    if (sections.includes('monthlyTrends') && data?.monthlyTrends) {
+      const trendData = [
+        ['Monthly Trends'],
+        [],
+        ['Month', 'Revenue', 'Target', 'Achievement %']
+      ];
+      
+      data.monthlyTrends.forEach(month => {
+        trendData.push([
+          month.name,
+          this.formatCurrency(month.revenue),
+          this.formatCurrency(month.target),
+          `${this.formatPercentage(month.achievement)}%`
+        ]);
+      });
+      
+      const ws = XLSX.utils.aoa_to_sheet(trendData);
+      ws['!cols'] = [{ wch: 12 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, ws, 'Monthly Trends');
+    }
+    
+    return wb;
+  }
+
+  async exportCustomBusinessUnits(sections, period, data) {
+    const wb = this.createWorkbook();
+    
+    if (sections.includes('performance') && data?.businessUnits) {
+      const perfData = [
+        ['Business Unit Performance'],
+        [`Period: ${period}`],
+        [],
+        ['Business Unit', 'Revenue', 'Cost', 'Gross Profit', 'Profit Margin %']
+      ];
+      
+      data.businessUnits.forEach(unit => {
+        perfData.push([
+          unit.businessUnit,
+          this.formatCurrency(unit.revenue),
+          this.formatCurrency(unit.cost),
+          this.formatCurrency(unit.profit),
+          `${this.formatPercentage(unit.profitMargin)}%`
+        ]);
+      });
+      
+      const ws = XLSX.utils.aoa_to_sheet(perfData);
+      ws['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, ws, 'Performance');
+    }
+    
+    if (sections.includes('achievements') && data?.businessUnits) {
+      const achData = [
+        ['Achievement Analysis'],
+        [],
+        ['Business Unit', 'Target', 'Actual', 'Achievement %']
+      ];
+      
+      data.businessUnits.forEach(unit => {
+        achData.push([
+          unit.businessUnit,
+          this.formatCurrency(unit.target),
+          this.formatCurrency(unit.revenue),
+          `${this.formatPercentage(unit.achievement)}%`
+        ]);
+      });
+      
+      const ws = XLSX.utils.aoa_to_sheet(achData);
+      ws['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, ws, 'Achievements');
+    }
+    
+    if (sections.includes('monthlyBreakdown') && data?.monthlyBreakdown) {
+      const monthlyData = [
+        ['Monthly Breakdown'],
+        [],
+        ['Month', 'Business Unit', 'Revenue', 'Cost', 'Profit']
+      ];
+      
+      data.monthlyBreakdown.forEach(item => {
+        monthlyData.push([
+          item.month,
+          item.businessUnit,
+          this.formatCurrency(item.revenue),
+          this.formatCurrency(item.cost),
+          this.formatCurrency(item.profit)
+        ]);
+      });
+      
+      const ws = XLSX.utils.aoa_to_sheet(monthlyData);
+      ws['!cols'] = [{ wch: 12 }, { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, ws, 'Monthly Breakdown');
+    }
+    
+    return wb;
+  }
+
+  async exportCustomCustomers(sections, period, data) {
+    const wb = this.createWorkbook();
+    
+    if (sections.includes('topCustomers') && data?.topCustomers) {
+      const topData = [
+        ['Top Customers'],
+        [`Period: ${period}`],
+        [],
+        ['Customer', 'Revenue', 'Target', 'Achievement %', 'Profit']
+      ];
+      
+      data.topCustomers.forEach(customer => {
+        topData.push([
+          customer.customer,
+          this.formatCurrency(customer.revenue),
+          this.formatCurrency(customer.target),
+          `${this.formatPercentage(customer.achievement)}%`,
+          this.formatCurrency(customer.profit)
+        ]);
+      });
+      
+      const ws = XLSX.utils.aoa_to_sheet(topData);
+      ws['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, ws, 'Top Customers');
+    }
+    
+    if (sections.includes('serviceBreakdown') && data?.serviceBreakdown) {
+      const serviceData = [
+        ['Customer Service Analysis'],
+        [],
+        ['Service Type', 'Customer Count', 'Total Revenue', 'Total Profit']
+      ];
+      
+      data.serviceBreakdown.forEach(service => {
+        serviceData.push([
+          service.serviceType,
+          service.customerCount,
+          this.formatCurrency(service.revenue),
+          this.formatCurrency(service.profit)
+        ]);
+      });
+      
+      const ws = XLSX.utils.aoa_to_sheet(serviceData);
+      ws['!cols'] = [{ wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, ws, 'Service Analysis');
+    }
+    
+    if (sections.includes('allCustomers') && data?.allCustomers) {
+      const allData = [
+        ['All Customers'],
+        [],
+        ['Customer', 'Revenue', 'Target', 'Achievement %', 'Cost', 'Profit', 'Service Types']
+      ];
+      
+      data.allCustomers.forEach(customer => {
+        allData.push([
+          customer.customer,
+          this.formatCurrency(customer.revenue),
+          this.formatCurrency(customer.target),
+          `${this.formatPercentage(customer.achievement)}%`,
+          this.formatCurrency(customer.cost),
+          this.formatCurrency(customer.profit),
+          customer.serviceCount || 0
+        ]);
+      });
+      
+      const ws = XLSX.utils.aoa_to_sheet(allData);
+      ws['!cols'] = [{ wch: 30 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 15 }, { wch: 12 }];
+      XLSX.utils.book_append_sheet(wb, ws, 'All Customers');
+    }
+    
+    if (sections.includes('achievements') && data?.achievements) {
+      const achData = [
+        ['Achievement Analysis'],
+        [],
+        ['Achievement Range', 'Customer Count', 'Total Revenue']
+      ];
+      
+      data.achievements.forEach(range => {
+        achData.push([
+          range.range,
+          range.count,
+          this.formatCurrency(range.revenue)
+        ]);
+      });
+      
+      const ws = XLSX.utils.aoa_to_sheet(achData);
+      ws['!cols'] = [{ wch: 20 }, { wch: 15 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, ws, 'Achievements');
+    }
+    
+    return wb;
+  }
 }
 
 module.exports = new ExcelExportService();

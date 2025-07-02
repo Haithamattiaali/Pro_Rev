@@ -412,6 +412,52 @@ app.post('/api/export/table', express.json(), async (req, res) => {
   }
 });
 
+// Custom export endpoints for selective exports
+app.post('/api/export/custom/overview', async (req, res) => {
+  try {
+    const { sections, period, data } = req.body;
+    const workbook = await excelExportService.exportCustomOverview(sections, period, data);
+    const buffer = excelExportService.workbookToBuffer(workbook);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="proceed_overview_custom.xlsx"`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('Export error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/export/custom/business-units', async (req, res) => {
+  try {
+    const { sections, period, data } = req.body;
+    const workbook = await excelExportService.exportCustomBusinessUnits(sections, period, data);
+    const buffer = excelExportService.workbookToBuffer(workbook);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="proceed_business_units_custom.xlsx"`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('Export error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/export/custom/customers', async (req, res) => {
+  try {
+    const { sections, period, data } = req.body;
+    const workbook = await excelExportService.exportCustomCustomers(sections, period, data);
+    const buffer = excelExportService.workbookToBuffer(workbook);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="proceed_customers_custom.xlsx"`);
+    res.send(buffer);
+  } catch (error) {
+    console.error('Export error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Health check
 app.get('/api/health', async (req, res) => {
   try {

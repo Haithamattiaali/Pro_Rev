@@ -3,7 +3,7 @@ import { Banknote, Target, TrendingUp, Percent, Loader2, Truck, Warehouse } from
 import MetricCard from '../components/cards/MetricCard'
 import GaugeChart from '../components/charts/GaugeChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
-import { ExportButton } from '../components/export'
+import SelectiveExportButton from '../components/buttons/SelectiveExportButton'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
@@ -86,8 +86,10 @@ const Overview = () => {
             {dataService.getPeriodLabel(periodFilter.period)} performance metrics and key insights
           </p>
         </div>
-        <ExportButton 
-          dashboardRef={dashboardRef}
+        <SelectiveExportButton 
+          pageType="overview"
+          data={overviewData}
+          period={periodFilter}
           variant="secondary"
           size="medium"
         />
