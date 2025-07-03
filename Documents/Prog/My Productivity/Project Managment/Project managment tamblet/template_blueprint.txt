@@ -1,0 +1,142 @@
+PROJECT MANAGEMENT TEMPLATE BLUEPRINT
+=====================================
+
+VISION: Create an intelligent project management template that goes beyond simple task counting to provide accurate progress tracking through impact-based algorithms and parent-child relationships.
+
+KEY OBJECTIVES:
+1. Replace count-based progress tracking with impact-based scoring
+2. Enable bottom-up progress calculation from child tasks
+3. Consider task dependencies and parallelism
+4. Provide intuitive, focused user experience
+5. Generate reliable one-page status reports
+
+TEMPLATE STRUCTURE:
+==================
+
+CORE COLUMNS:
+1. Task ID - Unique identifier
+2. Task Name - Clear description
+3. Task Type - Parent/Child indicator
+4. Parent Task ID - Links child to parent
+5. Task Duration (Days) - Estimated time
+6. Start Date - Planned start
+7. End Date - Planned end
+8. Actual Start - Real start date
+9. Actual End - Real completion date
+10. % Complete - Current progress
+11. Task Agility - Parallel/Sequential
+12. Dependencies - Linked task IDs
+13. Dependency Type - FS/SS/FF/SF
+14. Impact Score - Calculated value (0-100)
+15. Criticality Level - High/Medium/Low
+16. Resource Assignment - Team/Person
+17. Status - Not Started/In Progress/Complete/Delayed/Blocked
+18. Health Indicator - Green/Yellow/Red
+19. Notes - Additional context
+
+IMPACT SCORE ALGORITHM COMPONENTS:
+=================================
+
+1. BASE IMPACT FACTORS:
+   - Duration Weight (DW): Longer tasks = higher impact
+   - Dependency Count (DC): More dependencies = higher impact
+   - Resource Criticality (RC): Critical resources = higher impact
+   - Timeline Position (TP): Earlier tasks = higher impact
+
+2. MULTIPLIERS:
+   - Blocking Factor (BF): Tasks blocking others get multiplied impact
+   - Parallel Reduction (PR): Parallel tasks share impact weight
+   - Delay Amplification (DA): Delayed tasks increase impact
+
+3. FORMULA:
+   Impact Score = (DW × 0.25 + DC × 0.30 + RC × 0.20 + TP × 0.25) × BF × PR × DA
+
+PARENT-CHILD PROGRESS CALCULATION:
+==================================
+
+1. CHILD PROGRESS AGGREGATION:
+   - Weighted by Impact Score
+   - Formula: Parent Progress = Σ(Child Progress × Child Impact) / Σ(Child Impact)
+
+2. ROLLUP RULES:
+   - Health Status: Worst child status propagates up
+   - Delays: Maximum child delay affects parent
+   - Dependencies: Parent inherits all child dependencies
+
+VISUAL DESIGN SPECIFICATIONS:
+============================
+
+1. COLOR SCHEME:
+   - Primary: #9e1f63 (Authority/Headers)
+   - Secondary: #721548 (Section dividers)
+   - Accent Blue: #005b8c (Trust/Progress)
+   - Accent Coral: #e05e3d (Action items)
+   - Status Green: #2ecc71 (On track)
+   - Status Yellow: #f1c40f (At risk)
+   - Status Red: #e74c3c (Critical)
+
+2. TYPOGRAPHY:
+   - Headers: Verdana 14px Bold
+   - Sub-headers: Verdana 12px Bold
+   - Body: Verdana 10px Regular
+   - Impact Scores: Verdana 11px Bold
+
+3. LAYOUT ZONES:
+   Zone 1: Executive Summary (Top)
+   - Overall project health
+   - Key metrics dashboard
+   - Critical path status
+   
+   Zone 2: Task Hierarchy (Left)
+   - Parent-child tree view
+   - Expandable/collapsible
+   
+   Zone 3: Progress Visualization (Right)
+   - Gantt chart view
+   - Impact heat map
+   
+   Zone 4: Detailed Task Grid (Bottom)
+   - Full task details
+   - Sortable/filterable
+
+USER EXPERIENCE PRINCIPLES:
+==========================
+
+1. FOCUS ENHANCEMENT:
+   - Hide non-essential columns by default
+   - Progressive disclosure of details
+   - Smart filtering by relevance
+
+2. INTUITIVE NAVIGATION:
+   - One-click parent-child navigation
+   - Visual dependency lines
+   - Color-coded status indicators
+
+3. AUTOMATED CALCULATIONS:
+   - Impact scores auto-calculate
+   - Progress rolls up automatically
+   - Health status updates in real-time
+
+REPORTING FEATURES:
+==================
+
+1. ONE-PAGE EXECUTIVE SUMMARY:
+   - Overall project health score
+   - Top 5 critical tasks by impact
+   - Resource utilization
+   - Timeline adherence
+   - Risk indicators
+
+2. DRILL-DOWN CAPABILITIES:
+   - Click to expand details
+   - Filter by team/phase/status
+   - Export options
+
+SUCCESS METRICS:
+===============
+
+1. Accuracy: Impact-based progress within 5% of actual
+2. Usability: Users productive within 10 minutes
+3. Reliability: 99.9% calculation accuracy
+4. Performance: Updates in <2 seconds
+5. Adoption: 90% user satisfaction
