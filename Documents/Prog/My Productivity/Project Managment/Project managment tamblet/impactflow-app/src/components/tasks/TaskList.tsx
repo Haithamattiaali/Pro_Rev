@@ -4,10 +4,10 @@ import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Search, Filter, Plus, ChevronDown, ChevronRight, 
-  Calendar, Users, AlertTriangle, CheckCircle,
-  Edit3, Trash2, Copy, Flag, Clock, UserCheck, PencilLine, Lock
+  Calendar, Users, User, AlertTriangle, CheckCircle,
+  Edit3, Trash2, Copy, Flag, Clock, UserCheck, PencilLine, Lock, TrendingUp
 } from 'lucide-react'
-import { Task, TaskStatus, TaskType, CriticalityLevel, User } from '@/types/project'
+import { Task, TaskStatus, TaskType, CriticalityLevel, User as UserType } from '@/types/project'
 import { calculateImpactScore, getHealthColor } from '@/utils/calculations'
 import { format } from 'date-fns'
 import clsx from 'clsx'
@@ -25,7 +25,7 @@ interface TaskListProps {
   onTaskDelete: (taskId: string) => void
   onTaskCreate: () => void
   projectId?: string
-  currentUser?: User
+  currentUser?: UserType
 }
 
 export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, projectId, currentUser }: TaskListProps) {
@@ -585,8 +585,111 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, proj
             {taskTree.get(null)?.map(task => renderTask(task))}
           </AnimatePresence>
         ) : (
-          <div className="text-center py-12 text-neutral-500">
-            Kanban view coming soon...
+          <div className="kanban-board flex gap-4 overflow-x-auto pb-4">
+            {/* Kanban Columns */}
+            {['Not Started', 'In Progress', 'Review', 'Blocked', 'Complete', 'Delayed'].map(status => {
+              const columnTasks = filteredTasks.filter(task => task.status === status)
+              const statusColors = {
+                'Not Started': 'bg-neutral-100 border-neutral-300',
+                'In Progress': 'bg-blue-50 border-blue-300',
+                'Review': 'bg-purple-50 border-purple-300',
+                'Blocked': 'bg-red-50 border-red-300',
+                'Complete': 'bg-green-50 border-green-300',
+                'Delayed': 'bg-orange-50 border-orange-300'
+              }
+              
+              return (
+                <div key={status} className="flex-shrink-0 w-80">
+                  <div className={`rounded-lg border-2 ${statusColors[status as keyof typeof statusColors]} min-h-[600px]`}>
+                    <div className="p-4 border-b-2 border-inherit">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold">{status}</h3>
+                        <span className="text-sm text-neutral-600 bg-white px-2 py-1 rounded-full">
+                          {columnTasks.length}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 space-y-3">
+                      <AnimatePresence>
+                        {columnTasks.map(task => (
+                          <motion.div
+                            key={task.id}
+                            layout
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9 }}
+                            whileHover={{ scale: 1.02 }}
+                            className="bg-white rounded-lg p-4 shadow-sm border border-neutral-200 cursor-pointer hover:shadow-md transition-shadow"
+                            onClick={() => onTaskUpdate(task.id, task)}
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <h4 className="font-medium text-sm line-clamp-2">{task.name}</h4>
+                              {task.milestone && (
+                                <Flag className="w-4 h-4 text-primary flex-shrink-0 ml-2" />
+                              )}
+                            </div>
+                            
+                            <div className="flex items-center gap-2 text-xs text-neutral-600 mb-2">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {task.endDate ? format(task.endDate, 'MMM d') : 'No date'}
+                              </span>
+                              {task.resourceAssignment && (
+                                <span className="flex items-center gap-1">
+                                  <User className="w-3 h-3" />
+                                  {task.resourceAssignment.split(',')[0]}
+                                </span>
+                              )}
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                  task.criticalityLevel === 'Critical' ? 'bg-red-100 text-red-700' :
+                                  task.criticalityLevel === 'High' ? 'bg-orange-100 text-orange-700' :
+                                  task.criticalityLevel === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                                  'bg-green-100 text-green-700'
+                                }`}>
+                                  {task.criticalityLevel}
+                                </span>
+                                <span className="text-xs text-neutral-500">
+                                  {task.type}
+                                </span>
+                              </div>
+                              
+                              <div className="flex items-center gap-1">
+                                <TrendingUp className="w-3 h-3 text-primary" />
+                                <span className="text-xs font-medium text-primary">
+                                  {task.impactScore}%
+                                </span>
+                              </div>
+                            </div>
+                            
+                            {task.percentComplete > 0 && (
+                              <div className="mt-3">
+                                <div className="w-full bg-neutral-200 rounded-full h-1.5">
+                                  <div 
+                                    className="bg-primary rounded-full h-1.5 transition-all duration-300"
+                                    style={{ width: `${task.percentComplete}%` }}
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
+                      
+                      {columnTasks.length === 0 && (
+                        <div className="text-center py-8 text-neutral-400 text-sm">
+                          No tasks in this status
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         )}
         

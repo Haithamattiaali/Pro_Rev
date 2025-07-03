@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { UserManagement } from '@/components/admin/UserManagement';
 import { UserMenu } from '@/components/auth/UserMenu';
 import { ArrowLeft } from 'lucide-react';
@@ -9,7 +8,6 @@ import Link from 'next/link';
 
 export default function UsersPage() {
   return (
-    <ProtectedRoute requireRole="Admin">
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
         <header className="bg-white shadow-sm border-b">
@@ -42,6 +40,5 @@ export default function UsersPage() {
           <UserManagement />
         </main>
       </div>
-    </ProtectedRoute>
   );
 }

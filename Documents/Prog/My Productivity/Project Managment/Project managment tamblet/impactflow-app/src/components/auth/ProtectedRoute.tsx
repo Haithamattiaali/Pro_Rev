@@ -1,5 +1,7 @@
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
+'use client';
+
+import React, { useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '../../hooks/useAuth';
 import { usePermissions } from '../../hooks/usePermissions';
 import { useRoleAccess } from '../../hooks/useRoleAccess';
@@ -31,7 +33,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isAuthenticated, isLoading } = useAuth();
   const { can } = usePermissions();
   const { hasRole, hasMinimumRole } = useRoleAccess();
-  const location = useLocation();
+  const router = useRouter();
+  const pathname = usePathname();
+  
+  useEffect(() => {
+    if (!isLoading && requireAuth && !isAuthenticated) {
+      router.push(`${redirectTo}?redirect=${encodeURIComponent(pathname)}`);
+    }
+  }, [isAuthenticated, isLoading, requireAuth, redirectTo, pathname, router]);
   
   if (isLoading) {
     return (
@@ -43,7 +52,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   
   // Check authentication
   if (requireAuth && !isAuthenticated) {
-    return <Navigate to={redirectTo} state={{ from: location }} replace />;
+    return null; // Return null while redirecting
   }
   
   // Check permission

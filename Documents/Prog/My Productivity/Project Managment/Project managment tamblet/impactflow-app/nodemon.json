@@ -1,0 +1,21 @@
+{
+  "watch": [
+    "src/**/*",
+    "server.js",
+    "package.json"
+  ],
+  "ext": "js,jsx,ts,tsx,json,css",
+  "ignore": [
+    "src/**/*.spec.ts",
+    "node_modules",
+    ".next",
+    "out",
+    "build",
+    "coverage",
+    ".git"
+  ],
+  "exec": "next dev",
+  "env": {
+    "NODE_ENV": "development"
+  }
+}

@@ -117,4 +117,22 @@
   .focus-visible-ring {
     @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
   }
+
+  /* Kanban board styles */
+  .kanban-board {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(163 163 163 / 0.5) rgb(245 245 245);
+  }
+  
+  .kanban-board::-webkit-scrollbar {
+    height: 12px;
+  }
+  
+  .kanban-board::-webkit-scrollbar-track {
+    @apply bg-neutral-100 rounded-full;
+  }
+  
+  .kanban-board::-webkit-scrollbar-thumb {
+    @apply bg-neutral-400 rounded-full hover:bg-neutral-500;
+  }
 }
