@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { FileSpreadsheet, RefreshCw, Download, Settings } from 'lucide-react'
 import { useSocket } from '@/hooks/useSocket'
@@ -431,9 +432,13 @@ export default function ProjectDashboard() {
                   <Download className="w-4 h-4" />
                   Export
                 </button>
-                <button className="btn-secondary p-2">
+                <Link
+                  href="/settings"
+                  className="btn-secondary p-2 inline-flex"
+                  title="Settings"
+                >
                   <Settings className="w-4 h-4" />
-                </button>
+                </Link>
                 <UserMenu />
               </div>
             </div>

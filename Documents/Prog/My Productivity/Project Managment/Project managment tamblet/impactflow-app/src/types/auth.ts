@@ -34,6 +34,7 @@ export type Resource =
   | 'team'
   | 'users'
   | 'settings'
+  | 'system_settings'
   | 'analytics'
   | 'approvals';
 
@@ -92,8 +93,9 @@ export const ROLES: Record<RoleName, Omit<Role, 'id'>> = {
       { id: '16', resource: 'users', action: 'update', scope: 'all' },
       { id: '17', resource: 'users', action: 'delete', scope: 'all' },
       { id: '18', resource: 'settings', action: 'manage', scope: 'all' },
-      { id: '19', resource: 'analytics', action: 'read', scope: 'all' },
-      { id: '20', resource: 'approvals', action: 'approve', scope: 'all' },
+      { id: '19', resource: 'system_settings', action: 'manage', scope: 'all' },
+      { id: '20', resource: 'analytics', action: 'read', scope: 'all' },
+      { id: '21', resource: 'approvals', action: 'approve', scope: 'all' },
     ],
   },
   'Project Manager': {
@@ -101,21 +103,21 @@ export const ROLES: Record<RoleName, Omit<Role, 'id'>> = {
     description: 'Manage projects and teams',
     level: 1,
     permissions: [
-      { id: '21', resource: 'tasks', action: 'create', scope: 'all' },
-      { id: '22', resource: 'tasks', action: 'read', scope: 'all' },
-      { id: '23', resource: 'tasks', action: 'update', scope: 'all' },
-      { id: '24', resource: 'tasks', action: 'delete', scope: 'all' },
-      { id: '25', resource: 'tasks', action: 'assign', scope: 'all' },
-      { id: '26', resource: 'projects', action: 'create', scope: 'team' },
-      { id: '27', resource: 'projects', action: 'read', scope: 'all' },
-      { id: '28', resource: 'projects', action: 'update', scope: 'team' },
-      { id: '29', resource: 'reports', action: 'create', scope: 'all' },
-      { id: '30', resource: 'reports', action: 'read', scope: 'all' },
-      { id: '31', resource: 'reports', action: 'export', scope: 'all' },
-      { id: '32', resource: 'team', action: 'manage', scope: 'team' },
-      { id: '33', resource: 'users', action: 'read', scope: 'team' },
-      { id: '34', resource: 'analytics', action: 'read', scope: 'team' },
-      { id: '35', resource: 'approvals', action: 'approve', scope: 'team' },
+      { id: '22', resource: 'tasks', action: 'create', scope: 'all' },
+      { id: '23', resource: 'tasks', action: 'read', scope: 'all' },
+      { id: '24', resource: 'tasks', action: 'update', scope: 'all' },
+      { id: '25', resource: 'tasks', action: 'delete', scope: 'all' },
+      { id: '26', resource: 'tasks', action: 'assign', scope: 'all' },
+      { id: '27', resource: 'projects', action: 'create', scope: 'team' },
+      { id: '28', resource: 'projects', action: 'read', scope: 'all' },
+      { id: '29', resource: 'projects', action: 'update', scope: 'team' },
+      { id: '30', resource: 'reports', action: 'create', scope: 'all' },
+      { id: '31', resource: 'reports', action: 'read', scope: 'all' },
+      { id: '32', resource: 'reports', action: 'export', scope: 'all' },
+      { id: '33', resource: 'team', action: 'manage', scope: 'team' },
+      { id: '34', resource: 'users', action: 'read', scope: 'team' },
+      { id: '35', resource: 'analytics', action: 'read', scope: 'team' },
+      { id: '36', resource: 'approvals', action: 'approve', scope: 'team' },
     ],
   },
   'Team Lead': {

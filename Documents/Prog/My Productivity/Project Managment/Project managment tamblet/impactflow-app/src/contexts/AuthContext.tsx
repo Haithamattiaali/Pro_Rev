@@ -92,8 +92,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     error: null,
   });
 
-  // Check for stored auth on mount
+  // Check for stored auth on mount or auto-login in development
   useEffect(() => {
+    // Auto-login in development mode
+    if (process.env.NEXT_PUBLIC_AUTO_LOGIN === 'true' && process.env.NODE_ENV === 'development') {
+      const autoLoginEmail = process.env.NEXT_PUBLIC_AUTO_LOGIN_EMAIL || 'admin@impactflow.com';
+      const autoLoginUser = MOCK_USERS[autoLoginEmail];
+      
+      if (autoLoginUser) {
+        console.log('🔐 Auto-login enabled: Logging in as', autoLoginUser.name, '(', autoLoginUser.role.name, ')');
+        
+        // Update last login
+        autoLoginUser.lastLogin = new Date();
+        
+        // Store auth in localStorage
+        const authData = {
+          user: autoLoginUser,
+          token: `mock-token-${autoLoginUser.id}-${Date.now()}`,
+        };
+        localStorage.setItem('impactflow_auth', JSON.stringify(authData));
+        
+        setAuthState({
+          user: autoLoginUser,
+          isAuthenticated: true,
+          isLoading: false,
+          error: null,
+        });
+        return;
+      }
+    }
+    
+    // Normal auth check
     const storedAuth = localStorage.getItem('impactflow_auth');
     if (storedAuth) {
       try {
