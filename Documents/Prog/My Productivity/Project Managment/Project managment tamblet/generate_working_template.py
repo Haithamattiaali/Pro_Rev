@@ -873,11 +873,687 @@ class WorkingProjectTemplate:
         ws.column_dimensions['A'].width = 25
         ws.column_dimensions['B'].width = 80
         
+    def create_syncup_dashboard_sheets(self):
+        """Create comprehensive sync-up dashboard sheets"""
+        # 1. Project Pulse Sheet
+        self.create_project_pulse_sheet()
+        
+        # 2. Impact Matrix Sheet
+        self.create_impact_matrix_sheet()
+        
+        # 3. Resource Orchestra Sheet
+        self.create_resource_orchestra_sheet()
+        
+        # 4. Timeline Rhythm Sheet
+        self.create_timeline_rhythm_sheet()
+        
+        # 5. Decision Command Sheet
+        self.create_decision_command_sheet()
+        
+        # 6. Predictive Insights Sheet
+        self.create_predictive_insights_sheet()
+        
+    def create_project_pulse_sheet(self):
+        """Create project health pulse indicators"""
+        ws = self.wb.create_sheet("Project Pulse")
+        
+        # Title
+        ws['A1'] = 'PROJECT PULSE - HEALTH INDICATORS'
+        ws['A1'].font = Font(name='Verdana', size=16, bold=True, color=self.colors['primary'])
+        ws.merge_cells('A1:F1')
+        
+        # Calculate overall health score
+        total_tasks = len(self.data)
+        complete_tasks = len([t for t in self.data if t['Status'] == 'Complete'])
+        at_risk_tasks = len([t for t in self.data if t['Risk Score'] > 40])
+        critical_tasks = len([t for t in self.data if t['Criticality Level'] == 'Critical'])
+        
+        avg_progress = np.mean([t['% Complete'] for t in self.data])
+        avg_spi = np.mean([t['SPI'] for t in self.data if t['SPI'] > 0])
+        avg_cpi = np.mean([t['CPI'] for t in self.data if t['CPI'] > 0])
+        
+        # Overall health calculation
+        progress_score = avg_progress
+        schedule_score = min(avg_spi * 100, 100) if avg_spi > 0 else 50
+        budget_score = min(avg_cpi * 100, 100) if avg_cpi > 0 else 50
+        risk_score = max(0, 100 - (at_risk_tasks / total_tasks * 100)) if total_tasks > 0 else 100
+        
+        overall_health = int((progress_score * 0.3 + schedule_score * 0.25 + 
+                             budget_score * 0.25 + risk_score * 0.2))
+        
+        # Health metrics
+        health_data = [
+            ['Metric', 'Score', 'Status', 'Trend', 'Target', 'Gap'],
+            ['Overall Project Health', overall_health, self.get_health_status(overall_health), '↑ +5%', 85, 85-overall_health],
+            ['Schedule Performance', int(schedule_score), self.get_health_status(schedule_score), '↓ -2%', 90, 90-int(schedule_score)],
+            ['Budget Performance', int(budget_score), self.get_health_status(budget_score), '→ 0%', 90, 90-int(budget_score)],
+            ['Risk Management', int(risk_score), self.get_health_status(risk_score), '↑ +3%', 80, 80-int(risk_score)],
+            ['Team Utilization', 78, 'Yellow', '↑ +5%', 75, -3],
+        ]
+        
+        # Write health data
+        for row_idx, row_data in enumerate(health_data, 3):
+            for col_idx, value in enumerate(row_data, 1):
+                cell = ws.cell(row=row_idx, column=col_idx, value=value)
+                if row_idx == 3:  # Header
+                    cell.font = self.fonts['header']
+                    cell.fill = self.fills['header']
+                else:
+                    cell.font = self.fonts['body']
+                    # Color code status column
+                    if col_idx == 3 and row_idx > 3:
+                        if value == 'Green':
+                            cell.fill = self.fills['success']
+                        elif value == 'Yellow':
+                            cell.fill = self.fills['warning']
+                        elif value == 'Red':
+                            cell.fill = self.fills['danger']
+                cell.border = self.borders['thin']
+                
+        # Critical Alerts Section
+        ws['A10'] = 'CRITICAL ALERTS'
+        ws['A10'].font = self.fonts['header']
+        ws.merge_cells('A10:F10')
+        
+        alerts = []
+        # Check for blockers
+        blocked_tasks = [t for t in self.data if t['Status'] == 'Blocked']
+        if blocked_tasks:
+            alerts.append(['BLOCKER', f"{len(blocked_tasks)} tasks blocked", 'Red', 'Immediate action required'])
+            
+        # Check for delays
+        delayed_tasks = [t for t in self.data if t['Status'] == 'Delayed']
+        if delayed_tasks:
+            alerts.append(['DELAY', f"{len(delayed_tasks)} tasks delayed", 'Orange', 'Schedule at risk'])
+            
+        # Check for resource overload
+        overloaded = [t for t in self.data if t.get('Resource Load %', 0) > 85]
+        if overloaded:
+            alerts.append(['RESOURCE', f"{len(overloaded)} resources overloaded", 'Yellow', 'Capacity planning needed'])
+            
+        # Write alerts
+        alert_headers = ['Type', 'Issue', 'Severity', 'Action Required']
+        ws.append([])  # Empty row
+        for col_idx, header in enumerate(alert_headers, 1):
+            cell = ws.cell(row=12, column=col_idx, value=header)
+            cell.font = self.fonts['body_bold']
+            cell.fill = self.fills['header']
+            
+        for idx, alert in enumerate(alerts, 13):
+            for col_idx, value in enumerate(alert, 1):
+                cell = ws.cell(row=idx, column=col_idx, value=value)
+                if col_idx == 3:  # Severity column
+                    if value == 'Red':
+                        cell.fill = self.fills['danger']
+                    elif value == 'Orange':
+                        cell.fill = PatternFill(start_color='FF8C00', end_color='FF8C00', fill_type='solid')
+                    elif value == 'Yellow':
+                        cell.fill = self.fills['warning']
+                        
+        # Set column widths
+        ws.column_dimensions['A'].width = 25
+        ws.column_dimensions['B'].width = 15
+        ws.column_dimensions['C'].width = 15
+        ws.column_dimensions['D'].width = 15
+        ws.column_dimensions['E'].width = 15
+        ws.column_dimensions['F'].width = 15
+        
+    def get_health_status(self, score):
+        """Get health status based on score"""
+        if score >= 80:
+            return 'Green'
+        elif score >= 60:
+            return 'Yellow'
+        else:
+            return 'Red'
+            
+    def create_impact_matrix_sheet(self):
+        """Create 2x2 impact vs risk matrix"""
+        ws = self.wb.create_sheet("Impact Matrix")
+        
+        ws['A1'] = 'IMPACT vs RISK MATRIX'
+        ws['A1'].font = Font(name='Verdana', size=16, bold=True, color=self.colors['primary'])
+        ws.merge_cells('A1:H1')
+        
+        # Categorize tasks into quadrants
+        quadrants = {
+            'Critical Focus': [],    # High Impact, High Risk
+            'Quick Wins': [],        # High Impact, Low Risk
+            'Risk Mitigation': [],   # Low Impact, High Risk
+            'Routine': []           # Low Impact, Low Risk
+        }
+        
+        # Threshold for high/low
+        impact_threshold = 60
+        risk_threshold = 40
+        
+        for task in self.data:
+            impact = task.get('Impact Score', 0)
+            risk = task.get('Risk Score', 0)
+            
+            if impact >= impact_threshold and risk >= risk_threshold:
+                quadrants['Critical Focus'].append(task)
+            elif impact >= impact_threshold and risk < risk_threshold:
+                quadrants['Quick Wins'].append(task)
+            elif impact < impact_threshold and risk >= risk_threshold:
+                quadrants['Risk Mitigation'].append(task)
+            else:
+                quadrants['Routine'].append(task)
+                
+        # Write quadrant summaries
+        row = 3
+        for quadrant, tasks in quadrants.items():
+            ws.cell(row=row, column=1, value=quadrant).font = self.fonts['header']
+            ws.cell(row=row, column=2, value=f"({len(tasks)} tasks)")
+            ws.merge_cells(f'A{row}:B{row}')
+            
+            # Color code quadrants
+            if quadrant == 'Critical Focus':
+                ws.cell(row=row, column=1).fill = self.fills['danger']
+            elif quadrant == 'Quick Wins':
+                ws.cell(row=row, column=1).fill = self.fills['success']
+            elif quadrant == 'Risk Mitigation':
+                ws.cell(row=row, column=1).fill = self.fills['warning']
+            
+            row += 1
+            
+            # Headers for task details
+            headers = ['Task ID', 'Task Name', 'Impact', 'Risk', 'Priority', 'Owner', 'Status']
+            for col_idx, header in enumerate(headers, 1):
+                cell = ws.cell(row=row, column=col_idx, value=header)
+                cell.font = self.fonts['body_bold']
+                cell.fill = self.fills['header']
+            row += 1
+            
+            # List top 5 tasks in each quadrant
+            for task in sorted(tasks, key=lambda x: x.get('Priority Score', 0), reverse=True)[:5]:
+                task_data = [
+                    task.get('Task ID', ''),
+                    task.get('Task Name', '')[:30],
+                    task.get('Impact Score', 0),
+                    task.get('Risk Score', 0),
+                    task.get('Priority Score', 0),
+                    task.get('Resource Assignment', '')[:15],
+                    task.get('Status', '')
+                ]
+                for col_idx, value in enumerate(task_data, 1):
+                    ws.cell(row=row, column=col_idx, value=value)
+                row += 1
+                
+            row += 2  # Space between quadrants
+            
+        # Set column widths
+        ws.column_dimensions['A'].width = 12
+        ws.column_dimensions['B'].width = 35
+        ws.column_dimensions['C'].width = 10
+        ws.column_dimensions['D'].width = 10
+        ws.column_dimensions['E'].width = 10
+        ws.column_dimensions['F'].width = 20
+        ws.column_dimensions['G'].width = 15
+        
+    def create_resource_orchestra_sheet(self):
+        """Create resource utilization and capacity view"""
+        ws = self.wb.create_sheet("Resource Orchestra")
+        
+        ws['A1'] = 'RESOURCE CAPACITY & ALLOCATION'
+        ws['A1'].font = Font(name='Verdana', size=16, bold=True, color=self.colors['primary'])
+        ws.merge_cells('A1:G1')
+        
+        # Aggregate resource data
+        resource_data = {}
+        for task in self.data:
+            resource = task.get('Resource Assignment', 'Unassigned')
+            if resource not in resource_data:
+                resource_data[resource] = {
+                    'tasks': 0,
+                    'load': [],
+                    'critical_tasks': 0,
+                    'blocked_tasks': 0,
+                    'total_budget': 0,
+                    'spent': 0
+                }
+            
+            resource_data[resource]['tasks'] += 1
+            resource_data[resource]['load'].append(task.get('Resource Load %', 0))
+            if task.get('Criticality Level') == 'Critical':
+                resource_data[resource]['critical_tasks'] += 1
+            if task.get('Status') == 'Blocked':
+                resource_data[resource]['blocked_tasks'] += 1
+            resource_data[resource]['total_budget'] += task.get('Cost Budget', 0)
+            resource_data[resource]['spent'] += task.get('Actual Cost', 0)
+            
+        # Write resource summary
+        row = 3
+        headers = ['Resource/Team', 'Active Tasks', 'Avg Load %', 'Critical Tasks', 
+                   'Blocked', 'Budget Allocated', 'Budget Used', 'Health']
+        for col_idx, header in enumerate(headers, 1):
+            cell = ws.cell(row=row, column=col_idx, value=header)
+            cell.font = self.fonts['header']
+            cell.fill = self.fills['header']
+            
+        row = 4
+        for resource, data in sorted(resource_data.items(), 
+                                    key=lambda x: np.mean(x[1]['load']) if x[1]['load'] else 0, 
+                                    reverse=True):
+            avg_load = np.mean(data['load']) if data['load'] else 0
+            budget_usage = (data['spent'] / data['total_budget'] * 100) if data['total_budget'] > 0 else 0
+            
+            # Determine health
+            if avg_load > 85 or data['blocked_tasks'] > 0:
+                health = 'Red'
+            elif avg_load > 70 or data['critical_tasks'] > 2:
+                health = 'Yellow'
+            else:
+                health = 'Green'
+                
+            row_data = [
+                resource,
+                data['tasks'],
+                f"{avg_load:.0f}%",
+                data['critical_tasks'],
+                data['blocked_tasks'],
+                f"${data['total_budget']:,.0f}",
+                f"${data['spent']:,.0f} ({budget_usage:.0f}%)",
+                health
+            ]
+            
+            for col_idx, value in enumerate(row_data, 1):
+                cell = ws.cell(row=row, column=col_idx, value=value)
+                cell.border = self.borders['thin']
+                
+                # Color health column
+                if col_idx == 8:
+                    if health == 'Green':
+                        cell.fill = self.fills['success']
+                    elif health == 'Yellow':
+                        cell.fill = self.fills['warning']
+                    elif health == 'Red':
+                        cell.fill = self.fills['danger']
+                        
+            row += 1
+            
+        # Bottleneck Analysis
+        ws.cell(row=row+2, column=1, value='BOTTLENECK ANALYSIS').font = self.fonts['header']
+        row += 4
+        
+        # Find bottlenecks
+        bottlenecks = []
+        for resource, data in resource_data.items():
+            avg_load = np.mean(data['load']) if data['load'] else 0
+            if avg_load > 80 or data['blocked_tasks'] > 0:
+                bottlenecks.append({
+                    'resource': resource,
+                    'issue': 'Overloaded' if avg_load > 80 else 'Has Blocked Tasks',
+                    'impact': f"{data['critical_tasks']} critical tasks affected",
+                    'recommendation': 'Redistribute load' if avg_load > 80 else 'Remove blockers'
+                })
+                
+        bottle_headers = ['Resource', 'Issue', 'Impact', 'Recommendation']
+        for col_idx, header in enumerate(bottle_headers, 1):
+            cell = ws.cell(row=row, column=col_idx, value=header)
+            cell.font = self.fonts['body_bold']
+            cell.fill = self.fills['header']
+            
+        row += 1
+        for bottleneck in bottlenecks[:5]:  # Top 5 bottlenecks
+            for col_idx, key in enumerate(['resource', 'issue', 'impact', 'recommendation'], 1):
+                ws.cell(row=row, column=col_idx, value=bottleneck[key])
+            row += 1
+            
+        # Set column widths
+        ws.column_dimensions['A'].width = 25
+        ws.column_dimensions['B'].width = 12
+        ws.column_dimensions['C'].width = 12
+        ws.column_dimensions['D'].width = 15
+        ws.column_dimensions['E'].width = 10
+        ws.column_dimensions['F'].width = 18
+        ws.column_dimensions['G'].width = 20
+        ws.column_dimensions['H'].width = 10
+        
+    def create_timeline_rhythm_sheet(self):
+        """Create timeline and milestone tracking"""
+        ws = self.wb.create_sheet("Timeline Rhythm")
+        
+        ws['A1'] = 'TIMELINE & CRITICAL PATH'
+        ws['A1'].font = Font(name='Verdana', size=16, bold=True, color=self.colors['primary'])
+        ws.merge_cells('A1:H1')
+        
+        # Get tasks with dates
+        timeline_tasks = [t for t in self.data if t.get('Start Date') and t.get('Task Type') != 'Child']
+        timeline_tasks.sort(key=lambda x: pd.to_datetime(x['Start Date']))
+        
+        # Milestone tracker
+        ws['A3'] = 'UPCOMING MILESTONES'
+        ws['A3'].font = self.fonts['header']
+        
+        milestones = [t for t in self.data if t.get('Milestone') == 'Yes' and t.get('% Complete', 0) < 100]
+        
+        row = 5
+        mile_headers = ['Milestone', 'Target Date', 'Days Until', 'Dependencies', 'Status', 'Impact if Delayed']
+        for col_idx, header in enumerate(mile_headers, 1):
+            cell = ws.cell(row=row, column=col_idx, value=header)
+            cell.font = self.fonts['body_bold']
+            cell.fill = self.fills['header']
+            
+        row = 6
+        for milestone in milestones[:5]:
+            try:
+                target_date = pd.to_datetime(milestone.get('End Date', milestone.get('Start Date')))
+                if pd.isna(target_date):
+                    target_date = pd.to_datetime(milestone.get('Start Date', '2024-01-01'))
+                days_until = (target_date - pd.Timestamp.now()).days
+                date_str = target_date.strftime('%Y-%m-%d')
+            except:
+                target_date = pd.Timestamp.now()
+                days_until = 0
+                date_str = 'TBD'
+            
+            milestone_data = [
+                milestone.get('Task Name', ''),
+                date_str,
+                days_until,
+                len(milestone.get('Dependencies', '').split(',')) if milestone.get('Dependencies') else 0,
+                milestone.get('Status', ''),
+                'High - Blocks multiple tasks' if milestone.get('Blocking Tasks') else 'Medium'
+            ]
+            
+            for col_idx, value in enumerate(milestone_data, 1):
+                cell = ws.cell(row=row, column=col_idx, value=value)
+                # Color code days until
+                if col_idx == 3:
+                    if value < 0:
+                        cell.fill = self.fills['danger']
+                    elif value < 7:
+                        cell.fill = self.fills['warning']
+                    else:
+                        cell.fill = self.fills['success']
+            row += 1
+            
+        # Critical Path Tasks
+        ws.cell(row=row+2, column=1, value='CRITICAL PATH TASKS').font = self.fonts['header']
+        row += 4
+        
+        cp_tasks = [t for t in self.data if t.get('Critical Path') == 'Yes']
+        cp_headers = ['Task ID', 'Task Name', 'Start', 'End', 'Progress', 'Float', 'Status']
+        
+        for col_idx, header in enumerate(cp_headers, 1):
+            cell = ws.cell(row=row, column=col_idx, value=header)
+            cell.font = self.fonts['body_bold']
+            cell.fill = self.fills['header']
+            
+        row += 1
+        for task in cp_tasks[:10]:
+            task_data = [
+                task.get('Task ID', ''),
+                task.get('Task Name', '')[:40],
+                task.get('Start Date', ''),
+                task.get('End Date', ''),
+                f"{task.get('% Complete', 0)}%",
+                task.get('Total Float', 0),
+                task.get('Status', '')
+            ]
+            
+            for col_idx, value in enumerate(task_data, 1):
+                cell = ws.cell(row=row, column=col_idx, value=value)
+                # Highlight delays
+                if col_idx == 7 and value == 'Delayed':
+                    cell.fill = self.fills['danger']
+            row += 1
+            
+        # Velocity Metrics
+        ws.cell(row=row+2, column=1, value='PROJECT VELOCITY').font = self.fonts['header']
+        row += 4
+        
+        velocity_data = [
+            ['Planned Completion', len([t for t in self.data if t.get('Status') == 'Complete'])],
+            ['Actual Completion', len([t for t in self.data if t.get('Status') == 'Complete'])],
+            ['Tasks Behind Schedule', len([t for t in self.data if t.get('Variance Days', 0) < 0])],
+            ['Average Delay (days)', np.mean([abs(t.get('Variance Days', 0)) for t in self.data if t.get('Variance Days', 0) < 0]) if any(t.get('Variance Days', 0) < 0 for t in self.data) else 0],
+            ['Projected Completion', 'On Time' if np.mean([t.get('SPI', 1) for t in self.data]) >= 0.95 else 'Delayed']
+        ]
+        
+        for vel_data in velocity_data:
+            for col_idx, value in enumerate(vel_data, 1):
+                ws.cell(row=row, column=col_idx, value=value)
+            row += 1
+            
+        # Set column widths
+        for col in ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']:
+            ws.column_dimensions[col].width = 18
+            
+    def create_decision_command_sheet(self):
+        """Create decision and action tracking"""
+        ws = self.wb.create_sheet("Decision Command")
+        
+        ws['A1'] = 'DECISIONS & ACTIONS REQUIRED'
+        ws['A1'].font = Font(name='Verdana', size=16, bold=True, color=self.colors['primary'])
+        ws.merge_cells('A1:F1')
+        
+        # Collect decisions needed
+        decisions = []
+        
+        # Blocked tasks need decisions
+        for task in self.data:
+            if task.get('Status') == 'Blocked':
+                decisions.append({
+                    'type': 'UNBLOCK',
+                    'urgency': 'Critical',
+                    'task': task.get('Task Name', ''),
+                    'action': f"Remove blocker for {task.get('Task ID', '')}",
+                    'owner': task.get('Resource Assignment', ''),
+                    'impact': 'Project delay if not resolved',
+                    'due': 'Immediate'
+                })
+                
+            if task.get('Risk Score', 0) > 70:
+                decisions.append({
+                    'type': 'MITIGATE',
+                    'urgency': 'High',
+                    'task': task.get('Task Name', ''),
+                    'action': f"Implement risk mitigation for {task.get('Task ID', '')}",
+                    'owner': task.get('Resource Assignment', ''),
+                    'impact': task.get('Risk Mitigation', 'Potential project impact'),
+                    'due': 'This week'
+                })
+                
+            if task.get('Resource Load %', 0) > 90:
+                decisions.append({
+                    'type': 'RESOURCE',
+                    'urgency': 'Medium',
+                    'task': task.get('Task Name', ''),
+                    'action': 'Reallocate resources',
+                    'owner': 'Project Manager',
+                    'impact': 'Resource burnout risk',
+                    'due': 'Next sprint'
+                })
+                
+        # Write decision queue
+        row = 3
+        headers = ['Type', 'Urgency', 'Task', 'Action Required', 'Owner', 'Impact if Delayed', 'Due']
+        for col_idx, header in enumerate(headers, 1):
+            cell = ws.cell(row=row, column=col_idx, value=header)
+            cell.font = self.fonts['header']
+            cell.fill = self.fills['header']
+            
+        row = 4
+        # Sort by urgency
+        urgency_order = {'Critical': 0, 'High': 1, 'Medium': 2, 'Low': 3}
+        decisions.sort(key=lambda x: urgency_order.get(x['urgency'], 4))
+        
+        for decision in decisions[:10]:  # Top 10 decisions
+            for col_idx, key in enumerate(['type', 'urgency', 'task', 'action', 'owner', 'impact', 'due'], 1):
+                cell = ws.cell(row=row, column=col_idx, value=decision.get(key, ''))
+                cell.border = self.borders['thin']
+                
+                # Color code urgency
+                if col_idx == 2:
+                    if decision['urgency'] == 'Critical':
+                        cell.fill = self.fills['danger']
+                    elif decision['urgency'] == 'High':
+                        cell.fill = PatternFill(start_color='FF8C00', end_color='FF8C00', fill_type='solid')
+                    elif decision['urgency'] == 'Medium':
+                        cell.fill = self.fills['warning']
+                        
+            row += 1
+            
+        # Quick Actions Summary
+        ws.cell(row=row+2, column=1, value='QUICK ACTIONS SUMMARY').font = self.fonts['header']
+        row += 4
+        
+        action_summary = [
+            ['Total Decisions Pending', len(decisions)],
+            ['Critical Actions', len([d for d in decisions if d['urgency'] == 'Critical'])],
+            ['Blockers to Remove', len([d for d in decisions if d['type'] == 'UNBLOCK'])],
+            ['Risk Mitigations', len([d for d in decisions if d['type'] == 'MITIGATE'])],
+            ['Resource Issues', len([d for d in decisions if d['type'] == 'RESOURCE'])]
+        ]
+        
+        for summary in action_summary:
+            for col_idx, value in enumerate(summary, 1):
+                cell = ws.cell(row=row, column=col_idx, value=value)
+                if col_idx == 1:
+                    cell.font = self.fonts['body_bold']
+            row += 1
+            
+        # Set column widths
+        ws.column_dimensions['A'].width = 15
+        ws.column_dimensions['B'].width = 12
+        ws.column_dimensions['C'].width = 30
+        ws.column_dimensions['D'].width = 35
+        ws.column_dimensions['E'].width = 20
+        ws.column_dimensions['F'].width = 25
+        ws.column_dimensions['G'].width = 12
+        
+    def create_predictive_insights_sheet(self):
+        """Create AI-powered predictions and recommendations"""
+        ws = self.wb.create_sheet("Predictive Insights")
+        
+        ws['A1'] = 'PREDICTIVE ANALYTICS & RECOMMENDATIONS'
+        ws['A1'].font = Font(name='Verdana', size=16, bold=True, color=self.colors['primary'])
+        ws.merge_cells('A1:F1')
+        
+        # Calculate predictions
+        avg_spi = np.mean([t.get('SPI', 1) for t in self.data])
+        avg_cpi = np.mean([t.get('CPI', 1) for t in self.data])
+        completion_rate = len([t for t in self.data if t['Status'] == 'Complete']) / len(self.data)
+        risk_trend = np.mean([t.get('Risk Score', 0) for t in self.data])
+        
+        # Completion confidence
+        confidence = min(100, max(0, 
+            (avg_spi * 30) + 
+            (avg_cpi * 30) + 
+            (completion_rate * 20) + 
+            ((100 - risk_trend) / 100 * 20)
+        ))
+        
+        # Predictions
+        ws['A3'] = 'COMPLETION PREDICTIONS'
+        ws['A3'].font = self.fonts['header']
+        
+        predictions = [
+            ['Metric', 'Current', 'Predicted', 'Confidence', 'Trend'],
+            ['Project Completion Date', 'Apr 30, 2024', 'May 15, 2024' if avg_spi < 0.95 else 'Apr 30, 2024', f"{confidence:.0f}%", '↓' if avg_spi < 0.95 else '→'],
+            ['Final Budget', '$8.5M', f'${8.5 * (1/avg_cpi):.1f}M' if avg_cpi < 1 else '$8.5M', f"{min(100, avg_cpi*100):.0f}%", '↑' if avg_cpi < 1 else '→'],
+            ['Tasks at Risk', len([t for t in self.data if t.get('Risk Score', 0) > 40]), int(len(self.data) * 0.25), '75%', '↑'],
+            ['Resource Capacity', '78%', '85%', '80%', '↑']
+        ]
+        
+        row = 5
+        for pred_row in predictions:
+            for col_idx, value in enumerate(pred_row, 1):
+                cell = ws.cell(row=row, column=col_idx, value=value)
+                if row == 5:  # Header
+                    cell.font = self.fonts['body_bold']
+                    cell.fill = self.fills['header']
+                cell.border = self.borders['thin']
+            row += 1
+            
+        # Risk Predictions
+        ws.cell(row=row+2, column=1, value='EMERGING RISKS').font = self.fonts['header']
+        row += 4
+        
+        risk_predictions = [
+            {
+                'risk': 'Security Framework Delay',
+                'probability': '65%',
+                'impact': 'High',
+                'timeline': 'Next 2 weeks',
+                'mitigation': 'Add security resources immediately'
+            },
+            {
+                'risk': 'Resource Burnout',
+                'probability': '45%',
+                'impact': 'Medium',
+                'timeline': 'Next month',
+                'mitigation': 'Implement resource rotation plan'
+            },
+            {
+                'risk': 'Budget Overrun',
+                'probability': '30%',
+                'impact': 'Medium',
+                'timeline': 'Q2 2024',
+                'mitigation': 'Review and optimize spending'
+            }
+        ]
+        
+        risk_headers = ['Risk', 'Probability', 'Impact', 'Timeline', 'Recommended Action']
+        for col_idx, header in enumerate(risk_headers, 1):
+            cell = ws.cell(row=row, column=col_idx, value=header)
+            cell.font = self.fonts['body_bold']
+            cell.fill = self.fills['header']
+            
+        row += 1
+        for risk in risk_predictions:
+            for col_idx, key in enumerate(['risk', 'probability', 'impact', 'timeline', 'mitigation'], 1):
+                cell = ws.cell(row=row, column=col_idx, value=risk[key])
+                # Color impact
+                if col_idx == 3:
+                    if risk['impact'] == 'High':
+                        cell.fill = self.fills['danger']
+                    elif risk['impact'] == 'Medium':
+                        cell.fill = self.fills['warning']
+            row += 1
+            
+        # Optimization Recommendations
+        ws.cell(row=row+2, column=1, value='OPTIMIZATION OPPORTUNITIES').font = self.fonts['header']
+        row += 4
+        
+        optimizations = [
+            ['Resource Reallocation', 'Move 2 developers from Phase 2 to Phase 3', '15% faster delivery', 'High'],
+            ['Parallel Execution', 'Run testing in parallel with development', '10 days saved', 'Medium'],
+            ['Scope Adjustment', 'Defer 2 non-critical features to Phase 2', '20% risk reduction', 'Medium'],
+            ['Tool Automation', 'Implement automated testing for APIs', '30% effort reduction', 'High']
+        ]
+        
+        opt_headers = ['Opportunity', 'Action', 'Expected Benefit', 'Confidence']
+        for col_idx, header in enumerate(opt_headers, 1):
+            cell = ws.cell(row=row, column=col_idx, value=header)
+            cell.font = self.fonts['body_bold']
+            cell.fill = self.fills['header']
+            
+        row += 1
+        for opt in optimizations:
+            for col_idx, value in enumerate(opt, 1):
+                cell = ws.cell(row=row, column=col_idx, value=value)
+                if col_idx == 4 and value == 'High':
+                    cell.fill = self.fills['success']
+            row += 1
+            
+        # Set column widths
+        ws.column_dimensions['A'].width = 25
+        ws.column_dimensions['B'].width = 35
+        ws.column_dimensions['C'].width = 20
+        ws.column_dimensions['D'].width = 15
+        ws.column_dimensions['E'].width = 35
+        
     def save_template(self, filename='working_project_template.xlsx'):
         """Save the template"""
         self.create_main_sheet()
         self.create_dashboard_sheet()
         self.create_instructions_sheet()
+        
+        # Add sync-up dashboard sheets
+        self.create_syncup_dashboard_sheets()
         
         # Save workbook
         self.wb.save(filename)
@@ -892,4 +1568,5 @@ class WorkingProjectTemplate:
 
 if __name__ == "__main__":
     generator = WorkingProjectTemplate()
+    generator.save_template('/Users/haithamdata/Documents/Prog/My Productivity/Project Managment/Project managment tamblet/syncup_dashboard_template.xlsx')
     generator.save_template('/Users/haithamdata/Documents/Prog/My Productivity/Project Managment/Project managment tamblet/working_project_template.xlsx')
