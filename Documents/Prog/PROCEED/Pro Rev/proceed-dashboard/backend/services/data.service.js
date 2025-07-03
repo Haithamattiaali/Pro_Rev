@@ -140,9 +140,9 @@ class DataService {
         achievement: overview.achievement_percentage || 0,
         customerCount: overview.customer_count || 0,
         serviceCount: overview.service_count || 0,
-        profit: (overview.total_revenue || 0) - (overview.total_cost || 0),
-        profitMargin: overview.total_revenue > 0 
-          ? ((overview.total_revenue - overview.total_cost) / overview.total_revenue) * 100 
+        profit: (overview.total_target || 0) - (overview.total_cost || 0),
+        profitMargin: overview.total_original_target > 0 
+          ? (((overview.total_original_target || 0) - (overview.total_original_cost || 0)) / overview.total_original_target) * 100 
           : 0
       },
       serviceBreakdown
@@ -166,6 +166,8 @@ class DataService {
         SUM(revenue) as revenue,
         SUM(target) as target,
         SUM(cost) as cost,
+        SUM(COALESCE(original_target, target)) as original_target,
+        SUM(COALESCE(original_cost, cost)) as original_cost,
         SUM(receivables_collected) as receivables,
         COUNT(DISTINCT customer) as customerCount,
         CASE 
@@ -182,8 +184,8 @@ class DataService {
     
     return data.map(unit => ({
       ...unit,
-      profit: unit.revenue - unit.cost,
-      profitMargin: unit.revenue > 0 ? ((unit.revenue - unit.cost) / unit.revenue) * 100 : 0
+      profit: unit.target - unit.cost,
+      profitMargin: unit.original_target > 0 ? ((unit.original_target - unit.original_cost) / unit.original_target) * 100 : 0
     }));
   }
 
@@ -204,6 +206,8 @@ class DataService {
         SUM(revenue) as revenue,
         SUM(target) as target,
         SUM(cost) as cost,
+        SUM(COALESCE(original_target, target)) as original_target,
+        SUM(COALESCE(original_cost, cost)) as original_cost,
         SUM(receivables_collected) as receivables,
         GROUP_CONCAT(DISTINCT service_type) as services,
         COUNT(DISTINCT service_type) as serviceCount,
@@ -221,8 +225,8 @@ class DataService {
     
     return data.map(customer => ({
       ...customer,
-      profit: customer.revenue - customer.cost,
-      profitMargin: customer.revenue > 0 ? ((customer.revenue - customer.cost) / customer.revenue) * 100 : 0,
+      profit: customer.target - customer.cost,
+      profitMargin: customer.original_target > 0 ? ((customer.original_target - customer.original_cost) / customer.original_target) * 100 : 0,
       services: customer.services ? customer.services.split(',') : []
     }));
   }
@@ -428,9 +432,11 @@ class DataService {
         SUM(cost) as cost,
         SUM(target) as target,
         SUM(COALESCE(original_target, target)) as original_target,
-        SUM(revenue) - SUM(cost) as profit,
+        SUM(COALESCE(original_cost, cost)) as original_cost,
+        SUM(target) - SUM(cost) as profit,
         CASE 
-          WHEN SUM(revenue) > 0 THEN ((SUM(revenue) - SUM(cost)) / SUM(revenue)) * 100 
+          WHEN SUM(COALESCE(original_target, target)) > 0 
+          THEN ((SUM(COALESCE(original_target, target)) - SUM(COALESCE(original_cost, cost))) / SUM(COALESCE(original_target, target))) * 100 
           ELSE 0 
         END as profit_margin,
         CASE 
@@ -445,9 +451,11 @@ class DataService {
     
     const serviceBreakdown = await db.all(serviceBreakdownSql, [year, ...months]);
     
-    const grossProfit = (data.total_revenue || 0) - (data.total_cost || 0);
-    const profitMargin = data.total_revenue > 0 
-      ? (grossProfit / data.total_revenue) * 100 
+    // Calculate gross profit using original values for percentage, but pro-rated values for display
+    const originalGrossProfit = (data.total_original_target || 0) - (data.total_original_cost || 0);
+    const grossProfit = (data.total_target || 0) - (data.total_cost || 0);
+    const profitMargin = data.total_original_target > 0 
+      ? (originalGrossProfit / data.total_original_target) * 100 
       : 0;
     
     return {

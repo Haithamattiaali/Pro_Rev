@@ -92,8 +92,8 @@ const BusinessUnits = () => {
     .map(month => ({
       ...month,
       achievement: month.target > 0 ? (month.revenue / month.target) * 100 : 0,
-      grossProfit: month.revenue - month.cost,
-      grossProfitMargin: month.revenue > 0 ? ((month.revenue - month.cost) / month.revenue) * 100 : 0
+      grossProfit: month.target - month.cost,
+      grossProfitMargin: month.target > 0 ? ((month.target - month.cost) / month.target) * 100 : 0
     }))
 
   return (

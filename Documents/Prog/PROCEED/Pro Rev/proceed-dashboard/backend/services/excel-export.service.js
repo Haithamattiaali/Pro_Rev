@@ -57,8 +57,8 @@ class ExcelExportService {
           this.formatCurrency(service.target),
           `${this.formatPercentage(service.achievement_percentage)}%`,
           this.formatCurrency(service.cost),
-          this.formatCurrency(service.revenue - service.cost),
-          `${this.formatPercentage(service.revenue > 0 ? ((service.revenue - service.cost) / service.revenue) * 100 : 0)}%`
+          this.formatCurrency(service.target - service.cost),
+          `${this.formatPercentage(service.target > 0 ? ((service.target - service.cost) / service.target) * 100 : 0)}%`
         ]);
       });
     }
@@ -400,7 +400,7 @@ class ExcelExportService {
           this.formatCurrency(service.target),
           `${this.formatPercentage(service.achievement_percentage)}%`,
           this.formatCurrency(service.cost),
-          this.formatCurrency(service.revenue - service.cost)
+          this.formatCurrency(service.target - service.cost)
         ]);
       });
       
