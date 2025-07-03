@@ -1,0 +1,436 @@
+PROJECT MANAGEMENT APP BLUEPRINT
+=================================
+
+VISION: Create a flexible, intuitive project management app that consumes non-homogeneous Excel lists, implements impact-based tracking, and provides rich sync-up dashboards while maintaining Apple-inspired simplicity.
+
+APP IDENTITY:
+- Name: ImpactFlow Pro
+- Tagline: "Beyond Task Counting - True Project Intelligence"
+- Brand: Professional, focused, intelligent
+
+CORE PRINCIPLES:
+1. Maximum Flexibility - Adapt to any project structure
+2. Impact-Based Intelligence - Not just task counting
+3. Apple-Inspired Simplicity - Rich features, intuitive interface
+4. Global Best Practices - Enterprise-ready architecture
+5. Real-Time Collaboration - Team interaction channels
+
+TECHNICAL ARCHITECTURE:
+======================
+
+Frontend Stack:
+- React 18+ with TypeScript
+- Next.js 14 for SSR/SSG
+- Tailwind CSS for styling
+- Framer Motion for animations
+- Chart.js & D3.js for visualizations
+- React Query for data management
+- Zustand for state management
+
+Backend Stack:
+- Node.js with Express/Fastify
+- PostgreSQL for data persistence
+- Redis for caching & real-time
+- Socket.io for live updates
+- Bull for job queues
+- JWT for authentication
+
+Infrastructure:
+- Docker containers
+- AWS/Vercel deployment
+- CloudFront CDN
+- S3 for file storage
+- SendGrid for emails
+
+APP STRUCTURE:
+==============
+
+1. AUTHENTICATION & ONBOARDING
+------------------------------
+Landing Page:
+- Hero: "Transform Excel chaos into project clarity"
+- Features showcase with animations
+- Pricing tiers
+- Login/Register
+
+Onboarding Flow:
+- Welcome screen
+- Organization setup
+- Team invitation
+- First project creation
+- Template selection
+
+2. PROJECT WORKSPACE
+--------------------
+Main Dashboard:
+┌─────────────────────────────────────┐
+│  Header: Logo | Projects | User     │
+├─────────────────────────────────────┤
+│  Sidebar    │   Main Content Area   │
+│  ┌────────┐ │  ┌─────────────────┐ │
+│  │Projects│ │  │ Project Cards   │ │
+│  │Teams   │ │  │ Quick Stats     │ │
+│  │Reports │ │  │ Recent Activity │ │
+│  │Settings│ │  └─────────────────┘ │
+└─────────────────────────────────────┘
+
+Project List View:
+- Card layout with key metrics
+- Search/filter/sort capabilities
+- Quick actions menu
+- Bulk operations
+
+3. EXCEL IMPORT ENGINE
+----------------------
+Upload Interface:
+- Drag & drop zone
+- File validation
+- Column mapping wizard
+- Data preview
+- Import configuration
+
+Smart Parsing:
+- Auto-detect headers
+- Identify task hierarchies
+- Recognize date formats
+- Map dependencies
+- Calculate impact scores
+
+Template Matching:
+- Compare to saved templates
+- Suggest mappings
+- Allow custom mappings
+- Save as new template
+
+4. PROJECT DETAIL VIEW
+----------------------
+Layout:
+┌────────────────────────────────────────┐
+│  Project Header                        │
+│  ┌──────────┬────────────┬──────────┐ │
+│  │ Pulse    │ Timeline   │ Actions  │ │
+│  └──────────┴────────────┴──────────┘ │
+│  Tab Navigation                        │
+│  ┌────────────────────────────────┐   │
+│  │ Tasks | Dashboard | Team | Chat │   │
+│  └────────────────────────────────┘   │
+│  Content Area (Based on Tab)          │
+└────────────────────────────────────────┘
+
+Task List Tab:
+- Hierarchical tree view
+- Inline editing
+- Drag & drop reordering
+- Multi-select actions
+- Real-time updates
+
+5. SYNC-UP DASHBOARD
+--------------------
+Project Pulse Widget:
+- Circular health gauge (0-100)
+- Trend indicators
+- 4 vital signs meters
+- Critical alerts ticker
+
+Impact Matrix:
+- Interactive 2x2 grid
+- Draggable task bubbles
+- Zoom/pan controls
+- Filter by team/phase
+
+Resource Orchestra:
+- Team capacity bars
+- Workload heatmap
+- Bottleneck alerts
+- Reallocation suggestions
+
+Timeline Rhythm:
+- Gantt chart view
+- Critical path highlight
+- Milestone markers
+- Velocity burnup
+
+Decision Command:
+- Action cards
+- Approval queue
+- Quick decisions
+- Impact preview
+
+Predictive Insights:
+- AI recommendations
+- Risk predictions
+- Optimization tips
+- Confidence scores
+
+6. TEAM INTERACTION CHANNEL
+---------------------------
+Project Chat:
+- Threaded discussions
+- @mentions
+- File attachments
+- Task references
+- Search history
+
+Update Stream:
+- Activity feed
+- Filter by type
+- Subscribe/unsubscribe
+- Email digest settings
+
+Approval Workflow:
+- Submit changes
+- Review interface
+- Comment threads
+- Approve/reject/revise
+- Audit trail
+
+7. REPORTING & VISUALIZATION
+----------------------------
+Report Builder:
+- Drag & drop widgets
+- Data source selector
+- Filter configurator
+- Chart type picker
+- Export options
+
+Widget Library:
+- KPI cards
+- Charts (20+ types)
+- Tables
+- Text blocks
+- Images
+
+Dashboard Templates:
+- Executive Summary
+- Team Performance
+- Budget Analysis
+- Risk Assessment
+- Custom layouts
+
+8. INBOX & NOTIFICATIONS
+------------------------
+Smart Inbox:
+- Prioritized messages
+- Action required items
+- Updates summary
+- Quick responses
+- Bulk actions
+
+Notification Settings:
+- Channel preferences
+- Frequency controls
+- Custom rules
+- Do not disturb
+
+9. ROLE MANAGEMENT
+------------------
+Role Hierarchy:
+- Admin
+- Project Manager
+- Team Lead
+- Team Member
+- Stakeholder
+
+Permissions Matrix:
+- View/Edit/Delete
+- By project/feature
+- Custom roles
+- Inheritance rules
+
+10. SETTINGS & CONFIGURATION
+----------------------------
+Organization Settings:
+- Branding
+- Templates
+- Integrations
+- Security
+
+User Preferences:
+- Theme
+- Language
+- Timezone
+- Shortcuts
+
+DATA MODELS:
+============
+
+Project:
+{
+  id: UUID,
+  name: string,
+  description: string,
+  template_id: UUID,
+  owner_id: UUID,
+  team_ids: UUID[],
+  created_at: timestamp,
+  updated_at: timestamp,
+  health_score: number,
+  status: enum,
+  settings: JSON
+}
+
+Task:
+{
+  id: UUID,
+  project_id: UUID,
+  parent_id: UUID,
+  name: string,
+  type: enum,
+  impact_score: number,
+  risk_score: number,
+  priority_score: number,
+  status: enum,
+  assignee_ids: UUID[],
+  dependencies: UUID[],
+  custom_fields: JSON
+}
+
+Update:
+{
+  id: UUID,
+  task_id: UUID,
+  user_id: UUID,
+  type: enum,
+  changes: JSON,
+  status: enum,
+  approver_id: UUID,
+  comments: Comment[],
+  created_at: timestamp
+}
+
+USER EXPERIENCE FLOWS:
+=====================
+
+1. First Project Setup:
+   Upload Excel → Map Columns → Configure Settings → 
+   Invite Team → View Dashboard
+
+2. Daily Sync-Up:
+   Open Dashboard → Review Pulse → Check Decisions → 
+   Update Tasks → Approve Changes
+
+3. Report Generation:
+   Select Template → Customize Widgets → Filter Data → 
+   Export/Share → Schedule
+
+4. Team Collaboration:
+   Post Update → Tag Members → Await Approval → 
+   View in Dashboard → Email Notification
+
+DESIGN SYSTEM:
+=============
+
+Colors:
+- Primary: #9e1f63
+- Secondary: #721548
+- Accent Blue: #005b8c
+- Accent Coral: #e05e3d
+- Success: #27AE60
+- Warning: #F39C12
+- Danger: #E74C3C
+- Neutral: #2d2d2d
+
+Typography:
+- Font: SF Pro Display / Inter
+- Headings: 48/32/24/20px
+- Body: 16/14px
+- Small: 12px
+
+Spacing:
+- Base unit: 8px
+- Grid: 12 columns
+- Breakpoints: 640/768/1024/1280px
+
+Components:
+- Cards with subtle shadows
+- Rounded corners (8px)
+- Smooth transitions (200ms)
+- Hover states
+- Loading skeletons
+
+PERFORMANCE TARGETS:
+===================
+
+- Page Load: <2s
+- Time to Interactive: <3s
+- API Response: <200ms
+- Excel Import: <5s for 10k rows
+- Real-time Updates: <100ms
+- Lighthouse Score: >90
+
+SECURITY FEATURES:
+==================
+
+- MFA authentication
+- Row-level security
+- Encrypted data at rest
+- API rate limiting
+- Session management
+- Audit logging
+- GDPR compliance
+
+SCALABILITY PLAN:
+=================
+
+Phase 1: MVP (0-100 users)
+- Single server deployment
+- Basic features
+- Manual onboarding
+
+Phase 2: Growth (100-1000 users)
+- Load balancing
+- Enhanced features
+- Self-service onboarding
+
+Phase 3: Scale (1000+ users)
+- Microservices architecture
+- Enterprise features
+- White-label options
+
+SUCCESS METRICS:
+================
+
+User Engagement:
+- Daily Active Users
+- Session Duration
+- Feature Adoption
+- Task Completion Rate
+
+Business Impact:
+- Time Saved
+- Decision Velocity
+- Project Success Rate
+- Customer Retention
+
+Technical Health:
+- Uptime (99.9%)
+- Response Time
+- Error Rate
+- User Satisfaction
+
+IMPLEMENTATION PRIORITIES:
+=========================
+
+Week 1-2: Foundation
+- Authentication system
+- Project CRUD
+- Excel import engine
+- Basic task management
+
+Week 3-4: Core Features
+- Impact score calculations
+- Sync-up dashboard
+- Team collaboration
+- Approval workflow
+
+Week 5-6: Advanced Features
+- Report builder
+- Predictive insights
+- Email integration
+- Mobile responsive
+
+Week 7-8: Polish & Launch
+- Performance optimization
+- Security hardening
+- Documentation
+- Beta testing
