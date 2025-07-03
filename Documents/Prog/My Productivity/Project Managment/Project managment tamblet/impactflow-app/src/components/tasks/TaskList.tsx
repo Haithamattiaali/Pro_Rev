@@ -1,25 +1,34 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Search, Filter, Plus, ChevronDown, ChevronRight, 
   Calendar, Users, AlertTriangle, CheckCircle,
-  Edit3, Trash2, Copy, Flag, Clock
+  Edit3, Trash2, Copy, Flag, Clock, UserCheck, PencilLine, Lock
 } from 'lucide-react'
-import { Task, TaskStatus, TaskType, CriticalityLevel } from '@/types/project'
+import { Task, TaskStatus, TaskType, CriticalityLevel, User } from '@/types/project'
 import { calculateImpactScore, getHealthColor } from '@/utils/calculations'
 import { format } from 'date-fns'
 import clsx from 'clsx'
+import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
+import { startEditingTask, stopEditingTask } from '@/lib/socket'
+import { usePermissions } from '@/hooks/usePermissions'
+import { PermissionGate } from '@/components/auth/PermissionGate'
+import { notificationService } from '@/services/notificationService'
+import { useAuth } from '@/hooks/useAuth'
+import toast from 'react-hot-toast'
 
 interface TaskListProps {
   tasks: Task[]
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
   onTaskDelete: (taskId: string) => void
   onTaskCreate: () => void
+  projectId?: string
+  currentUser?: User
 }
 
-export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate }: TaskListProps) {
+export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, projectId, currentUser }: TaskListProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilters, setSelectedFilters] = useState({
     status: 'all',
@@ -31,6 +40,17 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate }: Ta
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set())
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list')
+  const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
+  const { user: authUser } = useAuth()
+  
+  // Permission hooks
+  const { canCreate, canUpdate, canDelete, canAssign, isOwner, getResourceScope } = usePermissions()
+
+  // Real-time updates
+  const { onlineUsers, editingSessions } = useRealtimeUpdates({
+    projectId,
+    user: currentUser,
+  })
 
   // Filter and sort tasks
   const filteredTasks = useMemo(() => {
@@ -100,6 +120,37 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate }: Ta
     return tree
   }, [filteredTasks])
 
+  // Handle task assignment with notifications
+  const handleTaskAssignment = async (taskId: string, assigneeId: string, previousAssigneeId?: string) => {
+    try {
+      // Update the task
+      onTaskUpdate(taskId, { assigneeId })
+      
+      // Find the task
+      const task = tasks.find(t => t.id === taskId)
+      if (!task || !authUser) return
+      
+      // Send notification if assigning to someone else
+      if (assigneeId && assigneeId !== authUser.id && assigneeId !== previousAssigneeId) {
+        await notificationService.notifyTaskAssignment(
+          { ...task, assigneeId },
+          authUser
+        )
+        toast.success('Task assigned and notification sent')
+      }
+    } catch (error) {
+      console.error('Failed to assign task:', error)
+      toast.error('Failed to assign task')
+    }
+  }
+
+  // Handle bulk assignment
+  const handleBulkAssign = async () => {
+    // This would open a modal to select assignee
+    // For now, we'll show a placeholder
+    toast('Bulk assignment feature coming soon')
+  }
+
   // Get unique values for filters
   const filterOptions = useMemo(() => {
     const assignees = new Set<string>()
@@ -150,11 +201,26 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate }: Ta
     }
   }
 
+  // Handle editing session
+  useEffect(() => {
+    if (editingTaskId && currentUser) {
+      startEditingTask(editingTaskId, currentUser.id)
+      
+      return () => {
+        stopEditingTask(editingTaskId, currentUser.id)
+      }
+    }
+  }, [editingTaskId, currentUser])
+
   const renderTask = (task: Task, level: number = 0) => {
     const hasChildren = taskTree.has(task.id)
     const isExpanded = expandedTasks.has(task.id)
     const isSelected = selectedTasks.has(task.id)
     const children = hasChildren ? taskTree.get(task.id) || [] : []
+    const editingUsers = Array.from(editingSessions.get(task.id) || [])
+      .filter(userId => userId !== currentUser?.id)
+      .map(userId => onlineUsers.find(u => u.id === userId))
+      .filter(Boolean) as User[]
 
     return (
       <motion.div
@@ -166,14 +232,23 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate }: Ta
       >
         <div
           className={clsx(
-            'flex items-center gap-3 p-3 rounded-lg border transition-all',
+            'flex items-center gap-3 p-3 rounded-lg border transition-all relative',
             isSelected 
               ? 'border-primary bg-primary-50' 
-              : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50',
+              : editingUsers.length > 0
+                ? 'border-blue-300 bg-blue-50'
+                : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50',
             'cursor-pointer'
           )}
           style={{ marginLeft: `${level * 24}px` }}
         >
+          {/* Editing indicator */}
+          {editingUsers.length > 0 && (
+            <div className="absolute -top-2 -right-2 flex items-center gap-1 bg-blue-500 text-white text-xs px-2 py-1 rounded-full shadow-sm z-10">
+              <PencilLine className="w-3 h-3" />
+              <span>{editingUsers[0].name}{editingUsers.length > 1 ? ` +${editingUsers.length - 1}` : ''}</span>
+            </div>
+          )}
           {/* Expand/Collapse */}
           {hasChildren && (
             <button
@@ -280,33 +355,64 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate }: Ta
 
           {/* Actions */}
           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                // Open edit modal
-              }}
-              className="p-1.5 hover:bg-neutral-200 rounded"
+            <PermissionGate 
+              resource="tasks" 
+              action="update" 
+              resourceOwnerId={task.assigneeId}
+              resourceTeamId={task.teamId}
             >
-              <Edit3 className="w-4 h-4" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                // Duplicate task
-              }}
-              className="p-1.5 hover:bg-neutral-200 rounded"
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setEditingTaskId(task.id)
+                  // Open edit modal
+                }}
+                className="p-1.5 hover:bg-neutral-200 rounded"
+                disabled={editingUsers.length > 0}
+                title={editingUsers.length > 0 ? `Being edited by ${editingUsers[0].name}` : 'Edit task'}
+              >
+                <Edit3 className="w-4 h-4" />
+              </button>
+            </PermissionGate>
+            
+            <PermissionGate resource="tasks" action="create">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  // Duplicate task
+                }}
+                className="p-1.5 hover:bg-neutral-200 rounded"
+                title="Duplicate task"
+              >
+                <Copy className="w-4 h-4" />
+              </button>
+            </PermissionGate>
+            
+            <PermissionGate 
+              resource="tasks" 
+              action="delete" 
+              resourceOwnerId={task.assigneeId}
+              resourceTeamId={task.teamId}
+              fallback={
+                <button
+                  className="p-1.5 text-neutral-300 cursor-not-allowed"
+                  title="You don't have permission to delete this task"
+                >
+                  <Lock className="w-4 h-4" />
+                </button>
+              }
             >
-              <Copy className="w-4 h-4" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                onTaskDelete(task.id)
-              }}
-              className="p-1.5 hover:bg-red-100 text-red-600 rounded"
-            >
-              <Trash2 className="w-4 h-4" />
-            </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onTaskDelete(task.id)
+                }}
+                className="p-1.5 hover:bg-red-100 text-red-600 rounded"
+                title="Delete task"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            </PermissionGate>
           </div>
         </div>
 
@@ -325,7 +431,33 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate }: Ta
       {/* Header */}
       <div className="p-6 border-b">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold">Task Management</h2>
+          <div className="flex items-center gap-4">
+            <h2 className="text-xl font-semibold">Task Management</h2>
+            {/* Online users indicator */}
+            {onlineUsers.length > 0 && (
+              <div className="flex items-center gap-2">
+                <div className="flex -space-x-2">
+                  {onlineUsers.slice(0, 3).map((user) => (
+                    <div
+                      key={user.id}
+                      className="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center text-xs font-medium border-2 border-white"
+                      title={user.name}
+                    >
+                      {user.name.split(' ').map(n => n[0]).join('')}
+                    </div>
+                  ))}
+                  {onlineUsers.length > 3 && (
+                    <div className="w-8 h-8 rounded-full bg-neutral-300 text-neutral-700 flex items-center justify-center text-xs font-medium border-2 border-white">
+                      +{onlineUsers.length - 3}
+                    </div>
+                  )}
+                </div>
+                <span className="text-sm text-neutral-500">
+                  {onlineUsers.length} online
+                </span>
+              </div>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setViewMode('list')}
@@ -375,13 +507,27 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate }: Ta
             <option value="progress">Sort by Progress</option>
           </select>
 
-          <button
-            onClick={onTaskCreate}
-            className="btn-primary px-4 py-2 flex items-center gap-2"
+          <PermissionGate 
+            resource="tasks" 
+            action="create"
+            fallback={
+              <button
+                className="px-4 py-2 flex items-center gap-2 bg-neutral-200 text-neutral-400 rounded-lg cursor-not-allowed"
+                title="You don't have permission to create tasks"
+              >
+                <Lock className="w-4 h-4" />
+                New Task
+              </button>
+            }
           >
-            <Plus className="w-4 h-4" />
-            New Task
-          </button>
+            <button
+              onClick={onTaskCreate}
+              className="btn-primary px-4 py-2 flex items-center gap-2"
+            >
+              <Plus className="w-4 h-4" />
+              New Task
+            </button>
+          </PermissionGate>
         </div>
 
         {/* Filter Pills */}
@@ -459,15 +605,24 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate }: Ta
           className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-neutral-900 text-white rounded-lg shadow-xl p-4 flex items-center gap-4"
         >
           <span className="text-sm">{selectedTasks.size} tasks selected</span>
-          <button className="px-3 py-1 bg-white/20 rounded hover:bg-white/30 transition-colors">
-            Update Status
-          </button>
-          <button className="px-3 py-1 bg-white/20 rounded hover:bg-white/30 transition-colors">
-            Assign To
-          </button>
-          <button className="px-3 py-1 bg-red-500/80 rounded hover:bg-red-500 transition-colors">
-            Delete
-          </button>
+          <PermissionGate resource="tasks" action="update">
+            <button className="px-3 py-1 bg-white/20 rounded hover:bg-white/30 transition-colors">
+              Update Status
+            </button>
+          </PermissionGate>
+          <PermissionGate resource="tasks" action="assign">
+            <button 
+              onClick={() => handleBulkAssign()}
+              className="px-3 py-1 bg-white/20 rounded hover:bg-white/30 transition-colors"
+            >
+              Assign To
+            </button>
+          </PermissionGate>
+          <PermissionGate resource="tasks" action="delete">
+            <button className="px-3 py-1 bg-red-500/80 rounded hover:bg-red-500 transition-colors">
+              Delete
+            </button>
+          </PermissionGate>
         </motion.div>
       )}
     </div>

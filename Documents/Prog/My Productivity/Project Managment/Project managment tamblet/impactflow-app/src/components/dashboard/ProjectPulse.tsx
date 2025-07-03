@@ -1,18 +1,34 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { AlertCircle, TrendingUp, TrendingDown, Minus } from 'lucide-react'
-import { Task } from '@/types/project'
+import { AlertCircle, TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react'
+import { Task, User } from '@/types/project'
 import { calculateProjectHealth, getHealthColor } from '@/utils/calculations'
+import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
+import { useEffect, useState } from 'react'
 
 interface ProjectPulseProps {
   tasks: Task[]
+  projectId?: string
+  currentUser?: User
 }
 
-export function ProjectPulse({ tasks }: ProjectPulseProps) {
-  const healthScore = calculateProjectHealth(tasks)
+export function ProjectPulse({ tasks, projectId, currentUser }: ProjectPulseProps) {
+  const [realTimeHealthScore, setRealTimeHealthScore] = useState<number | null>(null)
+  const healthScore = realTimeHealthScore ?? calculateProjectHealth(tasks)
   const previousHealth = 71 // This would come from historical data
   const trend = healthScore - previousHealth
+  
+  // Real-time updates
+  const { metrics } = useRealtimeUpdates({
+    projectId,
+    user: currentUser,
+    onMetricsUpdate: (newMetrics) => {
+      if (newMetrics.healthScore) {
+        setRealTimeHealthScore(newMetrics.healthScore)
+      }
+    },
+  })
   
   const getHealthStatus = (score: number) => {
     if (score >= 80) return { text: 'Excellent', color: 'text-status-success' }
@@ -70,7 +86,19 @@ export function ProjectPulse({ tasks }: ProjectPulseProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6">
-      <h2 className="text-xl font-semibold mb-6">Project Pulse</h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-xl font-semibold">Project Pulse</h2>
+        {metrics && (
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-0.5 rounded-full"
+          >
+            <Activity className="w-3 h-3" />
+            <span>Live</span>
+          </motion.div>
+        )}
+      </div>
       
       {/* Main Health Gauge */}
       <div className="flex items-center justify-center mb-8">

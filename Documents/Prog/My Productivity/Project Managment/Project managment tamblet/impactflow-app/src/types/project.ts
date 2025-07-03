@@ -48,6 +48,8 @@ export interface Task {
   agility: TaskAgility
   dependencies: string[]
   dependencyType?: DependencyType
+  assigneeId?: string
+  teamId?: string
   lagLead: number
   impactScore: number
   riskScore: number

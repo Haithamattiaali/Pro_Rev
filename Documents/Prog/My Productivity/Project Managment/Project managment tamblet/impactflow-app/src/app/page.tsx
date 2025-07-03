@@ -2,9 +2,18 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 import { ArrowRight, BarChart3, FileSpreadsheet, Users, Zap } from 'lucide-react'
 
 export default function LandingPage() {
+  const router = useRouter()
+  
+  // Auto-redirect to dashboard for easier testing
+  useEffect(() => {
+    router.push('/projects/1')
+  }, [router])
+  
   const features = [
     {
       icon: FileSpreadsheet,

@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { FileSpreadsheet, RefreshCw, Download, Settings } from 'lucide-react'
+import { useSocket } from '@/hooks/useSocket'
+import { NotificationCenter } from '@/components/notifications/NotificationCenter'
 import { ProjectPulse } from '@/components/dashboard/ProjectPulse'
 import { ImpactMatrix } from '@/components/dashboard/ImpactMatrix'
 import { ResourceOrchestra } from '@/components/dashboard/ResourceOrchestra'
@@ -13,9 +15,16 @@ import { PredictiveInsights } from '@/components/dashboard/PredictiveInsights'
 import { TaskList } from '@/components/tasks/TaskList'
 import { TaskForm } from '@/components/tasks/TaskForm'
 import { ExcelImport } from '@/components/excel/ExcelImport'
+import { TeamCollaboration } from '@/components/team/TeamCollaboration'
+import { ApprovalForm } from '@/components/team/ApprovalForm'
+import { ReportBuilder } from '@/components/reports/ReportBuilder'
+import { UserMenu } from '@/components/auth/UserMenu'
 import { useProjectStore } from '@/store/projectStore'
-import { Task, Project, TaskType, TaskStatus, TaskAgility, CriticalityLevel, HealthIndicator } from '@/types/project'
+import { Task, Project, TaskType, TaskStatus, TaskAgility, CriticalityLevel, HealthIndicator, User } from '@/types/project'
+import { Report } from '@/types/report'
+import { useAuth } from '@/hooks/useAuth'
 import toast from 'react-hot-toast'
+import { emitTaskCreate, emitTaskUpdate, emitTaskDelete } from '@/lib/socket'
 
 // Mock data for demonstration
 const mockProject: Project = {
@@ -314,19 +323,56 @@ const mockTasks: Task[] = [
   },
 ]
 
+// Mock current user - in a real app this would come from auth context
+const mockCurrentUser: User = {
+  id: 'user1',
+  email: 'john.doe@example.com',
+  name: 'John Doe',
+  role: 'PROJECT_MANAGER' as any,
+  organizationId: 'org1',
+}
+
 export default function ProjectDashboard() {
   const params = useParams()
-  const { currentProject, tasks, setCurrentProject, setTasks, addTask } = useProjectStore()
+  const { user } = useAuth()
+  const { currentProject, tasks, setCurrentProject, setTasks, addTask, updateTask, deleteTask } = useProjectStore()
   const [activeTab, setActiveTab] = useState('dashboard')
   const [showTaskForm, setShowTaskForm] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined)
   const [showExcelImport, setShowExcelImport] = useState(false)
+  const [showApprovalForm, setShowApprovalForm] = useState(false)
+  const currentUser = user || mockCurrentUser
+  
+  // Initialize Socket.io connection
+  const { isConnected } = useSocket({
+    projectId: params.id as string,
+    user: currentUser,
+    autoConnect: true,
+  })
 
   useEffect(() => {
     // In a real app, fetch project and tasks from API
     setCurrentProject(mockProject)
     setTasks(mockTasks)
   }, [params.id, setCurrentProject, setTasks])
+
+  // Handle task operations with real-time sync
+  const handleTaskUpdate = (taskId: string, updates: Partial<Task>) => {
+    updateTask(taskId, updates)
+    emitTaskUpdate(taskId, updates)
+  }
+
+  const handleTaskDelete = (taskId: string) => {
+    deleteTask(taskId)
+    emitTaskDelete(taskId)
+  }
+
+  const handleTaskCreate = (task: Task) => {
+    addTask(task)
+    emitTaskCreate(task)
+    setShowTaskForm(false)
+    toast.success('Task created successfully')
+  }
 
   const tabs = [
     { id: 'dashboard', label: 'Dashboard' },
@@ -363,6 +409,13 @@ export default function ProjectDashboard() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
+                {isConnected && (
+                  <div className="flex items-center gap-2 text-sm text-green-600">
+                    <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" />
+                    <span>Connected</span>
+                  </div>
+                )}
+                <NotificationCenter projectId={params.id as string} user={currentUser} />
                 <button 
                   onClick={() => setShowExcelImport(true)}
                   className="btn-secondary px-4 py-2 text-sm flex items-center gap-2"
@@ -381,6 +434,7 @@ export default function ProjectDashboard() {
                 <button className="btn-secondary p-2">
                   <Settings className="w-4 h-4" />
                 </button>
+                <UserMenu />
               </div>
             </div>
           </div>
@@ -444,7 +498,7 @@ export default function ProjectDashboard() {
 
             {/* Dashboard Grid */}
             <div className="grid grid-cols-2 gap-6">
-              <ProjectPulse tasks={tasks} />
+              <ProjectPulse tasks={tasks} projectId={params.id as string} currentUser={currentUser} />
               <ImpactMatrix tasks={tasks} />
               <ResourceOrchestra tasks={tasks} />
               <TimelineRhythm tasks={tasks} />
@@ -462,23 +516,11 @@ export default function ProjectDashboard() {
           >
             <TaskList 
               tasks={tasks}
-              onTaskUpdate={(taskId, updates) => {
-                // Update task in store
-                const task = tasks.find(t => t.id === taskId)
-                if (task) {
-                  setTasks(tasks.map(t => 
-                    t.id === taskId ? { ...t, ...updates } : t
-                  ))
-                }
-              }}
-              onTaskDelete={(taskId) => {
-                // Delete task from store
-                setTasks(tasks.filter(t => t.id !== taskId))
-              }}
-              onTaskCreate={() => {
-                // Open create task modal
-                setShowTaskForm(true)
-              }}
+              onTaskUpdate={handleTaskUpdate}
+              onTaskDelete={handleTaskDelete}
+              onTaskCreate={() => setShowTaskForm(true)}
+              projectId={params.id as string}
+              currentUser={currentUser}
             />
           </motion.div>
         )}
@@ -488,10 +530,12 @@ export default function ProjectDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6"
           >
-            <h2 className="text-xl font-semibold mb-4">Team Collaboration</h2>
-            <p className="text-neutral-600">Team interface coming soon...</p>
+            <TeamCollaboration 
+              tasks={tasks}
+              currentUser={currentUser as any}
+              projectId={params.id as string}
+            />
           </motion.div>
         )}
 
@@ -500,10 +544,16 @@ export default function ProjectDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6"
           >
-            <h2 className="text-xl font-semibold mb-4">Reports & Analytics</h2>
-            <p className="text-neutral-600">Report builder coming soon...</p>
+            <ReportBuilder 
+              projectId={params.id as string}
+              currentUser={currentUser}
+              onSave={(report: Report) => {
+                // Save report logic
+                console.log('Saving report:', report)
+                toast.success('Report saved successfully')
+              }}
+            />
           </motion.div>
         )}
       </div>
@@ -516,9 +566,7 @@ export default function ProjectDashboard() {
           onSave={(taskData) => {
             if (editingTask) {
               // Update existing task
-              setTasks(tasks.map(t => 
-                t.id === editingTask.id ? { ...t, ...taskData } as Task : t
-              ))
+              handleTaskUpdate(editingTask.id, taskData)
             } else {
               // Create new task
               const newTask: Task = {
@@ -527,7 +575,7 @@ export default function ProjectDashboard() {
                 projectId: currentProject?.id || '1',
                 taskId: `T${Date.now()}`,
               } as Task
-              addTask(newTask)
+              handleTaskCreate(newTask)
             }
             setShowTaskForm(false)
             setEditingTask(undefined)
