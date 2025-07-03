@@ -10,8 +10,12 @@ import { ResourceOrchestra } from '@/components/dashboard/ResourceOrchestra'
 import { TimelineRhythm } from '@/components/dashboard/TimelineRhythm'
 import { DecisionCommand } from '@/components/dashboard/DecisionCommand'
 import { PredictiveInsights } from '@/components/dashboard/PredictiveInsights'
+import { TaskList } from '@/components/tasks/TaskList'
+import { TaskForm } from '@/components/tasks/TaskForm'
+import { ExcelImport } from '@/components/excel/ExcelImport'
 import { useProjectStore } from '@/store/projectStore'
-import { Task, Project } from '@/types/project'
+import { Task, Project, TaskType, TaskStatus, TaskAgility, CriticalityLevel, HealthIndicator } from '@/types/project'
+import toast from 'react-hot-toast'
 
 // Mock data for demonstration
 const mockProject: Project = {
@@ -312,8 +316,11 @@ const mockTasks: Task[] = [
 
 export default function ProjectDashboard() {
   const params = useParams()
-  const { currentProject, tasks, setCurrentProject, setTasks } = useProjectStore()
+  const { currentProject, tasks, setCurrentProject, setTasks, addTask } = useProjectStore()
   const [activeTab, setActiveTab] = useState('dashboard')
+  const [showTaskForm, setShowTaskForm] = useState(false)
+  const [editingTask, setEditingTask] = useState<Task | undefined>(undefined)
+  const [showExcelImport, setShowExcelImport] = useState(false)
 
   useEffect(() => {
     // In a real app, fetch project and tasks from API
@@ -356,7 +363,10 @@ export default function ProjectDashboard() {
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <button className="btn-secondary px-4 py-2 text-sm flex items-center gap-2">
+                <button 
+                  onClick={() => setShowExcelImport(true)}
+                  className="btn-secondary px-4 py-2 text-sm flex items-center gap-2"
+                >
                   <FileSpreadsheet className="w-4 h-4" />
                   Import Excel
                 </button>
@@ -449,10 +459,27 @@ export default function ProjectDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
-            className="bg-white rounded-lg shadow-sm border border-neutral-200 p-6"
           >
-            <h2 className="text-xl font-semibold mb-4">Task List</h2>
-            <p className="text-neutral-600">Task management interface coming soon...</p>
+            <TaskList 
+              tasks={tasks}
+              onTaskUpdate={(taskId, updates) => {
+                // Update task in store
+                const task = tasks.find(t => t.id === taskId)
+                if (task) {
+                  setTasks(tasks.map(t => 
+                    t.id === taskId ? { ...t, ...updates } : t
+                  ))
+                }
+              }}
+              onTaskDelete={(taskId) => {
+                // Delete task from store
+                setTasks(tasks.filter(t => t.id !== taskId))
+              }}
+              onTaskCreate={() => {
+                // Open create task modal
+                setShowTaskForm(true)
+              }}
+            />
           </motion.div>
         )}
 
@@ -480,6 +507,58 @@ export default function ProjectDashboard() {
           </motion.div>
         )}
       </div>
+
+      {/* Task Form Modal */}
+      {showTaskForm && (
+        <TaskForm
+          task={editingTask}
+          tasks={tasks}
+          onSave={(taskData) => {
+            if (editingTask) {
+              // Update existing task
+              setTasks(tasks.map(t => 
+                t.id === editingTask.id ? { ...t, ...taskData } as Task : t
+              ))
+            } else {
+              // Create new task
+              const newTask: Task = {
+                ...taskData,
+                id: `T${Date.now()}`,
+                projectId: currentProject?.id || '1',
+                taskId: `T${Date.now()}`,
+              } as Task
+              addTask(newTask)
+            }
+            setShowTaskForm(false)
+            setEditingTask(undefined)
+          }}
+          onCancel={() => {
+            setShowTaskForm(false)
+            setEditingTask(undefined)
+          }}
+        />
+      )}
+
+      {/* Excel Import Modal */}
+      {showExcelImport && (
+        <ExcelImport
+          existingTasks={tasks}
+          onImport={(importedTasks) => {
+            // Add imported tasks to the project
+            const newTasks = importedTasks.map((task, index) => ({
+              ...task,
+              id: task.id || `imported-${Date.now()}-${index}`,
+              projectId: currentProject?.id || '1',
+              taskId: task.taskId || `imported-${Date.now()}-${index}`,
+            } as Task))
+            
+            setTasks([...tasks, ...newTasks])
+            toast.success(`Successfully imported ${newTasks.length} tasks`)
+            setActiveTab('tasks') // Switch to tasks tab
+          }}
+          onClose={() => setShowExcelImport(false)}
+        />
+      )}
     </div>
   )
 }

@@ -38,10 +38,10 @@ export default function LandingPage() {
               <h1 className="text-2xl font-bold text-gradient">ImpactFlow Pro</h1>
             </div>
             <div className="flex items-center gap-4">
-              <Link href="/login" className="btn-secondary px-4 py-2 text-sm">
-                Login
+              <Link href="/projects/1" className="btn-secondary px-4 py-2 text-sm">
+                View Demo
               </Link>
-              <Link href="/register" className="btn-primary px-4 py-2 text-sm">
+              <Link href="/projects/1" className="btn-primary px-4 py-2 text-sm">
                 Get Started
               </Link>
             </div>
@@ -78,17 +78,17 @@ export default function LandingPage() {
               className="flex gap-4 justify-center"
             >
               <Link
-                href="/register"
+                href="/projects/1"
                 className="btn-primary px-8 py-3 text-lg flex items-center gap-2"
               >
-                Start Free Trial
+                Open Dashboard
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <Link
-                href="/demo"
+                href="/projects/1"
                 className="btn-secondary px-8 py-3 text-lg"
               >
-                Watch Demo
+                View Project
               </Link>
             </motion.div>
           </div>
@@ -142,10 +142,10 @@ export default function LandingPage() {
             Join thousands of teams already using ImpactFlow Pro
           </p>
           <Link
-            href="/register"
+            href="/projects/1"
             className="inline-flex items-center gap-2 bg-white text-primary px-8 py-3 rounded-lg font-semibold hover:bg-neutral-100 transition-colors"
           >
-            Get Started Free
+            Open Dashboard
             <ArrowRight className="w-5 h-5" />
           </Link>
         </div>

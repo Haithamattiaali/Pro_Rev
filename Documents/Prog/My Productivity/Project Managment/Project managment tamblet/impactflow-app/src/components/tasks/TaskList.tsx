@@ -1,0 +1,475 @@
+'use client'
+
+import { useState, useMemo } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { 
+  Search, Filter, Plus, ChevronDown, ChevronRight, 
+  Calendar, Users, AlertTriangle, CheckCircle,
+  Edit3, Trash2, Copy, Flag, Clock
+} from 'lucide-react'
+import { Task, TaskStatus, TaskType, CriticalityLevel } from '@/types/project'
+import { calculateImpactScore, getHealthColor } from '@/utils/calculations'
+import { format } from 'date-fns'
+import clsx from 'clsx'
+
+interface TaskListProps {
+  tasks: Task[]
+  onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
+  onTaskDelete: (taskId: string) => void
+  onTaskCreate: () => void
+}
+
+export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate }: TaskListProps) {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedFilters, setSelectedFilters] = useState({
+    status: 'all',
+    type: 'all',
+    criticality: 'all',
+    assignee: 'all',
+  })
+  const [sortBy, setSortBy] = useState<'impact' | 'dueDate' | 'progress'>('impact')
+  const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
+  const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set())
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list')
+
+  // Filter and sort tasks
+  const filteredTasks = useMemo(() => {
+    let filtered = tasks.filter(task => {
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase()
+        if (!task.name.toLowerCase().includes(query) &&
+            !task.deliverables?.toLowerCase().includes(query) &&
+            !task.notes?.toLowerCase().includes(query)) {
+          return false
+        }
+      }
+
+      // Status filter
+      if (selectedFilters.status !== 'all' && task.status !== selectedFilters.status) {
+        return false
+      }
+
+      // Type filter
+      if (selectedFilters.type !== 'all' && task.type !== selectedFilters.type) {
+        return false
+      }
+
+      // Criticality filter
+      if (selectedFilters.criticality !== 'all' && task.criticalityLevel !== selectedFilters.criticality) {
+        return false
+      }
+
+      // Assignee filter
+      if (selectedFilters.assignee !== 'all' && !task.resourceAssignment?.includes(selectedFilters.assignee)) {
+        return false
+      }
+
+      return true
+    })
+
+    // Sort
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'impact':
+          return (b.impactScore || 0) - (a.impactScore || 0)
+        case 'dueDate':
+          return (a.endDate?.getTime() || 0) - (b.endDate?.getTime() || 0)
+        case 'progress':
+          return b.percentComplete - a.percentComplete
+        default:
+          return 0
+      }
+    })
+
+    return filtered
+  }, [tasks, searchQuery, selectedFilters, sortBy])
+
+  // Group tasks by parent for tree view
+  const taskTree = useMemo(() => {
+    const tree = new Map<string | null, Task[]>()
+    
+    filteredTasks.forEach(task => {
+      const parentId = task.parentId || null
+      if (!tree.has(parentId)) {
+        tree.set(parentId, [])
+      }
+      tree.get(parentId)!.push(task)
+    })
+
+    return tree
+  }, [filteredTasks])
+
+  // Get unique values for filters
+  const filterOptions = useMemo(() => {
+    const assignees = new Set<string>()
+    tasks.forEach(task => {
+      if (task.resourceAssignment) {
+        task.resourceAssignment.split(',').forEach(r => assignees.add(r.trim()))
+      }
+    })
+
+    return {
+      status: Object.values(TaskStatus),
+      type: Object.values(TaskType),
+      criticality: Object.values(CriticalityLevel),
+      assignee: Array.from(assignees),
+    }
+  }, [tasks])
+
+  const toggleTaskExpansion = (taskId: string) => {
+    const newExpanded = new Set(expandedTasks)
+    if (newExpanded.has(taskId)) {
+      newExpanded.delete(taskId)
+    } else {
+      newExpanded.add(taskId)
+    }
+    setExpandedTasks(newExpanded)
+  }
+
+  const toggleTaskSelection = (taskId: string) => {
+    const newSelected = new Set(selectedTasks)
+    if (newSelected.has(taskId)) {
+      newSelected.delete(taskId)
+    } else {
+      newSelected.add(taskId)
+    }
+    setSelectedTasks(newSelected)
+  }
+
+  const getStatusIcon = (status: TaskStatus) => {
+    switch (status) {
+      case TaskStatus.COMPLETE:
+        return <CheckCircle className="w-4 h-4 text-status-success" />
+      case TaskStatus.IN_PROGRESS:
+        return <Clock className="w-4 h-4 text-primary" />
+      case TaskStatus.BLOCKED:
+        return <AlertTriangle className="w-4 h-4 text-status-danger" />
+      default:
+        return <div className="w-4 h-4 rounded-full border-2 border-neutral-300" />
+    }
+  }
+
+  const renderTask = (task: Task, level: number = 0) => {
+    const hasChildren = taskTree.has(task.id)
+    const isExpanded = expandedTasks.has(task.id)
+    const isSelected = selectedTasks.has(task.id)
+    const children = hasChildren ? taskTree.get(task.id) || [] : []
+
+    return (
+      <motion.div
+        key={task.id}
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        className="group"
+      >
+        <div
+          className={clsx(
+            'flex items-center gap-3 p-3 rounded-lg border transition-all',
+            isSelected 
+              ? 'border-primary bg-primary-50' 
+              : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50',
+            'cursor-pointer'
+          )}
+          style={{ marginLeft: `${level * 24}px` }}
+        >
+          {/* Expand/Collapse */}
+          {hasChildren && (
+            <button
+              onClick={() => toggleTaskExpansion(task.id)}
+              className="p-1 hover:bg-neutral-200 rounded"
+            >
+              {isExpanded ? (
+                <ChevronDown className="w-4 h-4" />
+              ) : (
+                <ChevronRight className="w-4 h-4" />
+              )}
+            </button>
+          )}
+          {!hasChildren && <div className="w-6" />}
+
+          {/* Checkbox */}
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={() => toggleTaskSelection(task.id)}
+            className="w-4 h-4 text-primary rounded border-neutral-300 focus:ring-primary"
+          />
+
+          {/* Status Icon */}
+          {getStatusIcon(task.status)}
+
+          {/* Task Info */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="font-medium text-neutral-900 truncate">
+                {task.name}
+              </span>
+              {task.criticalPath && (
+                <span className="px-2 py-0.5 text-xs bg-red-100 text-red-700 rounded-full">
+                  Critical Path
+                </span>
+              )}
+              {task.milestone && (
+                <Flag className="w-4 h-4 text-primary" />
+              )}
+            </div>
+            <div className="flex items-center gap-4 mt-1 text-sm text-neutral-600">
+              <span>{task.wbsCode}</span>
+              <span>{task.duration} days</span>
+              {task.endDate && (
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  {format(task.endDate, 'MMM d')}
+                </span>
+              )}
+              {task.resourceAssignment && (
+                <span className="flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  {task.resourceAssignment}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Metrics */}
+          <div className="flex items-center gap-6">
+            {/* Progress */}
+            <div className="w-32">
+              <div className="flex items-center justify-between text-xs text-neutral-600 mb-1">
+                <span>Progress</span>
+                <span>{task.percentComplete}%</span>
+              </div>
+              <div className="h-1.5 bg-neutral-200 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${task.percentComplete}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Impact Score */}
+            <div className="text-center">
+              <div className="text-xs text-neutral-600">Impact</div>
+              <div className="text-lg font-semibold">{task.impactScore}</div>
+            </div>
+
+            {/* Risk Score */}
+            <div className="text-center">
+              <div className="text-xs text-neutral-600">Risk</div>
+              <div className={clsx(
+                'text-lg font-semibold',
+                task.riskScore > 60 ? 'text-status-danger' :
+                task.riskScore > 30 ? 'text-status-warning' :
+                'text-status-success'
+              )}>
+                {task.riskScore}
+              </div>
+            </div>
+
+            {/* Health Indicator */}
+            <div 
+              className={clsx(
+                'w-3 h-3 rounded-full',
+                `bg-${getHealthColor(task.healthIndicator)}`
+              )}
+              title={`Health: ${task.healthIndicator}`}
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                // Open edit modal
+              }}
+              className="p-1.5 hover:bg-neutral-200 rounded"
+            >
+              <Edit3 className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                // Duplicate task
+              }}
+              className="p-1.5 hover:bg-neutral-200 rounded"
+            >
+              <Copy className="w-4 h-4" />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                onTaskDelete(task.id)
+              }}
+              className="p-1.5 hover:bg-red-100 text-red-600 rounded"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Children */}
+        {isExpanded && children.length > 0 && (
+          <div className="mt-1">
+            {children.map(child => renderTask(child, level + 1))}
+          </div>
+        )}
+      </motion.div>
+    )
+  }
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm border border-neutral-200">
+      {/* Header */}
+      <div className="p-6 border-b">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Task Management</h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setViewMode('list')}
+              className={clsx(
+                'px-3 py-1 text-sm rounded-lg transition-colors',
+                viewMode === 'list'
+                  ? 'bg-primary text-white'
+                  : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+              )}
+            >
+              List View
+            </button>
+            <button
+              onClick={() => setViewMode('kanban')}
+              className={clsx(
+                'px-3 py-1 text-sm rounded-lg transition-colors',
+                viewMode === 'kanban'
+                  ? 'bg-primary text-white'
+                  : 'bg-neutral-100 text-neutral-600 hover:bg-neutral-200'
+              )}
+            >
+              Kanban View
+            </button>
+          </div>
+        </div>
+
+        {/* Search and Filters */}
+        <div className="flex items-center gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-neutral-400" />
+            <input
+              type="text"
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+            />
+          </div>
+          
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="px-4 py-2 border border-neutral-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="impact">Sort by Impact</option>
+            <option value="dueDate">Sort by Due Date</option>
+            <option value="progress">Sort by Progress</option>
+          </select>
+
+          <button
+            onClick={onTaskCreate}
+            className="btn-primary px-4 py-2 flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            New Task
+          </button>
+        </div>
+
+        {/* Filter Pills */}
+        <div className="flex items-center gap-2 mt-4">
+          <Filter className="w-4 h-4 text-neutral-500" />
+          <select
+            value={selectedFilters.status}
+            onChange={(e) => setSelectedFilters({ ...selectedFilters, status: e.target.value })}
+            className="text-sm px-3 py-1 border border-neutral-200 rounded-lg"
+          >
+            <option value="all">All Status</option>
+            {filterOptions.status.map(status => (
+              <option key={status} value={status}>{status}</option>
+            ))}
+          </select>
+          <select
+            value={selectedFilters.type}
+            onChange={(e) => setSelectedFilters({ ...selectedFilters, type: e.target.value })}
+            className="text-sm px-3 py-1 border border-neutral-200 rounded-lg"
+          >
+            <option value="all">All Types</option>
+            {filterOptions.type.map(type => (
+              <option key={type} value={type}>{type}</option>
+            ))}
+          </select>
+          <select
+            value={selectedFilters.criticality}
+            onChange={(e) => setSelectedFilters({ ...selectedFilters, criticality: e.target.value })}
+            className="text-sm px-3 py-1 border border-neutral-200 rounded-lg"
+          >
+            <option value="all">All Criticality</option>
+            {filterOptions.criticality.map(level => (
+              <option key={level} value={level}>{level}</option>
+            ))}
+          </select>
+          {filterOptions.assignee.length > 0 && (
+            <select
+              value={selectedFilters.assignee}
+              onChange={(e) => setSelectedFilters({ ...selectedFilters, assignee: e.target.value })}
+              className="text-sm px-3 py-1 border border-neutral-200 rounded-lg"
+            >
+              <option value="all">All Assignees</option>
+              {filterOptions.assignee.map(assignee => (
+                <option key={assignee} value={assignee}>{assignee}</option>
+              ))}
+            </select>
+          )}
+        </div>
+      </div>
+
+      {/* Task List */}
+      <div className="p-6">
+        {viewMode === 'list' ? (
+          <AnimatePresence>
+            {taskTree.get(null)?.map(task => renderTask(task))}
+          </AnimatePresence>
+        ) : (
+          <div className="text-center py-12 text-neutral-500">
+            Kanban view coming soon...
+          </div>
+        )}
+        
+        {filteredTasks.length === 0 && (
+          <div className="text-center py-12 text-neutral-500">
+            No tasks found matching your filters
+          </div>
+        )}
+      </div>
+
+      {/* Bulk Actions */}
+      {selectedTasks.size > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-neutral-900 text-white rounded-lg shadow-xl p-4 flex items-center gap-4"
+        >
+          <span className="text-sm">{selectedTasks.size} tasks selected</span>
+          <button className="px-3 py-1 bg-white/20 rounded hover:bg-white/30 transition-colors">
+            Update Status
+          </button>
+          <button className="px-3 py-1 bg-white/20 rounded hover:bg-white/30 transition-colors">
+            Assign To
+          </button>
+          <button className="px-3 py-1 bg-red-500/80 rounded hover:bg-red-500 transition-colors">
+            Delete
+          </button>
+        </motion.div>
+      )}
+    </div>
+  )
+}
