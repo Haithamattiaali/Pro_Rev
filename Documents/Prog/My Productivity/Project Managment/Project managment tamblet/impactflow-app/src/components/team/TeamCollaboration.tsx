@@ -125,6 +125,7 @@ export function TeamCollaboration({ tasks, currentUser = mockTeamMembers[0], pro
   const [selectedApproval, setSelectedApproval] = useState<Approval | null>(null)
   const [newComment, setNewComment] = useState('')
   const [showNewApproval, setShowNewApproval] = useState(false)
+  const [approvals, setApprovals] = useState<Approval[]>(mockApprovals)
 
   // Real-time updates
   const { onlineUsers } = useRealtimeUpdates({
@@ -151,7 +152,7 @@ export function TeamCollaboration({ tasks, currentUser = mockTeamMembers[0], pro
 
   // Generate updates from approvals and tasks
   const updates: Update[] = [
-    ...mockApprovals.filter(a => a.status === 'pending').map(approval => ({
+    ...approvals.filter(a => a.status === 'pending').map(approval => ({
       id: `U-${approval.id}`,
       type: 'approval_request' as const,
       title: `Approval Required: ${approval.taskName}`,
@@ -182,16 +183,48 @@ export function TeamCollaboration({ tasks, currentUser = mockTeamMembers[0], pro
   ]
 
   const handleApproval = (approvalId: string, approved: boolean) => {
+    // Update the approval status
+    setApprovals(prev => prev.map(approval => 
+      approval.id === approvalId
+        ? { 
+            ...approval, 
+            status: approved ? 'approved' : 'rejected',
+            reviewedBy: currentUser,
+            reviewedAt: new Date()
+          }
+        : approval
+    ))
+    
+    setSelectedApproval(null)
     toast.success(approved ? 'Request approved' : 'Request rejected')
-    // In a real app, update the approval status via API
   }
 
   const handleComment = () => {
-    if (!newComment.trim()) return
+    if (!newComment.trim() || !selectedApproval) return
+    
+    // Create new comment
+    const newCommentObj = {
+      id: `comment-${Date.now()}`,
+      author: currentUser,
+      content: newComment.trim(),
+      timestamp: new Date(),
+    }
+    
+    // Update the approval with the new comment
+    setApprovals(prev => prev.map(approval => 
+      approval.id === selectedApproval.id
+        ? { ...approval, comments: [...approval.comments, newCommentObj] }
+        : approval
+    ))
+    
+    // Update selected approval to show the new comment immediately
+    setSelectedApproval(prev => prev ? {
+      ...prev,
+      comments: [...prev.comments, newCommentObj]
+    } : null)
     
     toast.success('Comment added')
     setNewComment('')
-    // In a real app, add comment via API
   }
 
   const getStatusColor = (status: string) => {
@@ -240,7 +273,7 @@ export function TeamCollaboration({ tasks, currentUser = mockTeamMembers[0], pro
         <div className="flex gap-6">
           {[
             { id: 'team', label: 'Team Members', count: mockTeamMembers.length },
-            { id: 'approvals', label: 'Approvals', count: mockApprovals.filter(a => a.status === 'pending').length },
+            { id: 'approvals', label: 'Approvals', count: approvals.filter(a => a.status === 'pending').length },
             { id: 'updates', label: 'Updates', count: updates.filter(u => !u.read).length }
           ].map((tab) => (
             <button
@@ -336,10 +369,10 @@ export function TeamCollaboration({ tasks, currentUser = mockTeamMembers[0], pro
                     All
                   </button>
                   <button className="px-3 py-1 text-sm rounded-lg bg-neutral-100 text-neutral-600 hover:bg-neutral-200">
-                    Pending ({mockApprovals.filter(a => a.status === 'pending').length})
+                    Pending ({approvals.filter(a => a.status === 'pending').length})
                   </button>
                   <button className="px-3 py-1 text-sm rounded-lg bg-neutral-100 text-neutral-600 hover:bg-neutral-200">
-                    Approved ({mockApprovals.filter(a => a.status === 'approved').length})
+                    Approved ({approvals.filter(a => a.status === 'approved').length})
                   </button>
                 </div>
                 <button 
@@ -351,7 +384,7 @@ export function TeamCollaboration({ tasks, currentUser = mockTeamMembers[0], pro
               </div>
 
               <div className="space-y-4">
-                {mockApprovals.map((approval) => (
+                {approvals.map((approval) => (
                   <div 
                     key={approval.id} 
                     className={`border rounded-lg p-4 cursor-pointer transition-all ${

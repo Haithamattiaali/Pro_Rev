@@ -40,7 +40,10 @@ export function useSocket(options: UseSocketOptions = {}): UseSocketReturn {
       hasConnectedRef.current = true
     } catch (error) {
       console.error('Failed to connect socket:', error)
-      toast.error('Failed to connect to real-time updates')
+      // Only show error in production
+      if (process.env.NODE_ENV === 'production') {
+        toast.error('Failed to connect to real-time updates')
+      }
     }
   }, [token, projectId, user])
 
@@ -84,17 +87,25 @@ export function useSocket(options: UseSocketOptions = {}): UseSocketReturn {
     const unsubDisconnect = socketManager.on('disconnect', (reason: string) => {
       setIsConnected(false)
       
-      if (reason === 'io server disconnect') {
-        // Server disconnected us, don't auto-reconnect
-        toast.error('Disconnected by server')
-      } else if (reason === 'transport close' || reason === 'transport error') {
-        // Connection issue, attempt to reconnect
-        toast.error('Connection lost. Attempting to reconnect...')
+      // Only show disconnection messages in production or if explicitly configured
+      if (process.env.NEXT_PUBLIC_SHOW_SOCKET_ERRORS === 'true' || process.env.NODE_ENV === 'production') {
+        if (reason === 'io server disconnect') {
+          // Server disconnected us, don't auto-reconnect
+          toast.error('Disconnected by server')
+        } else if (reason === 'transport close' || reason === 'transport error') {
+          // Connection issue, attempt to reconnect
+          toast.error('Connection lost. Attempting to reconnect...')
+        }
       }
     })
 
     const unsubMaxReconnectFailed = socketManager.on('max_reconnect_failed', () => {
-      toast.error('Failed to reconnect. Please refresh the page.')
+      // Only show reconnection failure in production or if explicitly configured
+      if (process.env.NEXT_PUBLIC_SHOW_SOCKET_ERRORS === 'true' || process.env.NODE_ENV === 'production') {
+        toast.error('Real-time updates unavailable. The app will continue to work offline.')
+      } else {
+        console.log('Socket.io: Max reconnection attempts reached (development mode)')
+      }
     })
 
     // Auto-connect on mount if enabled

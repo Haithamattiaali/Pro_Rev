@@ -2,13 +2,15 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Settings, Database, Mail, Shield, Users, Globe, Activity, Save, RefreshCw } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, Settings, Database, Mail, Shield, Users, Globe, Activity, Save, RefreshCw, Home } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { PermissionGate } from '@/components/auth/PermissionGate';
 import toast from 'react-hot-toast';
 
 export default function AdminSettingsPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('general');
   const [isSaving, setIsSaving] = useState(false);
 
@@ -64,6 +66,11 @@ export default function AdminSettingsPage() {
     await new Promise(resolve => setTimeout(resolve, 1500));
     toast.success('Settings saved successfully');
     setIsSaving(false);
+    
+    // Redirect to dashboard after a short delay
+    setTimeout(() => {
+      router.push('/');
+    }, 500);
   };
 
   const tabs = [
@@ -700,6 +707,7 @@ export default function AdminSettingsPage() {
                 <Link
                   href="/settings"
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  title="Back to Settings"
                 >
                   <ArrowLeft className="w-5 h-5" />
                 </Link>
@@ -708,23 +716,33 @@ export default function AdminSettingsPage() {
                   <h1 className="text-xl font-semibold text-gray-900">System Settings</h1>
                 </div>
               </div>
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className="btn-primary px-4 py-2 flex items-center gap-2"
-              >
-                {isSaving ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="w-4 h-4" />
-                    Save Changes
-                  </>
-                )}
-              </button>
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/"
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                  title="Go to Dashboard"
+                >
+                  <Home className="w-5 h-5" />
+                  <span className="text-sm font-medium">Dashboard</span>
+                </Link>
+                <button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="btn-primary px-4 py-2 flex items-center gap-2"
+                >
+                  {isSaving ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </header>
@@ -753,8 +771,36 @@ export default function AdminSettingsPage() {
                 ))}
               </nav>
 
+              {/* Quick Navigation */}
+              <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <h4 className="text-sm font-medium text-blue-900 mb-3">Quick Links</h4>
+                <div className="space-y-2">
+                  <Link
+                    href="/"
+                    className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    <Home className="w-4 h-4" />
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/settings"
+                    className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    <Settings className="w-4 h-4" />
+                    User Settings
+                  </Link>
+                  <Link
+                    href="/admin/users"
+                    className="flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700"
+                  >
+                    <Users className="w-4 h-4" />
+                    User Management
+                  </Link>
+                </div>
+              </div>
+              
               {/* System Info */}
-              <div className="mt-8 p-4 bg-gray-100 rounded-lg">
+              <div className="mt-4 p-4 bg-gray-100 rounded-lg">
                 <h4 className="text-sm font-medium text-gray-900 mb-2">System Info</h4>
                 <dl className="space-y-2 text-xs">
                   <div>

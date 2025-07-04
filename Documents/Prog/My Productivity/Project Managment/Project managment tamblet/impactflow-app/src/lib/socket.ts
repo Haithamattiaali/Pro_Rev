@@ -76,7 +76,26 @@ class SocketManager {
       return this.socket
     }
 
-    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000'
+    // In development without a socket server, create a mock socket
+    if (process.env.NODE_ENV === 'development' && !process.env.NEXT_PUBLIC_SOCKET_URL) {
+      console.log('Socket.io: Running in development without socket server')
+      // Return existing socket if available, otherwise we'll create a minimal mock
+      if (!this.socket) {
+        // Create a minimal mock that prevents connection attempts
+        this.socket = {
+          connected: false,
+          connect: () => {},
+          disconnect: () => {},
+          on: () => {},
+          off: () => {},
+          emit: () => {},
+          id: 'mock-socket'
+        } as any
+      }
+      return this.socket
+    }
+
+    const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001'
     
     this.socket = io(socketUrl, {
       auth: { token },
