@@ -369,10 +369,18 @@ export default function ProjectDashboard() {
   }
 
   const handleTaskCreate = (task: Task) => {
-    addTask(task)
-    emitTaskCreate(task)
-    setShowTaskForm(false)
-    toast.success('Task created successfully')
+    console.log('Creating task:', task)
+    try {
+      addTask(task)
+      console.log('Task added to store')
+      emitTaskCreate(task)
+      console.log('Task emitted via socket')
+      setShowTaskForm(false)
+      toast.success('Task created successfully')
+    } catch (error) {
+      console.error('Error creating task:', error)
+      toast.error('Failed to create task. Please try again.')
+    }
   }
 
   const tabs = [
@@ -569,6 +577,7 @@ export default function ProjectDashboard() {
           task={editingTask}
           tasks={tasks}
           onSave={(taskData) => {
+            console.log('onSave called with taskData:', taskData)
             if (editingTask) {
               // Update existing task
               handleTaskUpdate(editingTask.id, taskData)
@@ -580,9 +589,9 @@ export default function ProjectDashboard() {
                 projectId: currentProject?.id || '1',
                 taskId: `T${Date.now()}`,
               } as Task
+              console.log('New task object:', newTask)
               handleTaskCreate(newTask)
             }
-            setShowTaskForm(false)
             setEditingTask(undefined)
           }}
           onCancel={() => {

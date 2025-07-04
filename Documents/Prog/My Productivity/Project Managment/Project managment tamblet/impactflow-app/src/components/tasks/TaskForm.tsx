@@ -12,6 +12,7 @@ import {
   CriticalityLevel, DependencyType, HealthIndicator 
 } from '@/types/project'
 import { calculateImpactScore, calculateRiskScore, calculateHealthIndicator } from '@/utils/calculations'
+import toast from 'react-hot-toast'
 
 const taskSchema = z.object({
   name: z.string().min(1, 'Task name is required'),
@@ -94,20 +95,28 @@ export function TaskForm({ task, tasks, onSave, onCancel }: TaskFormProps) {
   }, [watchedData.startDate, watchedData.duration, setValue])
 
   const onSubmit = (data: TaskFormData) => {
-    // Convert form data to task format
-    const taskData: Partial<Task> = {
-      ...task,
-      ...data,
-      startDate: data.startDate ? new Date(data.startDate) : undefined,
-      endDate: data.endDate ? new Date(data.endDate) : undefined,
+    console.log('Form submitted with data:', data)
+    console.log('Form errors:', errors)
+    try {
+      // Convert form data to task format
+      const taskData: Partial<Task> = {
+        ...task,
+        ...data,
+        startDate: data.startDate ? new Date(data.startDate) : undefined,
+        endDate: data.endDate ? new Date(data.endDate) : undefined,
+      }
+
+      // Calculate derived fields
+      taskData.impactScore = calculateImpactScore(taskData)
+      taskData.riskScore = calculateRiskScore(taskData)
+      taskData.healthIndicator = calculateHealthIndicator(taskData)
+
+      console.log('Processed task data:', taskData)
+      onSave(taskData)
+    } catch (error) {
+      console.error('Error in form submission:', error)
+      toast.error('Failed to process form data')
     }
-
-    // Calculate derived fields
-    taskData.impactScore = calculateImpactScore(taskData)
-    taskData.riskScore = calculateRiskScore(taskData)
-    taskData.healthIndicator = calculateHealthIndicator(taskData)
-
-    onSave(taskData)
   }
 
   // Get parent tasks for dropdown
@@ -142,7 +151,10 @@ export function TaskForm({ task, tasks, onSave, onCancel }: TaskFormProps) {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit(onSubmit)} className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+        <form onSubmit={(e) => {
+          console.log('Form submit event triggered')
+          handleSubmit(onSubmit)(e)
+        }} className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
           <div className="grid grid-cols-2 gap-6">
             {/* Basic Information */}
             <div className="col-span-2">
@@ -451,25 +463,24 @@ export function TaskForm({ task, tasks, onSave, onCancel }: TaskFormProps) {
               </>
             )}
           </div>
-        </form>
 
-        {/* Footer */}
-        <div className="flex justify-end gap-3 p-6 border-t bg-neutral-50">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="btn-secondary px-6 py-2"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            onClick={handleSubmit(onSubmit)}
-            className="btn-primary px-6 py-2"
-          >
-            {isEditing ? 'Update Task' : 'Create Task'}
-          </button>
-        </div>
+          {/* Footer - moved inside form */}
+          <div className="flex justify-end gap-3 p-6 border-t bg-neutral-50 -mx-6 -mb-6 mt-6">
+            <button
+              type="button"
+              onClick={onCancel}
+              className="btn-secondary px-6 py-2"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="btn-primary px-6 py-2"
+            >
+              {isEditing ? 'Update Task' : 'Create Task'}
+            </button>
+          </div>
+        </form>
       </motion.div>
     </motion.div>
   )

@@ -29,6 +29,7 @@ interface TaskListProps {
 }
 
 export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, projectId, currentUser }: TaskListProps) {
+  console.log('TaskList received tasks:', tasks)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilters, setSelectedFilters] = useState({
     status: 'all',
