@@ -590,15 +590,12 @@ export default function ProjectDashboard() {
           onSave={(taskData) => {
             console.log('onSave called with taskData:', taskData)
             
-            // Check if this is a copy operation (editingTask has 'copy-' prefix in ID)
-            const isCopyOperation = editingTask?.id?.startsWith('copy-')
-            
-            if (editingTask && !isCopyOperation) {
-              // Update existing task
+            if (editingTask?.id) {
+              // Update existing task (only if it has an ID)
               handleTaskUpdate(editingTask.id, taskData)
               toast.success('Task updated successfully!')
             } else {
-              // Create new task (or copy)
+              // Create new task (including copies)
               const newTask: Task = {
                 ...taskData,
                 id: `T${Date.now()}`,

@@ -385,14 +385,13 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
                 onClick={(e) => {
                   e.stopPropagation()
                   if (onTaskCopy) {
-                    // Create a copy of the task with a new ID
-                    const taskCopy: Task = {
-                      ...task,
-                      id: `copy-${Date.now()}`,
-                      taskId: `copy-${Date.now()}`,
+                    // Create a copy of the task WITHOUT an ID (so it opens in create mode)
+                    const { id, taskId, ...taskDataWithoutId } = task
+                    const taskCopy = {
+                      ...taskDataWithoutId,
                       name: `Copy of ${task.name}`,
                     }
-                    onTaskCopy(taskCopy)
+                    onTaskCopy(taskCopy as Task)
                   }
                 }}
                 className="p-1.5 hover:bg-neutral-200 rounded"
