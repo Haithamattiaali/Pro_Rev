@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Search, Filter as FilterIcon, Plus, ChevronDown, ChevronRight, 
   Calendar, Users, User, AlertTriangle, CheckCircle,
-  Edit3, Trash2, Copy, Flag, Clock, UserCheck, PencilLine, Lock, TrendingUp, UserPlus
+  Edit3, Trash2, Copy, Flag, Clock, UserCheck, PencilLine, Lock, TrendingUp, UserPlus,
+  Hash, FileText, DollarSign, Link, AlertCircle, Check, X
 } from 'lucide-react'
-import { Task, TaskStatus, TaskType, CriticalityLevel, User as UserType } from '@/types/project'
+import { Task, TaskStatus, TaskType, CriticalityLevel, User as UserType, HealthIndicator } from '@/types/project'
 import { calculateImpactScore, getHealthColor } from '@/utils/calculations'
 import { format } from 'date-fns'
 import clsx from 'clsx'
@@ -23,7 +24,16 @@ import { FilterControl } from '@/components/filters/FilterControl'
 import { AddFilterDropdown } from '@/components/filters/AddFilterDropdown'
 import { AVAILABLE_FILTERS, FilterConfig, getDefaultOperators } from '@/config/taskFilters'
 import { Filter, FilterChangeEvent, FilterOperator } from '@/types/filter'
+import { FieldSelector } from './FieldSelector'
+import { getDefaultVisibleFields, getFieldConfig } from '@/config/taskFieldConfig'
+import { StatusBadge } from '@/components/ui/StatusBadge'
+import { ProgressBar } from '@/components/ui/ProgressBar'
+import { ScoreBadge } from '@/components/ui/ScoreBadge'
+import { DateField } from '@/components/ui/DateField'
+import { TagList } from '@/components/ui/TagList'
 import { applyAllFilters, validateFilterValue } from '@/utils/filterUtils'
+import { LayoutModeSelector } from './LayoutModeSelector'
+import { ScrollIndicator } from '@/components/ui/ScrollIndicator'
 
 // Simplified user type for assignment
 interface SimpleUser {
@@ -59,6 +69,30 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
   const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const { user: authUser } = useAuth()
   
+  // State for dynamic field display
+  const [displayedFields, setDisplayedFields] = useState<(keyof Task)[]>(() => {
+    // Load from localStorage or use defaults
+    const savedFields = localStorage.getItem('taskListDisplayedFields')
+    if (savedFields) {
+      try {
+        return JSON.parse(savedFields)
+      } catch (e) {
+        console.error('Error parsing saved fields:', e)
+      }
+    }
+    return getDefaultVisibleFields()
+  })
+  
+  // Layout mode state
+  type LayoutMode = 'compact' | 'comfortable' | 'expanded'
+  const [layoutMode, setLayoutMode] = useState<LayoutMode>(() => {
+    const savedMode = localStorage.getItem('taskListLayoutMode')
+    return (savedMode as LayoutMode) || 'comfortable'
+  })
+  
+  // Scroll container ref
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  
   // Permission hooks
   const { canCreate, canUpdate, canDelete, canAssign, isOwner, getResourceScope } = usePermissions()
 
@@ -67,6 +101,16 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
     projectId,
     user: currentUser,
   })
+
+  // Save displayed fields to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('taskListDisplayedFields', JSON.stringify(displayedFields))
+  }, [displayedFields])
+  
+  // Save layout mode to localStorage when it changes
+  useEffect(() => {
+    localStorage.setItem('taskListLayoutMode', layoutMode)
+  }, [layoutMode])
 
   // Fetch available users when component mounts
   useEffect(() => {
@@ -299,6 +343,187 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
     }
   }
 
+  // Dynamic task attribute rendering function
+  const renderTaskAttribute = (task: Task, fieldKey: keyof Task) => {
+    const value = task[fieldKey]
+    const config = getFieldConfig(fieldKey)
+    
+    // Handle null/undefined values
+    if (value === null || value === undefined || value === '') {
+      return <span className="text-neutral-400 text-sm">-</span>
+    }
+
+    switch (fieldKey) {
+      // Status fields
+      case 'status':
+        return <StatusBadge status={value as TaskStatus} size="sm" />
+      
+      case 'criticalityLevel':
+        return (
+          <span className={clsx(
+            'text-xs px-2 py-0.5 rounded-full font-medium',
+            value === CriticalityLevel.CRITICAL ? 'bg-red-100 text-red-700' :
+            value === CriticalityLevel.HIGH ? 'bg-orange-100 text-orange-700' :
+            value === CriticalityLevel.MEDIUM ? 'bg-yellow-100 text-yellow-700' :
+            value === CriticalityLevel.LOW ? 'bg-green-100 text-green-700' :
+            'bg-neutral-100 text-neutral-700'
+          )}>
+            {value as string}
+          </span>
+        )
+      
+      case 'healthIndicator':
+        return (
+          <div className="flex items-center justify-center">
+            <div 
+              className={clsx(
+                'w-3 h-3 rounded-full',
+                `bg-${getHealthColor(value as HealthIndicator)}`
+              )}
+              title={`Health: ${value}`}
+            />
+          </div>
+        )
+      
+      // Progress fields
+      case 'percentComplete':
+      case 'weightedProgress':
+      case 'rolledUpProgress':
+        return <ProgressBar progress={value as number} size="sm" showLabel={false} />
+      
+      case 'resourceLoad':
+        return (
+          <div className="text-center">
+            <span className="text-sm font-medium">{value}%</span>
+          </div>
+        )
+      
+      // Score fields
+      case 'impactScore':
+      case 'riskScore':
+      case 'priorityScore':
+        return <ScoreBadge score={value as number} size="sm" />
+      
+      // Date fields
+      case 'startDate':
+      case 'endDate':
+      case 'actualStart':
+      case 'actualEnd':
+        return <DateField date={value as Date} showIcon={false} />
+      
+      // Duration and numeric fields
+      case 'duration':
+        return (
+          <span className="text-sm text-neutral-600">
+            {value} days
+          </span>
+        )
+      
+      case 'varianceDays':
+        return (
+          <span className={clsx(
+            'text-sm font-medium',
+            (value as number) > 0 ? 'text-red-600' : 
+            (value as number) < 0 ? 'text-green-600' : 
+            'text-neutral-600'
+          )}>
+            {(value as number) > 0 ? '+' : ''}{value} days
+          </span>
+        )
+      
+      case 'totalFloat':
+      case 'freeFloat':
+      case 'lagLead':
+        return (
+          <span className="text-sm text-neutral-600">
+            {value} days
+          </span>
+        )
+      
+      // Financial fields
+      case 'costBudget':
+      case 'actualCost':
+        return (
+          <span className="text-sm font-medium text-neutral-700">
+            ${(value as number).toLocaleString()}
+          </span>
+        )
+      
+      // Performance indices
+      case 'spi':
+      case 'cpi':
+        return (
+          <span className={clsx(
+            'text-sm font-medium',
+            (value as number) >= 1 ? 'text-green-600' : 'text-red-600'
+          )}>
+            {(value as number).toFixed(2)}
+          </span>
+        )
+      
+      // Array fields
+      case 'dependencies':
+      case 'blockingTasks':
+      case 'blockedBy':
+        return <TagList tags={value as string[]} maxVisible={2} size="sm" />
+      
+      // Boolean fields
+      case 'milestone':
+      case 'criticalPath':
+        return (
+          <div className="flex items-center justify-center">
+            {value ? (
+              <Check className="w-4 h-4 text-green-600" />
+            ) : (
+              <X className="w-4 h-4 text-neutral-300" />
+            )}
+          </div>
+        )
+      
+      // Text fields
+      case 'name':
+      case 'wbsCode':
+      case 'deliverables':
+      case 'notes':
+      case 'resourceAssignment':
+      case 'riskMitigation':
+      case 'lessonsLearned':
+        return (
+          <span className="text-sm text-neutral-700 truncate" title={value as string}>
+            {value as string}
+          </span>
+        )
+      
+      // Enum fields
+      case 'type':
+      case 'agility':
+      case 'dependencyType':
+        return (
+          <span className="text-sm text-neutral-600">
+            {(value as string).replace(/_/g, ' ')}
+          </span>
+        )
+      
+      // IDs (usually not displayed, but handle if selected)
+      case 'assigneeId':
+      case 'teamId':
+        const user = availableUsers.find(u => u.id === value)
+        return (
+          <span className="text-sm text-neutral-600">
+            {user ? user.name : (value as string)}
+          </span>
+        )
+      
+      default:
+        // Generic fallback for any other fields
+        return (
+          <span className="text-sm text-neutral-700">
+            {value?.toString() || '-'}
+          </span>
+        )
+    }
+  }
+
   // Handle editing session
   useEffect(() => {
     if (editingTaskId && currentUser) {
@@ -331,7 +556,8 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
       >
         <div
           className={clsx(
-            'flex items-center gap-3 p-3 rounded-lg border transition-all relative',
+            'flex gap-3 p-3 rounded-lg border transition-all relative',
+            layoutMode === 'expanded' ? 'items-start' : 'items-center',
             isSelected 
               ? 'border-primary bg-primary-50' 
               : editingUsers.length > 0
@@ -374,7 +600,7 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
           {/* Status Icon */}
           {getStatusIcon(task.status)}
 
-          {/* Task Info */}
+          {/* Task Info - Always show name */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <span className="font-medium text-neutral-900 truncate">
@@ -391,65 +617,39 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
             </div>
             <div className="flex items-center gap-4 mt-1 text-sm text-neutral-600">
               <span>{task.wbsCode}</span>
-              <span>{task.duration} days</span>
-              {task.endDate && (
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {format(task.endDate, 'MMM d')}
-                </span>
-              )}
-              {task.resourceAssignment && (
-                <span className="flex items-center gap-1">
-                  <Users className="w-3 h-3" />
-                  {task.resourceAssignment}
-                </span>
-              )}
             </div>
           </div>
 
-          {/* Metrics */}
-          <div className="flex items-center gap-6">
-            {/* Progress */}
-            <div className="w-32">
-              <div className="flex items-center justify-between text-xs text-neutral-600 mb-1">
-                <span>Progress</span>
-                <span>{task.percentComplete}%</span>
-              </div>
-              <div className="h-1.5 bg-neutral-200 rounded-full overflow-hidden">
-                <div 
-                  className="h-full bg-primary transition-all"
-                  style={{ width: `${task.percentComplete}%` }}
-                />
-              </div>
-            </div>
-
-            {/* Impact Score */}
-            <div className="text-center">
-              <div className="text-xs text-neutral-600">Impact</div>
-              <div className="text-lg font-semibold">{task.impactScore}</div>
-            </div>
-
-            {/* Risk Score */}
-            <div className="text-center">
-              <div className="text-xs text-neutral-600">Risk</div>
-              <div className={clsx(
-                'text-lg font-semibold',
-                task.riskScore > 60 ? 'text-status-danger' :
-                task.riskScore > 30 ? 'text-status-warning' :
-                'text-status-success'
-              )}>
-                {task.riskScore}
-              </div>
-            </div>
-
-            {/* Health Indicator */}
-            <div 
-              className={clsx(
-                'w-3 h-3 rounded-full',
-                `bg-${getHealthColor(task.healthIndicator)}`
-              )}
-              title={`Health: ${task.healthIndicator}`}
-            />
+          {/* Dynamic Fields */}
+          <div className={clsx(
+            'flex items-center',
+            layoutMode === 'compact' ? 'gap-2' : 'gap-4',
+            layoutMode === 'expanded' && 'flex-wrap'
+          )}>
+            {displayedFields
+              .filter(field => field !== 'name') // Name is always shown in the first column
+              .map(fieldKey => {
+                const config = getFieldConfig(fieldKey)
+                return (
+                  <div 
+                    key={fieldKey} 
+                    className={clsx(
+                      'flex items-center',
+                      config?.align === 'center' && 'justify-center',
+                      config?.align === 'right' && 'justify-end',
+                      layoutMode === 'expanded' && 'py-1'
+                    )}
+                    style={{ 
+                      width: layoutMode === 'compact' ? 'auto' : config?.width,
+                      minWidth: layoutMode === 'compact' ? 'auto' : config?.minWidth,
+                      maxWidth: layoutMode === 'expanded' ? 'none' : config?.maxWidth,
+                      flexShrink: layoutMode === 'compact' ? 1 : 0
+                    }}
+                  >
+                    {renderTaskAttribute(task, fieldKey)}
+                  </div>
+                )
+              })}
           </div>
 
           {/* Actions */}
@@ -630,6 +830,16 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
             <option value="progress">Sort by Progress</option>
           </select>
 
+          <LayoutModeSelector
+            value={layoutMode}
+            onChange={setLayoutMode}
+          />
+
+          <FieldSelector
+            selectedFields={displayedFields}
+            onFieldsChange={setDisplayedFields}
+          />
+
           <PermissionGate 
             resource="tasks" 
             action="create"
@@ -676,12 +886,26 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
       </div>
 
       {/* Task List */}
-      <div className="p-6">
-        {viewMode === 'list' ? (
-          <AnimatePresence>
-            {taskTree.get(null)?.map(task => renderTask(task))}
-          </AnimatePresence>
-        ) : (
+      <div className="relative">
+        {viewMode === 'list' && layoutMode !== 'compact' && (
+          <ScrollIndicator containerRef={scrollContainerRef} />
+        )}
+        <div 
+          ref={scrollContainerRef}
+          className={clsx(
+            'p-6',
+            layoutMode !== 'compact' && 'overflow-x-auto'
+          )}
+        >
+          {viewMode === 'list' ? (
+            <div className={clsx(
+              layoutMode === 'expanded' ? 'min-w-0' : 'min-w-max'
+            )}>
+              <AnimatePresence>
+                {taskTree.get(null)?.map(task => renderTask(task))}
+              </AnimatePresence>
+            </div>
+          ) : (
           <div className="kanban-board flex gap-4 overflow-x-auto pb-4">
             {/* Kanban Columns */}
             {['Not Started', 'In Progress', 'Review', 'Blocked', 'Complete', 'Delayed'].map(status => {
@@ -720,50 +944,47 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
                             className="bg-white rounded-lg p-4 shadow-sm border border-neutral-200 cursor-pointer hover:shadow-md transition-shadow"
                             onClick={() => onTaskUpdate(task.id, task)}
                           >
-                            <div className="flex items-start justify-between mb-2">
+                            {/* Always show task name */}
+                            <div className="flex items-start justify-between mb-3">
                               <h4 className="font-medium text-sm line-clamp-2">{task.name}</h4>
                               {task.milestone && (
                                 <Flag className="w-4 h-4 text-primary flex-shrink-0 ml-2" />
                               )}
                             </div>
                             
-                            <div className="flex items-center gap-2 text-xs text-neutral-600 mb-2">
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-3 h-3" />
-                                {task.endDate ? format(task.endDate, 'MMM d') : 'No date'}
-                              </span>
-                              {task.resourceAssignment && (
-                                <span className="flex items-center gap-1">
-                                  <User className="w-3 h-3" />
-                                  {task.resourceAssignment.split(',')[0]}
-                                </span>
-                              )}
+                            {/* Dynamic fields for Kanban cards - show a subset of selected fields */}
+                            <div className="space-y-2">
+                              {displayedFields
+                                .filter(field => {
+                                  // Show only key fields in kanban view
+                                  const priorityFields: (keyof Task)[] = [
+                                    'status', 'endDate', 'assigneeId', 'resourceAssignment',
+                                    'percentComplete', 'impactScore', 'criticalityLevel'
+                                  ]
+                                  return priorityFields.includes(field) && field !== 'name'
+                                })
+                                .slice(0, 4) // Limit to 4 fields to keep cards compact
+                                .map(fieldKey => {
+                                  const config = getFieldConfig(fieldKey)
+                                  const value = task[fieldKey]
+                                  
+                                  if (!value) return null
+                                  
+                                  return (
+                                    <div key={fieldKey} className="flex items-center justify-between text-xs">
+                                      <span className="text-neutral-500">
+                                        {config?.label || fieldKey}:
+                                      </span>
+                                      <div className="ml-2">
+                                        {renderTaskAttribute(task, fieldKey)}
+                                      </div>
+                                    </div>
+                                  )
+                                })}
                             </div>
                             
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-2">
-                                <span className={`text-xs px-2 py-1 rounded-full ${
-                                  task.criticalityLevel === 'Critical' ? 'bg-red-100 text-red-700' :
-                                  task.criticalityLevel === 'High' ? 'bg-orange-100 text-orange-700' :
-                                  task.criticalityLevel === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                                  'bg-green-100 text-green-700'
-                                }`}>
-                                  {task.criticalityLevel}
-                                </span>
-                                <span className="text-xs text-neutral-500">
-                                  {task.type}
-                                </span>
-                              </div>
-                              
-                              <div className="flex items-center gap-1">
-                                <TrendingUp className="w-3 h-3 text-primary" />
-                                <span className="text-xs font-medium text-primary">
-                                  {task.impactScore}%
-                                </span>
-                              </div>
-                            </div>
-                            
-                            {task.percentComplete > 0 && (
+                            {/* Always show progress if > 0 */}
+                            {task.percentComplete > 0 && !displayedFields.includes('percentComplete') && (
                               <div className="mt-3">
                                 <div className="w-full bg-neutral-200 rounded-full h-1.5">
                                   <div 
@@ -795,6 +1016,7 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
             No tasks found matching your filters
           </div>
         )}
+        </div>
       </div>
 
       {/* Bulk Actions */}
