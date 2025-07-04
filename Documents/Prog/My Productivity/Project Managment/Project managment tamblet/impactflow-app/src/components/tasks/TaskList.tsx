@@ -24,11 +24,13 @@ interface TaskListProps {
   onTaskUpdate: (taskId: string, updates: Partial<Task>) => void
   onTaskDelete: (taskId: string) => void
   onTaskCreate: () => void
+  onTaskEdit?: (task: Task) => void
+  onTaskCopy?: (task: Task) => void
   projectId?: string
   currentUser?: UserType
 }
 
-export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, projectId, currentUser }: TaskListProps) {
+export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTaskEdit, onTaskCopy, projectId, currentUser }: TaskListProps) {
   console.log('TaskList received tasks:', tasks)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFilters, setSelectedFilters] = useState({
@@ -366,7 +368,9 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, proj
                 onClick={(e) => {
                   e.stopPropagation()
                   setEditingTaskId(task.id)
-                  // Open edit modal
+                  if (onTaskEdit) {
+                    onTaskEdit(task)
+                  }
                 }}
                 className="p-1.5 hover:bg-neutral-200 rounded"
                 disabled={editingUsers.length > 0}
@@ -380,7 +384,16 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, proj
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  // Duplicate task
+                  if (onTaskCopy) {
+                    // Create a copy of the task with a new ID
+                    const taskCopy: Task = {
+                      ...task,
+                      id: `copy-${Date.now()}`,
+                      taskId: `copy-${Date.now()}`,
+                      name: `Copy of ${task.name}`,
+                    }
+                    onTaskCopy(taskCopy)
+                  }
                 }}
                 className="p-1.5 hover:bg-neutral-200 rounded"
                 title="Duplicate task"

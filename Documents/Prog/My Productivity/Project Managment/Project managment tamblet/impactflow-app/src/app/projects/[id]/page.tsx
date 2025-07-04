@@ -531,7 +531,18 @@ export default function ProjectDashboard() {
               tasks={tasks}
               onTaskUpdate={handleTaskUpdate}
               onTaskDelete={handleTaskDelete}
-              onTaskCreate={() => setShowTaskForm(true)}
+              onTaskCreate={() => {
+                setEditingTask(undefined)
+                setShowTaskForm(true)
+              }}
+              onTaskEdit={(task) => {
+                setEditingTask(task)
+                setShowTaskForm(true)
+              }}
+              onTaskCopy={(taskCopy) => {
+                setEditingTask(taskCopy)
+                setShowTaskForm(true)
+              }}
               projectId={params.id as string}
               currentUser={currentUser}
             />
@@ -578,11 +589,16 @@ export default function ProjectDashboard() {
           tasks={tasks}
           onSave={(taskData) => {
             console.log('onSave called with taskData:', taskData)
-            if (editingTask) {
+            
+            // Check if this is a copy operation (editingTask has 'copy-' prefix in ID)
+            const isCopyOperation = editingTask?.id?.startsWith('copy-')
+            
+            if (editingTask && !isCopyOperation) {
               // Update existing task
               handleTaskUpdate(editingTask.id, taskData)
+              toast.success('Task updated successfully!')
             } else {
-              // Create new task
+              // Create new task (or copy)
               const newTask: Task = {
                 ...taskData,
                 id: `T${Date.now()}`,
@@ -591,7 +607,11 @@ export default function ProjectDashboard() {
               } as Task
               console.log('New task object:', newTask)
               handleTaskCreate(newTask)
+              // Note: handleTaskCreate already shows a success toast
             }
+            
+            // Close the form and reset state
+            setShowTaskForm(false)
             setEditingTask(undefined)
           }}
           onCancel={() => {
