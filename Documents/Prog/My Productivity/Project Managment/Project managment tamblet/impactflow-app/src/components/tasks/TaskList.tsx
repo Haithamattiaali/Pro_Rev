@@ -570,6 +570,7 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
             'cursor-pointer'
           )}
           style={{ marginLeft: `${level * 24}px` }}
+          onClick={() => setSelectedTaskForDetail(task)}
         >
           {/* Editing indicator */}
           {editingUsers.length > 0 && (
@@ -581,7 +582,10 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
           {/* Expand/Collapse */}
           {hasChildren && (
             <button
-              onClick={() => toggleTaskExpansion(task.id)}
+              onClick={(e) => {
+                e.stopPropagation()
+                toggleTaskExpansion(task.id)
+              }}
               className="p-1 hover:bg-neutral-200 rounded"
             >
               {isExpanded ? (
@@ -597,7 +601,11 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
           <input
             type="checkbox"
             checked={isSelected}
-            onChange={() => toggleTaskSelection(task.id)}
+            onChange={(e) => {
+              e.stopPropagation()
+              toggleTaskSelection(task.id)
+            }}
+            onClick={(e) => e.stopPropagation()}
             className="w-4 h-4 text-primary rounded border-neutral-300 focus:ring-primary"
           />
 
@@ -621,6 +629,9 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
             </div>
             <div className="flex items-center gap-4 mt-1 text-sm text-neutral-600">
               <span>{task.wbsCode}</span>
+              <span className="text-xs text-neutral-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                Click to view all details
+              </span>
             </div>
           </div>
 
@@ -1084,6 +1095,7 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
             onDelete={canDelete(selectedTaskForDetail.assigneeId, selectedTaskForDetail.teamId) ? onTaskDelete : undefined}
             onCopy={onTaskCopy}
             renderTaskAttribute={renderTaskAttribute}
+            showAllFields={viewMode === 'list'} // Show all fields when opened from List view
           />
         </AnimatePresence>
       )}

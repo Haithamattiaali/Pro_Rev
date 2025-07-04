@@ -30,6 +30,7 @@ interface TaskDetailModalProps {
   onDelete?: (taskId: string) => void
   onCopy?: (task: Task) => void
   renderTaskAttribute: (task: Task, fieldKey: keyof Task) => React.ReactNode
+  showAllFields?: boolean // When true, show all fields regardless of displayedFields
 }
 
 interface CollapsibleSectionProps {
@@ -101,7 +102,8 @@ export function TaskDetailModal({
   onAssign,
   onDelete,
   onCopy,
-  renderTaskAttribute
+  renderTaskAttribute,
+  showAllFields = false
 }: TaskDetailModalProps) {
   // Close on ESC key
   useEffect(() => {
@@ -129,7 +131,7 @@ export function TaskDetailModal({
     
     FIELD_CATEGORIES.forEach(category => {
       const categoryFields = getFieldsByCategory(category.id as any)
-        .filter(config => displayedFields.includes(config.key))
+        .filter(config => showAllFields || displayedFields.includes(config.key))
       
       if (categoryFields.length > 0) {
         grouped[category.id] = categoryFields
@@ -137,7 +139,7 @@ export function TaskDetailModal({
     })
     
     return grouped
-  }, [displayedFields])
+  }, [displayedFields, showAllFields])
 
   const renderFieldGrid = (fields: TaskFieldConfig[]) => {
     return (
