@@ -34,6 +34,7 @@ import { TagList } from '@/components/ui/TagList'
 import { applyAllFilters, validateFilterValue } from '@/utils/filterUtils'
 import { LayoutModeSelector } from './LayoutModeSelector'
 import { ScrollIndicator } from '@/components/ui/ScrollIndicator'
+import { TaskDetailModal } from './TaskDetailModal'
 
 // Simplified user type for assignment
 interface SimpleUser {
@@ -92,6 +93,9 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
   
   // Scroll container ref
   const scrollContainerRef = useRef<HTMLDivElement>(null)
+  
+  // State for task detail modal
+  const [selectedTaskForDetail, setSelectedTaskForDetail] = useState<Task | null>(null)
   
   // Permission hooks
   const { canCreate, canUpdate, canDelete, canAssign, isOwner, getResourceScope } = usePermissions()
@@ -942,14 +946,19 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
                             exit={{ opacity: 0, scale: 0.9 }}
                             whileHover={{ scale: 1.02 }}
                             className="bg-white rounded-lg p-4 shadow-sm border border-neutral-200 cursor-pointer hover:shadow-md transition-shadow"
-                            onClick={() => onTaskUpdate(task.id, task)}
+                            onClick={() => setSelectedTaskForDetail(task)}
                           >
                             {/* Always show task name */}
                             <div className="flex items-start justify-between mb-3">
                               <h4 className="font-medium text-sm line-clamp-2">{task.name}</h4>
-                              {task.milestone && (
-                                <Flag className="w-4 h-4 text-primary flex-shrink-0 ml-2" />
-                              )}
+                              <div className="flex items-center gap-1">
+                                {task.milestone && (
+                                  <Flag className="w-4 h-4 text-primary flex-shrink-0" />
+                                )}
+                                <div className="text-xs text-neutral-400">
+                                  Click for details
+                                </div>
+                              </div>
                             </div>
                             
                             {/* Dynamic fields for Kanban cards - show a subset of selected fields */}
@@ -1061,6 +1070,22 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
           }}
           onClose={() => setAssigningTask(null)}
         />
+      )}
+
+      {/* Task Detail Modal */}
+      {selectedTaskForDetail && (
+        <AnimatePresence>
+          <TaskDetailModal
+            task={selectedTaskForDetail}
+            displayedFields={displayedFields}
+            onClose={() => setSelectedTaskForDetail(null)}
+            onEdit={onTaskEdit}
+            onAssign={setAssigningTask}
+            onDelete={canDelete(selectedTaskForDetail.assigneeId, selectedTaskForDetail.teamId) ? onTaskDelete : undefined}
+            onCopy={onTaskCopy}
+            renderTaskAttribute={renderTaskAttribute}
+          />
+        </AnimatePresence>
       )}
     </div>
   )
