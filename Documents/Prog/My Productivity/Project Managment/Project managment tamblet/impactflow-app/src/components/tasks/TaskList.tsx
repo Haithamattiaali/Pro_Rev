@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Search, Filter, Plus, ChevronDown, ChevronRight, 
   Calendar, Users, User, AlertTriangle, CheckCircle,
-  Edit3, Trash2, Copy, Flag, Clock, UserCheck, PencilLine, Lock, TrendingUp
+  Edit3, Trash2, Copy, Flag, Clock, UserCheck, PencilLine, Lock, TrendingUp, UserPlus
 } from 'lucide-react'
 import { Task, TaskStatus, TaskType, CriticalityLevel, User as UserType } from '@/types/project'
 import { calculateImpactScore, getHealthColor } from '@/utils/calculations'
@@ -412,6 +412,20 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
                 title="Duplicate task"
               >
                 <Copy className="w-4 h-4" />
+              </button>
+            </PermissionGate>
+            
+            <PermissionGate resource="tasks" action="assign">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation()
+                  // TODO: Open assign modal
+                  toast('Task assignment modal coming soon')
+                }}
+                className="p-1.5 hover:bg-neutral-200 rounded"
+                title="Assign task"
+              >
+                <UserPlus className="w-4 h-4" />
               </button>
             </PermissionGate>
             
