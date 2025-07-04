@@ -123,6 +123,19 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
     return tree
   }, [filteredTasks])
 
+  // Check if a task has children in the complete task list (not just filtered)
+  const taskHasChildren = useMemo(() => {
+    const hasChildrenMap = new Map<string, boolean>()
+    
+    tasks.forEach(task => {
+      if (task.parentId) {
+        hasChildrenMap.set(task.parentId, true)
+      }
+    })
+    
+    return hasChildrenMap
+  }, [tasks])
+
   // Handle task assignment with notifications
   const handleTaskAssignment = async (taskId: string, assigneeId: string, previousAssigneeId?: string) => {
     try {
@@ -216,10 +229,11 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
   }, [editingTaskId, currentUser])
 
   const renderTask = (task: Task, level: number = 0) => {
-    const hasChildren = taskTree.has(task.id)
+    const hasChildren = taskHasChildren.has(task.id)
+    const hasVisibleChildren = taskTree.has(task.id)
     const isExpanded = expandedTasks.has(task.id)
     const isSelected = selectedTasks.has(task.id)
-    const children = hasChildren ? taskTree.get(task.id) || [] : []
+    const children = hasVisibleChildren ? taskTree.get(task.id) || [] : []
     const editingUsers = Array.from(editingSessions.get(task.id) || [])
       .filter(userId => userId !== currentUser?.id)
       .map(userId => onlineUsers.find(u => u.id === userId))
