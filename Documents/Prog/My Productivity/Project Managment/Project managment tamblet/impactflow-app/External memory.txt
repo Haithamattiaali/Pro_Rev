@@ -39529,16 +39529,41 @@
 
 
 
+ absence of the expand icon is a bug in the UI rendering logic.
 
+Here is the issue described in codebase terms:
 
+The bug is located in the src/components/tasks/TaskList.tsx component. The logic that conditionally renders the expand/collapse icon for parent tasks is either missing or flawed.
 
+Code-Based Explanation:
 
+Missing Parent-Task Check: The TaskList component, when rendering each task row, must first determine if that task is a parent (i.e., if it has any child tasks). This typically involves checking if the task's id exists as a parentId in any other task within the tasks array. This check is likely failing or absent.
 
+Failed Conditional Rendering: The UI is failing to execute a conditional block that should render the icon. The logic for each task row should resemble this:
 
+JavaScript
+// Simplified logic within TaskList.tsx for a single task row
 
+const task = /* current task being rendered */;
+const hasChildren = checkForChildren(task.id, allTasks); // This check is the likely point of failure.
 
+return (
+  <div className="task-row">
+    {/* === BUG IS HERE === */}
+    {hasChildren ? (
+      // This part of the code is not being executed
+      <button onClick={() => toggleExpand(task.id)}>
+        <ChevronRight />
+      </button>
+    ) : (
+      // Instead, it's always rendering the empty placeholder
+      <div className="icon-placeholder"></div>
+    )}
 
-
+    <span className="task-name">{task.name}</span>
+  </div>
+);
+The core issue is that the condition hasChildren is always evaluating to false for every task. As a result, the <button> containing the <ChevronRight /> icon is never rendered in the DOM, and the user sees only the empty placeholder, making it impossible to expand parent tasks.
 
 
 
