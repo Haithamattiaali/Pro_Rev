@@ -46,6 +46,20 @@
   .glass {
     @apply backdrop-blur-md bg-white/70 border border-neutral-200/50;
   }
+  
+  /* Glass morphism buttons - Apple design */
+  .btn-glass {
+    @apply px-4 py-1.5 rounded-full text-sm font-medium
+    bg-black/5 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/20
+    text-neutral-700 dark:text-neutral-200
+    transition-all duration-200 active:scale-95;
+  }
+  
+  .btn-glass-danger {
+    @apply px-4 py-1.5 rounded-full text-sm font-medium
+    bg-red-500/80 hover:bg-red-500 text-white
+    transition-all duration-200 active:scale-95;
+  }
 
   /* Card styles */
   .card {

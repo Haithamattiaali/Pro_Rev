@@ -35,6 +35,9 @@ import { applyAllFilters, validateFilterValue } from '@/utils/filterUtils'
 import { LayoutModeSelector } from './LayoutModeSelector'
 import { ScrollIndicator } from '@/components/ui/ScrollIndicator'
 import { TaskDetailModal } from './TaskDetailModal'
+import { BulkStatusModal } from '@/components/ui/BulkStatusModal'
+import { BulkAssignmentModal } from '@/components/ui/BulkAssignmentModal'
+import { ConfirmationModal } from '@/components/ui/ConfirmationModal'
 
 // Simplified user type for assignment
 interface SimpleUser {
@@ -96,6 +99,11 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
   
   // State for task detail modal
   const [selectedTaskForDetail, setSelectedTaskForDetail] = useState<Task | null>(null)
+  
+  // State for bulk operations modals
+  const [showBulkStatusModal, setShowBulkStatusModal] = useState(false)
+  const [showBulkAssignmentModal, setShowBulkAssignmentModal] = useState(false)
+  const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false)
   
   // Permission hooks
   const { canCreate, canUpdate, canDelete, canAssign, isOwner, getResourceScope } = usePermissions()
@@ -269,9 +277,89 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
 
   // Handle bulk assignment
   const handleBulkAssign = async () => {
-    // This would open a modal to select assignee
-    // For now, we'll show a placeholder
-    toast('Bulk assignment feature coming soon')
+    if (selectedTasks.size === 0) return
+    setShowBulkAssignmentModal(true)
+  }
+  
+  // Handle bulk status update
+  const handleBulkStatusUpdate = async () => {
+    if (selectedTasks.size === 0) return
+    setShowBulkStatusModal(true)
+  }
+  
+  // Handle bulk delete
+  const handleBulkDelete = async () => {
+    if (selectedTasks.size === 0) return
+    setShowBulkDeleteModal(true)
+  }
+  
+  // Execute bulk status update
+  const executeBulkStatusUpdate = async (newStatus: TaskStatus) => {
+    const taskIds = Array.from(selectedTasks)
+    let successCount = 0
+    
+    for (const taskId of taskIds) {
+      try {
+        await onTaskUpdate(taskId, { status: newStatus })
+        successCount++
+      } catch (error) {
+        console.error(`Failed to update task ${taskId}:`, error)
+      }
+    }
+    
+    if (successCount > 0) {
+      toast.success(`Updated ${successCount} task${successCount !== 1 ? 's' : ''}`)
+      setSelectedTasks(new Set())
+    }
+    
+    setShowBulkStatusModal(false)
+  }
+  
+  // Execute bulk assignment
+  const executeBulkAssignment = async (userId: string) => {
+    const taskIds = Array.from(selectedTasks)
+    let successCount = 0
+    
+    for (const taskId of taskIds) {
+      try {
+        const task = tasks.find(t => t.id === taskId)
+        if (task) {
+          await handleTaskAssignment(taskId, userId, task.assigneeId)
+          successCount++
+        }
+      } catch (error) {
+        console.error(`Failed to assign task ${taskId}:`, error)
+      }
+    }
+    
+    if (successCount > 0) {
+      toast.success(`Assigned ${successCount} task${successCount !== 1 ? 's' : ''}`)
+      setSelectedTasks(new Set())
+    }
+    
+    setShowBulkAssignmentModal(false)
+  }
+  
+  // Execute bulk delete
+  const executeBulkDelete = async () => {
+    const taskIds = Array.from(selectedTasks)
+    let successCount = 0
+    
+    for (const taskId of taskIds) {
+      try {
+        await onTaskDelete(taskId)
+        successCount++
+      } catch (error) {
+        console.error(`Failed to delete task ${taskId}:`, error)
+      }
+    }
+    
+    if (successCount > 0) {
+      toast.success(`Deleted ${successCount} task${successCount !== 1 ? 's' : ''}`)
+      setSelectedTasks(new Set())
+    }
+    
+    setShowBulkDeleteModal(false)
   }
 
   // Enhance filters with dynamic options
@@ -1039,32 +1127,62 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
         </div>
       </div>
 
-      {/* Bulk Actions */}
+      {/* Bulk Actions - Apple Design */}
       {selectedTasks.size > 0 && (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-neutral-900 text-white rounded-lg shadow-xl p-4 flex items-center gap-4"
+          exit={{ opacity: 0, y: 20 }}
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40"
         >
-          <span className="text-sm">{selectedTasks.size} tasks selected</span>
-          <PermissionGate resource="tasks" action="update">
-            <button className="px-3 py-1 bg-white/20 rounded hover:bg-white/30 transition-colors">
-              Update Status
-            </button>
-          </PermissionGate>
-          <PermissionGate resource="tasks" action="assign">
-            <button 
-              onClick={() => handleBulkAssign()}
-              className="px-3 py-1 bg-white/20 rounded hover:bg-white/30 transition-colors"
+          <div className="
+            flex items-center gap-2 px-3 py-2 rounded-full shadow-lg
+            bg-white/70 dark:bg-neutral-800/70 backdrop-blur-xl
+            border border-white/20 dark:border-white/10
+          ">
+            <span className="text-sm font-medium px-3 text-neutral-900 dark:text-white">
+              {selectedTasks.size} selected
+            </span>
+            
+            <div className="h-5 w-px bg-neutral-300/50 dark:bg-neutral-600/50" />
+            
+            <PermissionGate resource="tasks" action="update">
+              <button 
+                onClick={handleBulkStatusUpdate}
+                className="btn-glass"
+              >
+                Update Status
+              </button>
+            </PermissionGate>
+            
+            <PermissionGate resource="tasks" action="assign">
+              <button 
+                onClick={handleBulkAssign}
+                className="btn-glass"
+              >
+                Assign To
+              </button>
+            </PermissionGate>
+            
+            <PermissionGate resource="tasks" action="delete">
+              <button 
+                onClick={handleBulkDelete}
+                className="btn-glass-danger"
+              >
+                Delete
+              </button>
+            </PermissionGate>
+            
+            <div className="h-5 w-px bg-neutral-300/50 dark:bg-neutral-600/50" />
+            
+            <button
+              onClick={() => setSelectedTasks(new Set())}
+              className="p-2 hover:bg-black/5 dark:hover:bg-white/10 rounded-full transition-colors"
+              aria-label="Clear selection"
             >
-              Assign To
+              <X className="w-4 h-4 text-neutral-600 dark:text-neutral-400" />
             </button>
-          </PermissionGate>
-          <PermissionGate resource="tasks" action="delete">
-            <button className="px-3 py-1 bg-red-500/80 rounded hover:bg-red-500 transition-colors">
-              Delete
-            </button>
-          </PermissionGate>
+          </div>
         </motion.div>
       )}
 
@@ -1099,6 +1217,45 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
           />
         </AnimatePresence>
       )}
+
+      {/* Bulk Status Modal */}
+      {showBulkStatusModal && (
+        <BulkStatusModal
+          taskCount={selectedTasks.size}
+          currentStatuses={Array.from(selectedTasks).map(taskId => {
+            const task = tasks.find(t => t.id === taskId)
+            return task?.status || TaskStatus.NOT_STARTED
+          })}
+          onConfirm={executeBulkStatusUpdate}
+          onClose={() => setShowBulkStatusModal(false)}
+        />
+      )}
+
+      {/* Bulk Assignment Modal */}
+      {showBulkAssignmentModal && (
+        <BulkAssignmentModal
+          taskCount={selectedTasks.size}
+          currentAssignees={Array.from(selectedTasks).map(taskId => {
+            const task = tasks.find(t => t.id === taskId)
+            return task?.assigneeId ? availableUsers.find(u => u.id === task.assigneeId) : null
+          }).filter(Boolean) as SimpleUser[]}
+          availableUsers={availableUsers}
+          onConfirm={executeBulkAssignment}
+          onClose={() => setShowBulkAssignmentModal(false)}
+        />
+      )}
+
+      {/* Bulk Delete Confirmation */}
+      <ConfirmationModal
+        isOpen={showBulkDeleteModal}
+        title="Delete Tasks"
+        message={`Are you sure you want to delete ${selectedTasks.size} task${selectedTasks.size !== 1 ? 's' : ''}? This action cannot be undone.`}
+        confirmText={`Delete ${selectedTasks.size} Task${selectedTasks.size !== 1 ? 's' : ''}`}
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={executeBulkDelete}
+        onCancel={() => setShowBulkDeleteModal(false)}
+      />
     </div>
   )
 }
