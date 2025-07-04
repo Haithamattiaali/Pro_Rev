@@ -18,6 +18,16 @@ import { PermissionGate } from '@/components/auth/PermissionGate'
 import { notificationService } from '@/services/notificationService'
 import { useAuth } from '@/hooks/useAuth'
 import toast from 'react-hot-toast'
+import { TaskAssignmentModal } from './TaskAssignmentModal'
+
+// Simplified user type for assignment
+interface SimpleUser {
+  id: string
+  email: string
+  name: string
+  role: string
+  teamId?: string
+}
 
 interface TaskListProps {
   tasks: Task[]
@@ -44,6 +54,9 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set())
   const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list')
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null)
+  const [assigningTask, setAssigningTask] = useState<Task | null>(null)
+  const [availableUsers, setAvailableUsers] = useState<SimpleUser[]>([])
+  const [isLoadingUsers, setIsLoadingUsers] = useState(false)
   const { user: authUser } = useAuth()
   
   // Permission hooks
@@ -54,6 +67,28 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
     projectId,
     user: currentUser,
   })
+
+  // Fetch available users when component mounts
+  useEffect(() => {
+    const fetchUsers = async () => {
+      setIsLoadingUsers(true)
+      try {
+        const response = await fetch(`/api/users?projectId=${projectId}`)
+        if (!response.ok) throw new Error('Failed to fetch users')
+        const data = await response.json()
+        setAvailableUsers(data.users)
+      } catch (error) {
+        console.error('Error fetching users:', error)
+        toast.error('Failed to load users')
+      } finally {
+        setIsLoadingUsers(false)
+      }
+    }
+
+    if (projectId) {
+      fetchUsers()
+    }
+  }, [projectId])
 
   // Filter and sort tasks
   const filteredTasks = useMemo(() => {
@@ -237,7 +272,7 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
     const editingUsers = Array.from(editingSessions.get(task.id) || [])
       .filter(userId => userId !== currentUser?.id)
       .map(userId => onlineUsers.find(u => u.id === userId))
-      .filter(Boolean) as User[]
+      .filter(Boolean) as UserType[]
 
     return (
       <motion.div
@@ -419,8 +454,8 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
               <button
                 onClick={(e) => {
                   e.stopPropagation()
-                  // TODO: Open assign modal
-                  toast('Task assignment modal coming soon')
+                  console.log('Opening assignment modal for task:', task.id)
+                  setAssigningTask(task)
                 }}
                 className="p-1.5 hover:bg-neutral-200 rounded"
                 title="Assign task"
@@ -768,6 +803,21 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
             </button>
           </PermissionGate>
         </motion.div>
+      )}
+
+      {/* Task Assignment Modal */}
+      {assigningTask && (
+        <TaskAssignmentModal
+          task={assigningTask}
+          currentAssignee={availableUsers.find(u => u.id === assigningTask.assigneeId)}
+          availableUsers={availableUsers}
+          onAssign={async (taskId, userId) => {
+            const previousAssigneeId = assigningTask.assigneeId
+            await handleTaskAssignment(taskId, userId, previousAssigneeId)
+            setAssigningTask(null)
+          }}
+          onClose={() => setAssigningTask(null)}
+        />
       )}
     </div>
   )
