@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
-  Search, Filter, Plus, ChevronDown, ChevronRight, 
+  Search, Filter as FilterIcon, Plus, ChevronDown, ChevronRight, 
   Calendar, Users, User, AlertTriangle, CheckCircle,
   Edit3, Trash2, Copy, Flag, Clock, UserCheck, PencilLine, Lock, TrendingUp, UserPlus
 } from 'lucide-react'
@@ -19,6 +19,11 @@ import { notificationService } from '@/services/notificationService'
 import { useAuth } from '@/hooks/useAuth'
 import toast from 'react-hot-toast'
 import { TaskAssignmentModal } from './TaskAssignmentModal'
+import { FilterControl } from '@/components/filters/FilterControl'
+import { AddFilterDropdown } from '@/components/filters/AddFilterDropdown'
+import { AVAILABLE_FILTERS, FilterConfig, getDefaultOperators } from '@/config/taskFilters'
+import { Filter, FilterChangeEvent, FilterOperator } from '@/types/filter'
+import { applyAllFilters, validateFilterValue } from '@/utils/filterUtils'
 
 // Simplified user type for assignment
 interface SimpleUser {
@@ -43,12 +48,7 @@ interface TaskListProps {
 export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTaskEdit, onTaskCopy, projectId, currentUser }: TaskListProps) {
   console.log('TaskList received tasks:', tasks)
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedFilters, setSelectedFilters] = useState({
-    status: 'all',
-    type: 'all',
-    criticality: 'all',
-    assignee: 'all',
-  })
+  const [activeFilters, setActiveFilters] = useState<Filter[]>([])
   const [sortBy, setSortBy] = useState<'impact' | 'dueDate' | 'progress'>('impact')
   const [expandedTasks, setExpandedTasks] = useState<Set<string>>(new Set())
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set())
@@ -90,6 +90,40 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
     }
   }, [projectId])
 
+  // Filter handlers
+  const handleAddFilter = (filterConfig: FilterConfig) => {
+    const newFilter: Filter = {
+      id: `${filterConfig.field}-${Date.now()}`,
+      field: filterConfig.field as any,
+      label: filterConfig.label,
+      type: filterConfig.type,
+      operator: (filterConfig.operators ? filterConfig.operators[0] : getDefaultOperators(filterConfig.type)[0]) as FilterOperator,
+      value: null,
+      options: filterConfig.options
+    }
+    setActiveFilters([...activeFilters, newFilter])
+  }
+
+  const handleRemoveFilter = (filterId: string) => {
+    setActiveFilters(activeFilters.filter(f => f.id !== filterId))
+  }
+
+  const handleFilterChange = (event: FilterChangeEvent) => {
+    setActiveFilters(activeFilters.map(filter => 
+      filter.id === event.filterId
+        ? { ...filter, value: event.value, value2: event.value2 }
+        : filter
+    ))
+  }
+
+  const handleFilterOperatorChange = (filterId: string, operator: FilterOperator) => {
+    setActiveFilters(activeFilters.map(filter => 
+      filter.id === filterId
+        ? { ...filter, operator, value2: undefined } // Clear value2 when operator changes
+        : filter
+    ))
+  }
+
   // Filter and sort tasks
   const filteredTasks = useMemo(() => {
     let filtered = tasks.filter(task => {
@@ -103,23 +137,13 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
         }
       }
 
-      // Status filter
-      if (selectedFilters.status !== 'all' && task.status !== selectedFilters.status) {
-        return false
-      }
-
-      // Type filter
-      if (selectedFilters.type !== 'all' && task.type !== selectedFilters.type) {
-        return false
-      }
-
-      // Criticality filter
-      if (selectedFilters.criticality !== 'all' && task.criticalityLevel !== selectedFilters.criticality) {
-        return false
-      }
-
-      // Assignee filter
-      if (selectedFilters.assignee !== 'all' && !task.resourceAssignment?.includes(selectedFilters.assignee)) {
+      // Apply active filters
+      const validFilters = activeFilters.filter(f => {
+        const validation = validateFilterValue(f)
+        return validation.isValid
+      })
+      
+      if (!applyAllFilters(task, validFilters)) {
         return false
       }
 
@@ -141,7 +165,7 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
     })
 
     return filtered
-  }, [tasks, searchQuery, selectedFilters, sortBy])
+  }, [tasks, searchQuery, activeFilters, sortBy])
 
   // Group tasks by parent for tree view
   const taskTree = useMemo(() => {
@@ -202,22 +226,45 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
     toast('Bulk assignment feature coming soon')
   }
 
-  // Get unique values for filters
-  const filterOptions = useMemo(() => {
-    const assignees = new Set<string>()
-    tasks.forEach(task => {
-      if (task.resourceAssignment) {
-        task.resourceAssignment.split(',').forEach(r => assignees.add(r.trim()))
+  // Enhance filters with dynamic options
+  const getEnhancedFilters = () => {
+    return AVAILABLE_FILTERS.map(config => {
+      // Enhance assigneeId filter with available users
+      if (config.field === 'assigneeId' && availableUsers.length > 0) {
+        return {
+          ...config,
+          options: availableUsers.map(user => ({
+            value: user.id,
+            label: user.name
+          }))
+        }
       }
+      
+      // Enhance resource assignment filter with unique values from tasks
+      if (config.field === 'resourceAssignment') {
+        const uniqueAssignees = new Set<string>()
+        tasks.forEach(task => {
+          if (task.resourceAssignment) {
+            task.resourceAssignment.split(',').forEach(r => uniqueAssignees.add(r.trim()))
+          }
+        })
+        
+        if (uniqueAssignees.size > 0) {
+          return {
+            ...config,
+            type: 'select' as const,
+            options: Array.from(uniqueAssignees).map(name => ({
+              value: name,
+              label: name
+            }))
+          }
+        }
+      }
+      
+      return config
     })
+  }
 
-    return {
-      status: Object.values(TaskStatus),
-      type: Object.values(TaskType),
-      criticality: Object.values(CriticalityLevel),
-      assignee: Array.from(assignees),
-    }
-  }, [tasks])
 
   const toggleTaskExpansion = (taskId: string) => {
     const newExpanded = new Set(expandedTasks)
@@ -606,51 +653,25 @@ export function TaskList({ tasks, onTaskUpdate, onTaskDelete, onTaskCreate, onTa
           </PermissionGate>
         </div>
 
-        {/* Filter Pills */}
-        <div className="flex items-center gap-2 mt-4">
-          <Filter className="w-4 h-4 text-neutral-500" />
-          <select
-            value={selectedFilters.status}
-            onChange={(e) => setSelectedFilters({ ...selectedFilters, status: e.target.value })}
-            className="text-sm px-3 py-1 border border-neutral-200 rounded-lg"
-          >
-            <option value="all">All Status</option>
-            {filterOptions.status.map(status => (
-              <option key={status} value={status}>{status}</option>
+        {/* Dynamic Filters */}
+        <div className="flex items-start gap-2 mt-4">
+          <FilterIcon className="w-4 h-4 text-neutral-500 mt-2" />
+          <div className="flex-1 flex flex-wrap items-center gap-2">
+            {activeFilters.map(filter => (
+              <FilterControl
+                key={filter.id}
+                filter={filter}
+                onChange={handleFilterChange}
+                onRemove={handleRemoveFilter}
+                onOperatorChange={handleFilterOperatorChange}
+              />
             ))}
-          </select>
-          <select
-            value={selectedFilters.type}
-            onChange={(e) => setSelectedFilters({ ...selectedFilters, type: e.target.value })}
-            className="text-sm px-3 py-1 border border-neutral-200 rounded-lg"
-          >
-            <option value="all">All Types</option>
-            {filterOptions.type.map(type => (
-              <option key={type} value={type}>{type}</option>
-            ))}
-          </select>
-          <select
-            value={selectedFilters.criticality}
-            onChange={(e) => setSelectedFilters({ ...selectedFilters, criticality: e.target.value })}
-            className="text-sm px-3 py-1 border border-neutral-200 rounded-lg"
-          >
-            <option value="all">All Criticality</option>
-            {filterOptions.criticality.map(level => (
-              <option key={level} value={level}>{level}</option>
-            ))}
-          </select>
-          {filterOptions.assignee.length > 0 && (
-            <select
-              value={selectedFilters.assignee}
-              onChange={(e) => setSelectedFilters({ ...selectedFilters, assignee: e.target.value })}
-              className="text-sm px-3 py-1 border border-neutral-200 rounded-lg"
-            >
-              <option value="all">All Assignees</option>
-              {filterOptions.assignee.map(assignee => (
-                <option key={assignee} value={assignee}>{assignee}</option>
-              ))}
-            </select>
-          )}
+            <AddFilterDropdown
+              availableFilters={getEnhancedFilters()}
+              activeFilters={activeFilters}
+              onAddFilter={handleAddFilter}
+            />
+          </div>
         </div>
       </div>
 
