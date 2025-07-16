@@ -35,53 +35,12 @@ const OpportunityServiceBreakdown = ({ serviceData }) => {
   
   
   return (
-    <div className="space-y-6">
-      {/* Service Distribution */}
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-        <h3 className="text-lg font-semibold text-gray-900 mb-6">Service Type Analysis</h3>
-        
-        {/* Service Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-          {serviceData.services.map((service, index) => {
-            const Icon = getServiceIcon(service.service)
-            return (
-              <div key={index} className="bg-gradient-to-br from-white to-gray-50 rounded-lg p-5 border border-gray-200 hover:shadow-lg transition-all duration-300">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-3">
-                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center shadow-sm`}
-                         style={{ backgroundColor: SERVICE_COLORS[index % SERVICE_COLORS.length] + '20' }}>
-                      <Icon className="w-6 h-6" style={{ color: SERVICE_COLORS[index % SERVICE_COLORS.length] }} />
-                    </div>
-                    <div>
-                      <h5 className="font-semibold text-gray-900 text-lg">{service.service}</h5>
-                      <p className="text-sm text-gray-600">{service.count} opportunities</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <p className="text-sm text-gray-600">Total Revenue</p>
-                      <p className="font-bold text-xl text-gray-900">{formatCurrency(service.total_revenue)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm text-gray-600">Gross Profit</p>
-                      <p className={`text-lg font-bold px-3 py-1 rounded-md ${
-                        getGPColorClass(service.avg_gp_percent * 100)
-                      }`}>
-                        {(service.avg_gp_percent * 100).toFixed(1)}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
+    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+      <h3 className="text-lg font-semibold text-gray-900 mb-6">Service Type Analysis</h3>
       
-      {/* 2PL vs 3PL Summary - Differentiated Design */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="space-y-8">
+        {/* 2PL vs 3PL Summary Cards at the top */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {Object.entries(serviceData.serviceCategories).map(([category, data], index) => {
           const is2PL = category === '2PL'
           const Icon = is2PL ? Truck : Building2
@@ -174,6 +133,49 @@ const OpportunityServiceBreakdown = ({ serviceData }) => {
             </div>
           )
         })}
+        </div>
+        
+        {/* Detailed Service Breakdown */}
+        <div>
+          <h4 className="text-md font-semibold text-gray-700 mb-4">Service Details</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
+            {serviceData.services.map((service, index) => {
+              const Icon = getServiceIcon(service.service)
+              return (
+                <div key={index} className="bg-gradient-to-br from-white to-gray-50 rounded-lg p-5 border border-gray-200 hover:shadow-lg transition-all duration-300">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center shadow-sm`}
+                           style={{ backgroundColor: SERVICE_COLORS[index % SERVICE_COLORS.length] + '20' }}>
+                        <Icon className="w-6 h-6" style={{ color: SERVICE_COLORS[index % SERVICE_COLORS.length] }} />
+                      </div>
+                      <div>
+                        <h5 className="font-semibold text-gray-900 text-lg">{service.service}</h5>
+                        <p className="text-sm text-gray-600">{service.count} opportunities</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <p className="text-sm text-gray-600">Total Revenue</p>
+                        <p className="font-bold text-xl text-gray-900">{formatCurrency(service.total_revenue)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-600">Gross Profit</p>
+                        <p className={`text-lg font-bold px-3 py-1 rounded-md ${
+                          getGPColorClass(service.avg_gp_percent * 100)
+                        }`}>
+                          {(service.avg_gp_percent * 100).toFixed(1)}%
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
     </div>
   )
