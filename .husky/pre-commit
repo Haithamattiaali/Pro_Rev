@@ -1,0 +1,24 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🧪 Running pre-commit checks..."
+
+# Run tests
+echo "📦 Running tests..."
+npm test -- --run --passWithNoTests
+
+if [ $? -ne 0 ]; then
+  echo "❌ Tests failed. Please fix before committing."
+  exit 1
+fi
+
+# Run linter
+echo "🔍 Running ESLint..."
+npm run lint --max-warnings=10
+
+if [ $? -ne 0 ]; then
+  echo "❌ Linting failed. Please fix before committing."
+  exit 1
+fi
+
+echo "✅ All pre-commit checks passed!"

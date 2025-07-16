@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+dist/
+build/
+coverage/
+
+# Test files
+*.test.js
+*.spec.js
+
+# Config files
+.eslintrc.json
+tsconfig.json
+vite.config.js
+
+# Generated files
+package-lock.json
+yarn.lock
+
+# Backend
+backend/node_modules/
+backend/uploads/
+backend/database/*.db
+backend/database/*.db-*

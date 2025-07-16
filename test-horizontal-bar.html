@@ -1,0 +1,50 @@
+<\!DOCTYPE html>
+<html>
+<head>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/recharts@2/umd/Recharts.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } = Recharts;
+        
+        const data = [
+            { name: 'Delivery Revenue', value: 6495181, service: 'Transportation' },
+            { name: 'Transportation Reven', value: 27315809, service: 'Transportation' },
+            { name: 'WHStorage Revenue', value: 16275118, service: 'Warehousing' },
+            { name: 'VAS Revenue', value: 8114914, service: 'Warehousing' },
+            { name: 'Scraped Material RV', value: 5841850, service: 'Warehousing' }
+        ];
+        
+        const HorizontalBarChart = () => {
+            return (
+                <div style={{ width: '100%', height: 400 }}>
+                    <ResponsiveContainer>
+                        <BarChart 
+                            data={data}
+                            layout="horizontal"
+                            margin={{ top: 20, right: 30, left: 200, bottom: 20 }}
+                        >
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis type="number" />
+                            <YAxis dataKey="name" type="category" width={180} />
+                            <Tooltip />
+                            <Bar dataKey="value">
+                                {data.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={entry.service === 'Transportation' ? '#005b8c' : '#e05e3d'} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
+            );
+        };
+        
+        ReactDOM.render(<HorizontalBarChart />, document.getElementById('root'));
+    </script>
+</body>
+</html>
+EOF < /dev/null
