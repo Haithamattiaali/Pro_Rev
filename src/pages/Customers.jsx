@@ -4,6 +4,7 @@ import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { ExportButton } from '../components/export'
 import TableExportButton from '../components/buttons/TableExportButton'
+import BaseTable from '../components/common/BaseTable'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
 import dataService from '../services/dataService'
@@ -392,52 +393,50 @@ const Customers = () => {
                   headers={['serviceType', 'revenue', 'target', 'achievement']}
                 />
               </div>
-              <div className="overflow-x-auto">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Service Type</th>
-                      <th>Revenue</th>
-                      <th>Target</th>
-                      <th>Achievement %</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {selectedAchievementData.services.map((service) => (
-                      <tr key={service.serviceType}>
-                        <td className="font-semibold">{service.serviceType}</td>
-                        <td>{formatCurrency(service.revenue)}</td>
-                        <td>{formatCurrency(service.target)}</td>
-                        <td>
-                          <span className={`achievement-badge ${
-                            getAchievementStatus(service.achievement) === 'high' ? 'achievement-high' :
-                            getAchievementStatus(service.achievement) === 'medium' ? 'achievement-medium' :
-                            'achievement-low'
-                          }`}>
-                            {formatPercentage(service.achievement)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="font-semibold bg-secondary-pale">
-                      <td>Total</td>
-                      <td>{formatCurrency(selectedAchievementData.totalRevenue)}</td>
-                      <td>{formatCurrency(selectedAchievementData.totalTarget)}</td>
-                      <td>
-                        <span className={`achievement-badge ${
-                          getAchievementStatus(selectedAchievementData.overallAchievement) === 'high' ? 'achievement-high' :
-                          getAchievementStatus(selectedAchievementData.overallAchievement) === 'medium' ? 'achievement-medium' :
-                          'achievement-low'
+              <BaseTable variant="compact" className="mt-4">
+                <BaseTable.Header>
+                  <BaseTable.Row>
+                    <BaseTable.Head>Service Type</BaseTable.Head>
+                    <BaseTable.Head align="right">Revenue</BaseTable.Head>
+                    <BaseTable.Head align="right">Target</BaseTable.Head>
+                    <BaseTable.Head align="center">Achievement %</BaseTable.Head>
+                  </BaseTable.Row>
+                </BaseTable.Header>
+                <BaseTable.Body hoverable>
+                  {selectedAchievementData.services.map((service) => (
+                    <BaseTable.Row key={service.serviceType}>
+                      <BaseTable.Cell className="font-semibold text-neutral-dark">{service.serviceType}</BaseTable.Cell>
+                      <BaseTable.Cell align="right" numeric>{formatCurrency(service.revenue)}</BaseTable.Cell>
+                      <BaseTable.Cell align="right" numeric>{formatCurrency(service.target)}</BaseTable.Cell>
+                      <BaseTable.Cell align="center">
+                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                          getAchievementStatus(service.achievement) === 'high' ? 'bg-green-100 text-green-800' :
+                          getAchievementStatus(service.achievement) === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                          'bg-red-100 text-red-800'
                         }`}>
-                          {formatPercentage(selectedAchievementData.overallAchievement)}
+                          {formatPercentage(service.achievement)}
                         </span>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+                      </BaseTable.Cell>
+                    </BaseTable.Row>
+                  ))}
+                </BaseTable.Body>
+                <BaseTable.Footer>
+                  <BaseTable.Row>
+                    <BaseTable.Cell className="font-bold">Total</BaseTable.Cell>
+                    <BaseTable.Cell align="right" numeric className="font-bold">{formatCurrency(selectedAchievementData.totalRevenue)}</BaseTable.Cell>
+                    <BaseTable.Cell align="right" numeric className="font-bold">{formatCurrency(selectedAchievementData.totalTarget)}</BaseTable.Cell>
+                    <BaseTable.Cell align="center">
+                      <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                        getAchievementStatus(selectedAchievementData.overallAchievement) === 'high' ? 'bg-green-100 text-green-800' :
+                        getAchievementStatus(selectedAchievementData.overallAchievement) === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
+                      }`}>
+                        {formatPercentage(selectedAchievementData.overallAchievement)}
+                      </span>
+                    </BaseTable.Cell>
+                  </BaseTable.Row>
+                </BaseTable.Footer>
+              </BaseTable>
             </div>
           )}
         </div>
@@ -465,57 +464,69 @@ const Customers = () => {
             headers={['rank', 'customer', 'revenue', 'target', 'achievement', 'transportation', 'warehouses', 'profitMargin']}
           />
         </div>
-        <div className="overflow-x-auto">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Customer</th>
-                <th>Revenue</th>
-                <th>Target</th>
-                <th>Achievement %</th>
-                <th>Transportation Revenue</th>
-                <th>Warehouses Revenue</th>
-                <th>Profit Margin</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedCustomers.map((customer, index) => (
-                <tr 
+        <BaseTable variant="default" striped hoverable>
+          <BaseTable.Header sticky>
+            <BaseTable.Row>
+              <BaseTable.Head align="center">Rank</BaseTable.Head>
+              <BaseTable.Head>Customer</BaseTable.Head>
+              <BaseTable.Head align="right">Revenue</BaseTable.Head>
+              <BaseTable.Head align="right">Target</BaseTable.Head>
+              <BaseTable.Head align="center">Achievement %</BaseTable.Head>
+              <BaseTable.Head align="right">Transportation Revenue</BaseTable.Head>
+              <BaseTable.Head align="right">Warehouses Revenue</BaseTable.Head>
+              <BaseTable.Head align="center">Profit Margin</BaseTable.Head>
+            </BaseTable.Row>
+          </BaseTable.Header>
+          <BaseTable.Body striped hoverable>
+            {sortedCustomers.map((customer, index) => {
+              const isSelected = selectedCustomer === customer.customer;
+              const breakdown = serviceBreakdown.find(sb => sb.customer === customer.customer);
+              
+              return (
+                <BaseTable.Row 
                   key={customer.customer}
-                  className={selectedCustomer === customer.customer ? 'bg-primary-light/10' : ''}
+                  className={isSelected ? 'bg-primary-light/10 hover:bg-primary-light/20' : ''}
+                  clickable
+                  onClick={() => setSelectedCustomer(customer.customer)}
                 >
-                  <td className="text-center font-bold">{index + 1}</td>
-                  <td className="font-semibold">{customer.customer}</td>
-                  <td>{formatCurrency(customer.revenue)}</td>
-                  <td>{formatCurrency(customer.target)}</td>
-                  <td>
-                    <span className={`achievement-badge ${
-                      getAchievementStatus(customer.achievement) === 'high' ? 'achievement-high' :
-                      getAchievementStatus(customer.achievement) === 'medium' ? 'achievement-medium' :
-                      'achievement-low'
+                  <BaseTable.Cell align="center" className="font-bold">
+                    {index + 1 <= 3 ? (
+                      <div className="flex items-center justify-center gap-1">
+                        {index + 1 === 1 && <Trophy className="w-4 h-4 text-yellow-500" />}
+                        {index + 1 === 2 && <Star className="w-4 h-4 text-gray-400" />}
+                        {index + 1 === 3 && <Crown className="w-4 h-4 text-orange-600" />}
+                        <span>{index + 1}</span>
+                      </div>
+                    ) : (
+                      <span>{index + 1}</span>
+                    )}
+                  </BaseTable.Cell>
+                  <BaseTable.Cell className="font-semibold text-neutral-dark">{customer.customer}</BaseTable.Cell>
+                  <BaseTable.Cell align="right" numeric>{formatCurrency(customer.revenue)}</BaseTable.Cell>
+                  <BaseTable.Cell align="right" numeric>{formatCurrency(customer.target)}</BaseTable.Cell>
+                  <BaseTable.Cell align="center">
+                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                      getAchievementStatus(customer.achievement) === 'high' ? 'bg-green-100 text-green-800' :
+                      getAchievementStatus(customer.achievement) === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
                     }`}>
                       {formatPercentage(customer.achievement)}
                     </span>
-                  </td>
-                  <td>
-                    {(() => {
-                      const breakdown = serviceBreakdown.find(sb => sb.customer === customer.customer);
-                      return breakdown?.transportation > 0 ? formatCurrency(breakdown.transportation) : '-';
-                    })()}
-                  </td>
-                  <td>
-                    {(() => {
-                      const breakdown = serviceBreakdown.find(sb => sb.customer === customer.customer);
-                      return breakdown?.warehouses > 0 ? formatCurrency(breakdown.warehouses) : '-';
-                    })()}
-                  </td>
-                  <td className="text-center">{formatPercentage(customer.profitMargin)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                  </BaseTable.Cell>
+                  <BaseTable.Cell align="right" numeric>
+                    {breakdown?.transportation > 0 ? formatCurrency(breakdown.transportation) : '-'}
+                  </BaseTable.Cell>
+                  <BaseTable.Cell align="right" numeric>
+                    {breakdown?.warehouses > 0 ? formatCurrency(breakdown.warehouses) : '-'}
+                  </BaseTable.Cell>
+                  <BaseTable.Cell align="center" className="font-medium">
+                    {formatPercentage(customer.profitMargin)}
+                  </BaseTable.Cell>
+                </BaseTable.Row>
+              );
+            })}
+          </BaseTable.Body>
+        </BaseTable>
       </div>
     </div>
   )

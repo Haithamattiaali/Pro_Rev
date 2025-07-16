@@ -277,6 +277,10 @@ class ApiService {
   async getOpportunitiesServiceAnalysis() {
     return this.request('/opportunities/service-analysis');
   }
+
+  async getOpportunitiesMatrix() {
+    return this.request('/opportunities/matrix');
+  }
 }
 
 export default new ApiService();

@@ -5,7 +5,7 @@ import OpportunityPipeline from '../components/OpportunityPipeline'
 import OpportunityPipelineFlow from '../components/OpportunityPipelineFlow'
 import OpportunityServiceBreakdown from '../components/OpportunityServiceBreakdown'
 import OpportunitiesByLocation from '../components/OpportunitiesByLocation'
-import OpportunityValueMatrix from '../components/OpportunityValueMatrix'
+import OpportunityMatrix from '../components/OpportunityMatrix'
 import { Loader2 } from 'lucide-react'
 
 const OpportunitiesChart = ({ data }) => {
@@ -16,19 +16,21 @@ const OpportunitiesChart = ({ data }) => {
   const [serviceData, setServiceData] = useState(null)
   const [locationData, setLocationData] = useState(null)
   const [opportunities, setOpportunities] = useState(null)
+  const [matrixData, setMatrixData] = useState(null)
   const [activeView, setActiveView] = useState('value-matrix')
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        const [insightsData, pipelineData, pipelineFlowData, serviceAnalysis, locationAnalysis, opportunitiesData] = await Promise.all([
+        const [insightsData, pipelineData, pipelineFlowData, serviceAnalysis, locationAnalysis, opportunitiesData, matrixAnalysis] = await Promise.all([
           dataService.getOpportunitiesInsights(),
           dataService.getOpportunitiesPipeline(),
           dataService.getOpportunitiesPipelineByStatus(),
           dataService.getOpportunitiesServiceAnalysis(),
           dataService.getOpportunitiesByLocation(),
-          dataService.getOpportunities()
+          dataService.getOpportunities(),
+          dataService.getOpportunitiesMatrix()
         ])
         setInsights(insightsData)
         setPipeline(pipelineData)
@@ -36,6 +38,7 @@ const OpportunitiesChart = ({ data }) => {
         setServiceData(serviceAnalysis)
         setLocationData(locationAnalysis)
         setOpportunities(opportunitiesData)
+        setMatrixData(matrixAnalysis)
       } catch (error) {
         console.error('Error fetching opportunities data:', error)
       } finally {
@@ -98,6 +101,7 @@ const OpportunitiesChart = ({ data }) => {
         >
           Service Analysis
         </button>
+        {/* Commented out Quick Insights and Value Bands as requested
         <button
           onClick={() => setActiveView('insights')}
           className={`px-4 py-2 rounded-md font-medium transition-all ${
@@ -118,15 +122,18 @@ const OpportunitiesChart = ({ data }) => {
         >
           Value Bands
         </button>
+        */}
       </div>
 
       {/* Content */}
-      {activeView === 'value-matrix' && <OpportunityValueMatrix opportunities={opportunities} />}
+      {activeView === 'value-matrix' && <OpportunityMatrix matrixData={matrixData} />}
       {activeView === 'pipeline-flow' && <OpportunityPipelineFlow pipeline={pipelineFlow} />}
       {activeView === 'location' && <OpportunitiesByLocation locationData={locationData} />}
       {activeView === 'service' && <OpportunityServiceBreakdown serviceData={serviceData} />}
+      {/* Commented out Quick Insights and Value Bands content as requested
       {activeView === 'insights' && <OpportunityInsights insights={insights} />}
       {activeView === 'pipeline' && <OpportunityPipeline pipeline={pipeline} />}
+      */}
     </div>
   )
 }

@@ -1,6 +1,7 @@
 import React from 'react'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { formatCurrency, formatPercentage } from '../../utils/formatters'
+import BaseCard from './BaseCard'
 
 const MetricCard = ({ title, value, format = 'currency', trend, trendValue, icon: Icon, iconColor = 'primary' }) => {
   const formatValue = (val) => {
@@ -15,7 +16,7 @@ const MetricCard = ({ title, value, format = 'currency', trend, trendValue, icon
   }
 
   return (
-    <div className="dashboard-card relative overflow-hidden transition-all hover:shadow-lg hover:-translate-y-0.5">
+    <BaseCard variant="elevated" shadow="md" className="relative overflow-hidden">
       {/* Accent line at top */}
       <div className={`absolute top-0 left-0 right-0 h-1 ${
         iconColor === 'primary' ? 'bg-gradient-to-r from-primary to-primary-light' :
@@ -69,7 +70,7 @@ const MetricCard = ({ title, value, format = 'currency', trend, trendValue, icon
           </div>
         )}
       </div>
-    </div>
+    </BaseCard>
   )
 }
 

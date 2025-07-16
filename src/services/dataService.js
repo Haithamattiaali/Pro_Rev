@@ -285,6 +285,11 @@ class DataService {
     const key = this.getCacheKey('opportunitiesServiceAnalysis');
     return this.getCachedData(key, () => apiService.getOpportunitiesServiceAnalysis());
   }
+
+  async getOpportunitiesMatrix() {
+    const key = this.getCacheKey('opportunitiesMatrix');
+    return this.getCachedData(key, () => apiService.getOpportunitiesMatrix());
+  }
 }
 
 export default new DataService();

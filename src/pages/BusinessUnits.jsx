@@ -5,6 +5,7 @@ import BusinessUnitBarChart from '../components/charts/BusinessUnitBarChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { ExportButton } from '../components/export'
 import TableExportButton from '../components/buttons/TableExportButton'
+import BaseTable from '../components/common/BaseTable'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
 import dataService from '../services/dataService'
@@ -205,7 +206,7 @@ const BusinessUnits = () => {
 
       {/* Detailed Period Breakdown */}
       <div className="dashboard-card">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex justify-between items-center mb-6">
           <h2 className="section-title mb-0">Monthly Breakdown</h2>
           <TableExportButton
             data={unitMonthlyData.map(month => ({
@@ -222,50 +223,85 @@ const BusinessUnits = () => {
             size="small"
           />
         </div>
-        <div className="overflow-x-auto">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Month</th>
-                <th>Target</th>
-                <th>Revenue</th>
-                <th>Cost</th>
-                <th>Achievement %</th>
-                <th>Gross Profit</th>
-                <th>GP Margin</th>
-              </tr>
-            </thead>
-            <tbody>
-              {unitMonthlyData.map((month) => (
-                <tr key={month.month}>
-                  <td className="font-semibold">{month.month}</td>
-                  <td>{formatCurrency(month.target)}</td>
-                  <td>{formatCurrency(month.revenue)}</td>
-                  <td>{formatCurrency(month.cost)}</td>
-                  <td>
-                    <span className={`achievement-badge ${
-                      getAchievementStatus(month.achievement) === 'high' ? 'achievement-high' :
-                      getAchievementStatus(month.achievement) === 'medium' ? 'achievement-medium' :
-                      'achievement-low'
-                    }`}>
-                      {formatPercentage(month.achievement)}
-                    </span>
-                  </td>
-                  <td>{formatCurrency(month.grossProfit)}</td>
-                  <td>
-                    <span className={`${
-                      getGrossProfitStatus(month.grossProfitMargin) === 'high' ? 'text-green-600' :
-                      getGrossProfitStatus(month.grossProfitMargin) === 'medium' ? 'text-yellow-600' :
-                      'text-red-600'
-                    }`}>
-                      {formatPercentage(month.grossProfitMargin)}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <BaseTable variant="default" striped hoverable>
+          <BaseTable.Header>
+            <BaseTable.Row>
+              <BaseTable.Head>Month</BaseTable.Head>
+              <BaseTable.Head align="right">Target</BaseTable.Head>
+              <BaseTable.Head align="right">Revenue</BaseTable.Head>
+              <BaseTable.Head align="right">Cost</BaseTable.Head>
+              <BaseTable.Head align="center">Achievement %</BaseTable.Head>
+              <BaseTable.Head align="right">Gross Profit</BaseTable.Head>
+              <BaseTable.Head align="center">GP Margin</BaseTable.Head>
+            </BaseTable.Row>
+          </BaseTable.Header>
+          <BaseTable.Body striped hoverable>
+            {unitMonthlyData.map((month) => (
+              <BaseTable.Row key={month.month}>
+                <BaseTable.Cell className="font-semibold text-neutral-dark">{month.month}</BaseTable.Cell>
+                <BaseTable.Cell align="right" numeric>{formatCurrency(month.target)}</BaseTable.Cell>
+                <BaseTable.Cell align="right" numeric>{formatCurrency(month.revenue)}</BaseTable.Cell>
+                <BaseTable.Cell align="right" numeric>{formatCurrency(month.cost)}</BaseTable.Cell>
+                <BaseTable.Cell align="center">
+                  <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                    getAchievementStatus(month.achievement) === 'high' ? 'bg-green-100 text-green-800' :
+                    getAchievementStatus(month.achievement) === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {formatPercentage(month.achievement)}
+                  </span>
+                </BaseTable.Cell>
+                <BaseTable.Cell align="right" numeric>{formatCurrency(month.grossProfit)}</BaseTable.Cell>
+                <BaseTable.Cell align="center">
+                  <span className={`font-semibold ${
+                    getGrossProfitStatus(month.grossProfitMargin) === 'high' ? 'text-green-600' :
+                    getGrossProfitStatus(month.grossProfitMargin) === 'medium' ? 'text-yellow-600' :
+                    'text-red-600'
+                  }`}>
+                    {formatPercentage(month.grossProfitMargin)}
+                  </span>
+                </BaseTable.Cell>
+              </BaseTable.Row>
+            ))}
+          </BaseTable.Body>
+          {unitMonthlyData.length > 0 && (
+            <BaseTable.Footer>
+              <BaseTable.Row>
+                <BaseTable.Cell className="font-bold">Total</BaseTable.Cell>
+                <BaseTable.Cell align="right" numeric className="font-bold">
+                  {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.target, 0))}
+                </BaseTable.Cell>
+                <BaseTable.Cell align="right" numeric className="font-bold">
+                  {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.revenue, 0))}
+                </BaseTable.Cell>
+                <BaseTable.Cell align="right" numeric className="font-bold">
+                  {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.cost, 0))}
+                </BaseTable.Cell>
+                <BaseTable.Cell align="center">
+                  <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
+                    getAchievementStatus(selectedUnitData?.achievement || 0) === 'high' ? 'bg-green-100 text-green-800' :
+                    getAchievementStatus(selectedUnitData?.achievement || 0) === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-red-100 text-red-800'
+                  }`}>
+                    {formatPercentage(selectedUnitData?.achievement || 0)}
+                  </span>
+                </BaseTable.Cell>
+                <BaseTable.Cell align="right" numeric className="font-bold">
+                  {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.grossProfit, 0))}
+                </BaseTable.Cell>
+                <BaseTable.Cell align="center">
+                  <span className={`font-semibold ${
+                    getGrossProfitStatus(selectedUnitData?.grossProfitMargin || 0) === 'high' ? 'text-green-600' :
+                    getGrossProfitStatus(selectedUnitData?.grossProfitMargin || 0) === 'medium' ? 'text-yellow-600' :
+                    'text-red-600'
+                  }`}>
+                    {formatPercentage(selectedUnitData?.grossProfitMargin || 0)}
+                  </span>
+                </BaseTable.Cell>
+              </BaseTable.Row>
+            </BaseTable.Footer>
+          )}
+        </BaseTable>
       </div>
 
       {/* Customer Mix */}

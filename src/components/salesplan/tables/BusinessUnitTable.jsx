@@ -2,6 +2,8 @@ import React, { useMemo } from 'react'
 import { TrendingUp, Package, Truck } from 'lucide-react'
 import { formatCurrency } from '../../../utils/formatters'
 import TableExportButton from '../../buttons/TableExportButton'
+import BaseCard from '../../cards/BaseCard'
+import BaseTable from '../../tables/BaseTable'
 
 const BusinessUnitTable = ({ data }) => {
   // Process data with percentage calculations
@@ -55,14 +57,14 @@ const BusinessUnitTable = ({ data }) => {
   
   if (!tableData || tableData.length === 0) {
     return (
-      <div className="bg-gray-50 rounded-lg p-8 text-center">
+      <BaseCard variant="filled" className="text-center">
         <p className="text-gray-500">No business unit data available for the selected period</p>
-      </div>
+      </BaseCard>
     )
   }
   
   return (
-    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+    <BaseCard padding="none" shadow="md">
       <div className="p-4 border-b border-gray-200 flex items-center justify-between">
         <h4 className="font-semibold text-gray-900">Business Unit Performance</h4>
         <TableExportButton
@@ -73,65 +75,52 @@ const BusinessUnitTable = ({ data }) => {
         />
       </div>
       
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
+      <BaseTable variant="modern">
+          <BaseTable.Head>
             {/* First row - Main category headers */}
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="px-6 py-3 text-left" rowSpan="2">
-                <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Business Unit
-                </span>
-              </th>
-              <th className="px-6 py-3 text-center" rowSpan="2">
-                <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  GL Accounts
-                </span>
-              </th>
-              <th className="px-6 py-2 text-center border-l border-gray-100" colSpan="2">
-                <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Baseline Forecast
-                </span>
-              </th>
-              <th className="px-6 py-2 text-center border-l border-gray-100" colSpan="2">
-                <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Opportunities
-                </span>
-              </th>
-              <th className="px-6 py-3 text-right border-l border-gray-100" rowSpan="2">
-                <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Total Forecast
-                </span>
-              </th>
-              <th className="px-6 py-3 text-right border-l border-gray-100" rowSpan="2">
-                <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  % of Total
-                </span>
-              </th>
-            </tr>
+            <BaseTable.Row>
+              <BaseTable.Cell variant="header" rowSpan="2">
+                Business Unit
+              </BaseTable.Cell>
+              <BaseTable.Cell variant="header" align="center" rowSpan="2">
+                GL Accounts
+              </BaseTable.Cell>
+              <BaseTable.Cell variant="header" align="center" className="border-l border-gray-100" colSpan="2">
+                Baseline Forecast
+              </BaseTable.Cell>
+              <BaseTable.Cell variant="header" align="center" className="border-l border-gray-100" colSpan="2">
+                Opportunities
+              </BaseTable.Cell>
+              <BaseTable.Cell variant="header" align="right" className="border-l border-gray-100" rowSpan="2">
+                Total Forecast
+              </BaseTable.Cell>
+              <BaseTable.Cell variant="header" align="right" className="border-l border-gray-100" rowSpan="2">
+                % of Total
+              </BaseTable.Cell>
+            </BaseTable.Row>
             {/* Second row - Sub headers */}
-            <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="px-6 py-2 text-right border-l border-gray-100">
-                <span className="text-xs font-medium text-gray-600">Amount</span>
-              </th>
-              <th className="px-6 py-2 text-right">
-                <span className="text-xs font-medium text-gray-600">%</span>
-              </th>
-              <th className="px-6 py-2 text-right border-l border-gray-100">
-                <span className="text-xs font-medium text-gray-600">Amount</span>
-              </th>
-              <th className="px-6 py-2 text-right">
-                <span className="text-xs font-medium text-gray-600">%</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+            <BaseTable.Row>
+              <BaseTable.Cell variant="header" align="right" className="border-l border-gray-100 text-gray-600">
+                Amount
+              </BaseTable.Cell>
+              <BaseTable.Cell variant="header" align="right" className="text-gray-600">
+                %
+              </BaseTable.Cell>
+              <BaseTable.Cell variant="header" align="right" className="border-l border-gray-100 text-gray-600">
+                Amount
+              </BaseTable.Cell>
+              <BaseTable.Cell variant="header" align="right" className="text-gray-600">
+                %
+              </BaseTable.Cell>
+            </BaseTable.Row>
+          </BaseTable.Head>
+          <BaseTable.Body>
             {tableData.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">
+              <BaseTable.Row key={index}>
+                <BaseTable.Cell>
                   <div className="flex items-center gap-3">
                     <div 
-                      className="p-2 rounded-lg text-white"
+                      className="p-2 rounded-lg text-white shadow-sm"
                       style={{ backgroundColor: getColor(row.business_unit) }}
                     >
                       {getIcon(row.business_unit)}
@@ -143,28 +132,28 @@ const BusinessUnitTable = ({ data }) => {
                       </p>
                     </div>
                   </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-center">
+                </BaseTable.Cell>
+                <BaseTable.Cell align="center">
                   <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-sm font-semibold text-gray-700">
                     {row.gl_count}
                   </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                </BaseTable.Cell>
+                <BaseTable.Cell align="right">
                   {formatCurrency(row.baseline_forecast)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">
+                </BaseTable.Cell>
+                <BaseTable.Cell align="right" className="text-gray-500">
                   {row.baselinePercent}%
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                </BaseTable.Cell>
+                <BaseTable.Cell align="right">
                   {formatCurrency(row.opportunity_value)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">
+                </BaseTable.Cell>
+                <BaseTable.Cell align="right" className="text-gray-500">
                   {row.opportunitiesPercent}%
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-gray-900">
+                </BaseTable.Cell>
+                <BaseTable.Cell align="right" className="font-semibold">
                   {formatCurrency(row.total)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right">
+                </BaseTable.Cell>
+                <BaseTable.Cell align="right">
                   <div className="flex items-center justify-end gap-2">
                     <div className="w-16 bg-gray-200 rounded-full h-2">
                       <div 
@@ -179,50 +168,50 @@ const BusinessUnitTable = ({ data }) => {
                       {row.percentOfTotal.toFixed(1)}%
                     </span>
                   </div>
-                </td>
-              </tr>
+                </BaseTable.Cell>
+              </BaseTable.Row>
             ))}
-          </tbody>
+          </BaseTable.Body>
           {totals && (
-            <tfoot className="bg-gray-100 border-t-2 border-gray-300">
-              <tr>
-                <td className="px-6 py-4 whitespace-nowrap">
+            <BaseTable.Footer>
+              <BaseTable.Row>
+                <BaseTable.Cell variant="footer">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-primary text-white">
+                    <div className="p-2 rounded-lg bg-primary text-white shadow-sm">
                       <TrendingUp className="w-5 h-5" />
                     </div>
                     <p className="text-sm font-semibold text-gray-900">Total</p>
                   </div>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-center">
+                </BaseTable.Cell>
+                <BaseTable.Cell variant="footer" align="center">
                   <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-primary text-white text-sm font-bold">
                     {totals.glCount}
                   </span>
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">
+                </BaseTable.Cell>
+                <BaseTable.Cell variant="footer" align="right" className="font-bold">
                   {formatCurrency(totals.baseline)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-500">
+                </BaseTable.Cell>
+                <BaseTable.Cell variant="footer" align="right" className="font-bold text-gray-500">
                   {totals.baselinePercent}%
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">
+                </BaseTable.Cell>
+                <BaseTable.Cell variant="footer" align="right" className="font-bold">
                   {formatCurrency(totals.opportunities)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-500">
+                </BaseTable.Cell>
+                <BaseTable.Cell variant="footer" align="right" className="font-bold text-gray-500">
                   {totals.opportunitiesPercent}%
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-primary">
+                </BaseTable.Cell>
+                <BaseTable.Cell variant="footer" align="right" className="font-bold text-primary">
                   {formatCurrency(totals.total)}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right">
+                </BaseTable.Cell>
+                <BaseTable.Cell variant="footer" align="right">
                   <span className="text-sm font-bold text-gray-700">100.0%</span>
-                </td>
-              </tr>
-            </tfoot>
+                </BaseTable.Cell>
+              </BaseTable.Row>
+            </BaseTable.Footer>
           )}
-        </table>
-      </div>
-    </div>
+        </BaseTable>
+      
+    </BaseCard>
   )
 }
 

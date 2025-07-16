@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Banknote, Target, TrendingUp, Percent, Loader2, Truck, Warehouse, Calendar } from 'lucide-react'
 import MetricCard from '../components/cards/MetricCard'
+import ContentCard from '../components/cards/ContentCard'
+import BaseCard from '../components/cards/BaseCard'
 import GaugeChart from '../components/charts/GaugeChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { ExportButton } from '../components/export'
@@ -143,8 +145,7 @@ const Overview = () => {
       </div>
 
       {/* Achievement Gauge */}
-      <div className="dashboard-card">
-        <h2 className="section-title">Overall Achievement</h2>
+      <ContentCard title="Overall Achievement" shadow="md">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="text-center">
             <GaugeChart
@@ -159,55 +160,64 @@ const Overview = () => {
             <h3 className="text-lg font-semibold text-secondary mb-4">Business Unit Performance</h3>
             <div className="space-y-4">
               {serviceBreakdown.map((unit) => (
-                <div key={unit.service_type} className="flex items-center justify-between p-4 bg-secondary-pale rounded-lg transition-all hover:shadow-md">
-                  <div className="flex items-start space-x-3">
-                    <div className="p-2 bg-white rounded-lg shadow-sm">
-                      {unit.service_type === 'Transportation' ? (
-                        <Truck className="w-6 h-6 text-accent-blue" />
-                      ) : (
-                        <Warehouse className="w-6 h-6 text-primary" />
-                      )}
+                <BaseCard 
+                  key={unit.service_type} 
+                  variant="filled" 
+                  padding="small"
+                  className="transition-all"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-start space-x-3">
+                      <div className="p-2 bg-white rounded-lg shadow-sm">
+                        {unit.service_type === 'Transportation' ? (
+                          <Truck className="w-6 h-6 text-accent-blue" />
+                        ) : (
+                          <Warehouse className="w-6 h-6 text-primary" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-neutral-dark text-lg">{unit.service_type}</p>
+                        <p className="text-sm mt-1">
+                          <span className="font-semibold">Revenue:</span>{' '}
+                          <span className={`font-bold ${
+                            unit.revenue >= unit.target ? 'text-green-600' : 'text-amber-600'
+                          }`}>
+                            {formatCurrency(unit.revenue)}
+                          </span>
+                          <span className="text-neutral-mid mx-2">|</span>
+                          <span className="font-semibold">Target:</span>{' '}
+                          <span className="font-bold text-accent-blue">
+                            {formatCurrency(unit.target)}
+                          </span>
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-neutral-dark text-lg">{unit.service_type}</p>
-                    <p className="text-sm mt-1">
-                      <span className="font-semibold">Revenue:</span>{' '}
-                      <span className={`font-bold ${
-                        unit.revenue >= unit.target ? 'text-green-600' : 'text-amber-600'
+                    <div className="text-right">
+                      <p className={`text-lg font-bold ${
+                        getAchievementStatus(unit.achievement_percentage) === 'high' ? 'text-green-600' :
+                        getAchievementStatus(unit.achievement_percentage) === 'medium' ? 'text-yellow-600' :
+                        'text-red-600'
                       }`}>
-                        {formatCurrency(unit.revenue)}
-                      </span>
-                      <span className="text-neutral-mid mx-2">|</span>
-                      <span className="font-semibold">Target:</span>{' '}
-                      <span className="font-bold text-accent-blue">
-                        {formatCurrency(unit.target)}
-                      </span>
-                    </p>
+                        {formatPercentage(unit.achievement_percentage)}
+                      </p>
+                      <p className="text-xs text-neutral-mid">Achievement</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className={`text-lg font-bold ${
-                      getAchievementStatus(unit.achievement_percentage) === 'high' ? 'text-green-600' :
-                      getAchievementStatus(unit.achievement_percentage) === 'medium' ? 'text-yellow-600' :
-                      'text-red-600'
-                    }`}>
-                      {formatPercentage(unit.achievement_percentage)}
-                    </p>
-                    <p className="text-xs text-neutral-mid">Achievement</p>
-                  </div>
-                </div>
+                </BaseCard>
               ))}
             </div>
           </div>
         </div>
-      </div>
+      </ContentCard>
 
       {/* Achievement Summary */}
-      <div className="dashboard-card">
-        <h2 className="section-title">Achievement Summary</h2>
+      <ContentCard title="Achievement Summary" shadow="md">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Target */}
-          <div className="relative overflow-hidden rounded-lg bg-secondary-pale p-6 border border-secondary-light/50 hover:shadow-md transition-all">
+          <BaseCard 
+            variant="filled" 
+            className="relative overflow-hidden"
+          >
             <div className="absolute top-0 right-0 w-20 h-20 bg-accent-blue/10 rounded-full -mr-10 -mt-10"></div>
             <div className="relative">
               <div className="flex items-center gap-3 mb-3">
@@ -221,10 +231,13 @@ const Overview = () => {
               </p>
               <p className="text-xs text-neutral-mid mt-1">{periodFilter.period} Target Amount</p>
             </div>
-          </div>
+          </BaseCard>
 
           {/* Revenue Achieved */}
-          <div className="relative overflow-hidden rounded-lg bg-secondary-pale p-6 border border-secondary-light/50 hover:shadow-md transition-all">
+          <BaseCard 
+            variant="filled" 
+            className="relative overflow-hidden"
+          >
             <div className="absolute top-0 right-0 w-20 h-20 bg-primary-light/20 rounded-full -mr-10 -mt-10"></div>
             <div className="relative">
               <div className="flex items-center gap-3 mb-3">
@@ -239,17 +252,20 @@ const Overview = () => {
               <div className="flex items-center gap-2 mt-1">
                 <div className="h-1.5 w-20 bg-secondary-light rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-primary rounded-full"
+                    className="h-full bg-primary rounded-full transition-all duration-500"
                     style={{ width: `${Math.min(overview.achievement, 100)}%` }}
                   />
                 </div>
                 <p className="text-xs text-neutral-mid">{formatPercentage(overview.achievement)} Achieved</p>
               </div>
             </div>
-          </div>
+          </BaseCard>
 
           {/* To Go / Over Achievement */}
-          <div className="relative overflow-hidden rounded-lg bg-secondary-pale p-6 border border-secondary-light/50 hover:shadow-md transition-all">
+          <BaseCard 
+            variant="filled" 
+            className="relative overflow-hidden"
+          >
             <div className={`absolute top-0 right-0 w-20 h-20 rounded-full -mr-10 -mt-10 ${
               overview.achievement >= 100 ? 'bg-green-100/30' : 'bg-accent-coral/10'
             }`}></div>
@@ -283,9 +299,9 @@ const Overview = () => {
                 }
               </p>
             </div>
-          </div>
+          </BaseCard>
         </div>
-      </div>
+      </ContentCard>
     </div>
   )
 }
