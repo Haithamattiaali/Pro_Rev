@@ -34,139 +34,185 @@ const OpportunityServiceBreakdown = ({ serviceData }) => {
   }
   
   
+  // Separate services by category
+  const services2PL = serviceData.services.filter(s => s.service.includes('2PL'))
+  const services3PL = serviceData.services.filter(s => !s.service.includes('2PL'))
+  
   return (
     <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
       <h3 className="text-lg font-semibold text-gray-900 mb-6">Service Type Analysis</h3>
       
-      <div className="space-y-8">
-        {/* 2PL vs 3PL Summary Cards at the top */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {Object.entries(serviceData.serviceCategories).map(([category, data], index) => {
-          const is2PL = category === '2PL'
-          const Icon = is2PL ? Truck : Building2
-          
-          return (
-            <div key={category} className={`relative overflow-hidden rounded-2xl p-8 ${
-              is2PL 
-                ? 'bg-gradient-to-br from-primary/10 via-white to-primary/5 border-2 border-primary/20' 
-                : 'bg-gradient-to-br from-accent-blue/10 via-white to-accent-blue/5 border-2 border-accent-blue/20'
-            }`}>
-              {/* Background Pattern */}
-              <div className={`absolute top-0 right-0 w-32 h-32 opacity-10 ${
-                is2PL ? 'bg-primary' : 'bg-accent-blue'
-              }`} style={{
-                borderRadius: '0 0 0 100%',
-              }}></div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* 2PL Section */}
+        <div className="space-y-4">
+          {/* 2PL Summary Card */}
+          <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-primary/10 via-white to-primary/5 border-2 border-primary/20">
+            {/* Background Pattern */}
+            <div className="absolute top-0 right-0 w-32 h-32 opacity-10 bg-primary" style={{
+              borderRadius: '0 0 0 100%',
+            }}></div>
+            
+            {/* Content */}
+            <div className="relative z-10">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h4 className="text-2xl font-bold text-primary">2PL</h4>
+                  <p className="text-sm text-gray-600 mt-1">Transportation & Logistics</p>
+                </div>
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-primary to-primary-dark">
+                  <Truck className="w-7 h-7 text-white" />
+                </div>
+              </div>
               
-              {/* Content */}
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-6">
-                  <div>
-                    <h4 className={`text-2xl font-bold ${
-                      is2PL ? 'text-primary' : 'text-accent-blue'
-                    }`}>{category}</h4>
-                    <p className="text-sm text-gray-600 mt-1">
-                      {is2PL ? 'Transportation & Logistics' : 'Warehousing & Distribution'}
-                    </p>
-                  </div>
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg ${
-                    is2PL 
-                      ? 'bg-gradient-to-br from-primary to-primary-dark' 
-                      : 'bg-gradient-to-br from-accent-blue to-blue-600'
-                  }`}>
-                    <Icon className="w-8 h-8 text-white" />
-                  </div>
+              <div className="space-y-3">
+                {/* Revenue */}
+                <div className="p-3 rounded-lg bg-primary/5">
+                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(serviceData.serviceCategories['2PL'].revenue)}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {serviceData.serviceCategories['2PL'].revenue > 0 ? `${((serviceData.serviceCategories['2PL'].revenue / (serviceData.serviceCategories['2PL'].revenue + serviceData.serviceCategories['3PL'].revenue)) * 100).toFixed(0)}% of total` : '0% of total'}
+                  </p>
                 </div>
                 
-                <div className="space-y-4">
-                  {/* Revenue */}
-                  <div className={`p-4 rounded-xl ${
-                    is2PL ? 'bg-primary/5' : 'bg-accent-blue/5'
-                  }`}>
-                    <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-                    <p className="text-3xl font-bold text-gray-900">{formatCurrency(data.revenue)}</p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      {data.revenue > 0 ? `${((data.revenue / (serviceData.serviceCategories['2PL'].revenue + serviceData.serviceCategories['3PL'].revenue)) * 100).toFixed(0)}% of total` : '0% of total'}
+                {/* Metrics Row */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2 bg-white rounded-lg border border-gray-200">
+                    <p className="text-xs font-medium text-gray-600">Opportunities</p>
+                    <p className="text-xl font-bold text-gray-900">{serviceData.serviceCategories['2PL'].count}</p>
+                  </div>
+                  <div className="p-2 bg-white rounded-lg border border-gray-200">
+                    <p className="text-xs font-medium text-gray-600">Avg GP</p>
+                    <p className={`text-xl font-bold ${
+                      serviceData.serviceCategories['2PL'].avg_gp >= 0.3 ? 'text-green-600' : 
+                      serviceData.serviceCategories['2PL'].avg_gp >= 0.2 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {(serviceData.serviceCategories['2PL'].avg_gp * 100).toFixed(1)}%
                     </p>
-                  </div>
-                  
-                  {/* Metrics Row */}
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-3 bg-white rounded-lg border border-gray-200">
-                      <p className="text-xs font-medium text-gray-600">Opportunities</p>
-                      <p className="text-2xl font-bold text-gray-900">{data.count}</p>
-                      <p className="text-xs text-gray-500">Active deals</p>
-                    </div>
-                    <div className="p-3 bg-white rounded-lg border border-gray-200">
-                      <p className="text-xs font-medium text-gray-600">Gross Profit</p>
-                      <p className={`text-2xl font-bold ${
-                        data.avg_gp >= 0.3 ? 'text-green-600' : 
-                        data.avg_gp >= 0.2 ? 'text-yellow-600' : 'text-red-600'
-                      }`}>
-                        {(data.avg_gp * 100).toFixed(1)}%
-                      </p>
-                      <p className="text-xs text-gray-500">Average GP</p>
-                    </div>
-                  </div>
-                  
-                  {/* Visual Indicator */}
-                  <div className="mt-4">
-                    <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
-                      <span>Performance Score</span>
-                      <span>{Math.round((data.avg_gp * 100 + (data.count > 5 ? 20 : data.count * 4)) / 2)}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className={`h-2 rounded-full transition-all duration-500 ${
-                          is2PL 
-                            ? 'bg-gradient-to-r from-primary-light to-primary' 
-                            : 'bg-gradient-to-r from-accent-blue to-blue-600'
-                        }`}
-                        style={{ 
-                          width: `${Math.min((data.avg_gp * 100 + (data.count > 5 ? 20 : data.count * 4)) / 2, 100)}%` 
-                        }}
-                      />
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          )
-        })}
-        </div>
-        
-        {/* Detailed Service Breakdown */}
-        <div>
-          <h4 className="text-md font-semibold text-gray-700 mb-4">Service Details</h4>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-            {serviceData.services.map((service, index) => {
+          </div>
+          
+          {/* 2PL Services */}
+          <div className="space-y-3">
+            <h5 className="text-sm font-semibold text-gray-600 px-1">2PL Services</h5>
+            {services2PL.map((service, index) => {
               const Icon = getServiceIcon(service.service)
               return (
-                <div key={index} className="bg-gradient-to-br from-white to-gray-50 rounded-lg p-5 border border-gray-200 hover:shadow-lg transition-all duration-300">
+                <div key={index} className="bg-gradient-to-br from-white to-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all duration-300">
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-3">
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center shadow-sm`}
-                           style={{ backgroundColor: SERVICE_COLORS[index % SERVICE_COLORS.length] + '20' }}>
-                        <Icon className="w-6 h-6" style={{ color: SERVICE_COLORS[index % SERVICE_COLORS.length] }} />
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm bg-primary/10">
+                        <Icon className="w-5 h-5 text-primary" />
                       </div>
-                      <div>
-                        <h5 className="font-semibold text-gray-900 text-lg">{service.service}</h5>
-                        <p className="text-sm text-gray-600">{service.count} opportunities</p>
+                      <div className="flex-1">
+                        <h6 className="font-semibold text-gray-900">{service.service}</h6>
+                        <p className="text-xs text-gray-600">{service.count} opportunities</p>
                       </div>
                     </div>
                   </div>
-                  <div className="mt-4 pt-4 border-t border-gray-200">
+                  <div className="mt-3 pt-3 border-t border-gray-200">
                     <div className="flex justify-between items-end">
                       <div>
-                        <p className="text-sm text-gray-600">Total Revenue</p>
-                        <p className="font-bold text-xl text-gray-900">{formatCurrency(service.total_revenue)}</p>
+                        <p className="text-xs text-gray-600">Revenue</p>
+                        <p className="font-bold text-lg text-gray-900">{formatCurrency(service.total_revenue)}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-gray-600">Gross Profit</p>
-                        <p className={`text-lg font-bold px-3 py-1 rounded-md ${
+                        <p className={`text-sm font-bold px-2 py-1 rounded-md ${
                           getGPColorClass(service.avg_gp_percent * 100)
                         }`}>
-                          {(service.avg_gp_percent * 100).toFixed(1)}%
+                          {(service.avg_gp_percent * 100).toFixed(1)}% GP
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+        
+        {/* 3PL Section */}
+        <div className="space-y-4">
+          {/* 3PL Summary Card */}
+          <div className="relative overflow-hidden rounded-2xl p-6 bg-gradient-to-br from-accent-blue/10 via-white to-accent-blue/5 border-2 border-accent-blue/20">
+            {/* Background Pattern */}
+            <div className="absolute top-0 right-0 w-32 h-32 opacity-10 bg-accent-blue" style={{
+              borderRadius: '0 0 0 100%',
+            }}></div>
+            
+            {/* Content */}
+            <div className="relative z-10">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h4 className="text-2xl font-bold text-accent-blue">3PL</h4>
+                  <p className="text-sm text-gray-600 mt-1">Warehousing & Distribution</p>
+                </div>
+                <div className="w-14 h-14 rounded-xl flex items-center justify-center shadow-lg bg-gradient-to-br from-accent-blue to-blue-600">
+                  <Building2 className="w-7 h-7 text-white" />
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                {/* Revenue */}
+                <div className="p-3 rounded-lg bg-accent-blue/5">
+                  <p className="text-sm font-medium text-gray-600">Total Revenue</p>
+                  <p className="text-2xl font-bold text-gray-900">{formatCurrency(serviceData.serviceCategories['3PL'].revenue)}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {serviceData.serviceCategories['3PL'].revenue > 0 ? `${((serviceData.serviceCategories['3PL'].revenue / (serviceData.serviceCategories['2PL'].revenue + serviceData.serviceCategories['3PL'].revenue)) * 100).toFixed(0)}% of total` : '0% of total'}
+                  </p>
+                </div>
+                
+                {/* Metrics Row */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-2 bg-white rounded-lg border border-gray-200">
+                    <p className="text-xs font-medium text-gray-600">Opportunities</p>
+                    <p className="text-xl font-bold text-gray-900">{serviceData.serviceCategories['3PL'].count}</p>
+                  </div>
+                  <div className="p-2 bg-white rounded-lg border border-gray-200">
+                    <p className="text-xs font-medium text-gray-600">Avg GP</p>
+                    <p className={`text-xl font-bold ${
+                      serviceData.serviceCategories['3PL'].avg_gp >= 0.3 ? 'text-green-600' : 
+                      serviceData.serviceCategories['3PL'].avg_gp >= 0.2 ? 'text-yellow-600' : 'text-red-600'
+                    }`}>
+                      {(serviceData.serviceCategories['3PL'].avg_gp * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* 3PL Services */}
+          <div className="space-y-3">
+            <h5 className="text-sm font-semibold text-gray-600 px-1">3PL Services</h5>
+            {services3PL.map((service, index) => {
+              const Icon = getServiceIcon(service.service)
+              return (
+                <div key={index} className="bg-gradient-to-br from-white to-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all duration-300">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm bg-accent-blue/10">
+                        <Icon className="w-5 h-5 text-accent-blue" />
+                      </div>
+                      <div className="flex-1">
+                        <h6 className="font-semibold text-gray-900">{service.service}</h6>
+                        <p className="text-xs text-gray-600">{service.count} opportunities</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <div className="flex justify-between items-end">
+                      <div>
+                        <p className="text-xs text-gray-600">Revenue</p>
+                        <p className="font-bold text-lg text-gray-900">{formatCurrency(service.total_revenue)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-sm font-bold px-2 py-1 rounded-md ${
+                          getGPColorClass(service.avg_gp_percent * 100)
+                        }`}>
+                          {(service.avg_gp_percent * 100).toFixed(1)}% GP
                         </p>
                       </div>
                     </div>
