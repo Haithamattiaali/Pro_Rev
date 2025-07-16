@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react'
-import { Truck, Package, Loader2, Users, TrendingUp, FileText } from 'lucide-react'
+import { Truck, Package, Loader2, Users, TrendingUp, FileText, DollarSign, Calendar, BarChart3, Percent, Activity, Target } from 'lucide-react'
 import { formatCurrency, formatPercentage, getAchievementStatus, getGrossProfitStatus } from '../utils/formatters'
 import BusinessUnitBarChart from '../components/charts/BusinessUnitBarChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { ExportButton } from '../components/export'
 import TableExportButton from '../components/buttons/TableExportButton'
 import BaseTable from '../components/common/BaseTable'
+import BaseCard from '../components/cards/BaseCard'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
 import dataService from '../services/dataService'
@@ -304,54 +305,148 @@ const BusinessUnits = () => {
         </BaseTable>
       </div>
 
-      {/* Customer Mix */}
+      {/* Key Metrics Enhanced */}
       {selectedUnitData && (
         <div className="dashboard-card">
-          <h2 className="section-title">Key Metrics</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="relative overflow-hidden rounded-lg bg-secondary-pale p-6 border border-secondary-light/50 hover:shadow-md transition-all">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-primary-light/20 rounded-full -mr-10 -mt-10"></div>
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-primary-light/50">
-                    <Users className="w-5 h-5 text-primary" />
+          <h2 className="section-title">Key Metrics - {selectedUnit}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Customer Count */}
+            <BaseCard variant="elevated" className="group hover:scale-[1.02] transition-transform">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center shadow-md">
+                    <Users className="w-6 h-6 text-primary" strokeWidth={2} />
                   </div>
-                  <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Customer Count</p>
-                </div>
-                <p className="text-3xl font-bold text-neutral-dark">{selectedUnitData.customerCount || 0}</p>
-                <p className="text-xs text-neutral-mid mt-1">Active customers</p>
-              </div>
-            </div>
-            <div className="relative overflow-hidden rounded-lg bg-secondary-pale p-6 border border-secondary-light/50 hover:shadow-md transition-all">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-accent-blue/10 rounded-full -mr-10 -mt-10"></div>
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-accent-blue/20">
-                    <TrendingUp className="w-5 h-5 text-accent-blue" />
+                  <div>
+                    <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Customer Count</p>
+                    <p className="text-xs text-neutral-mid">Active Accounts</p>
                   </div>
-                  <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Avg Revenue per Customer</p>
                 </div>
-                <p className="text-3xl font-bold text-neutral-dark">
-                  {formatCurrency(selectedUnitData.customerCount > 0 ? selectedUnitData.revenue / selectedUnitData.customerCount : 0)}
-                </p>
-                <p className="text-xs text-neutral-mid mt-1">Per customer revenue</p>
+                <div className="text-xs bg-primary/10 text-primary font-medium px-2 py-1 rounded-full">
+                  {selectedUnit}
+                </div>
               </div>
-            </div>
-            <div className="relative overflow-hidden rounded-lg bg-secondary-pale p-6 border border-secondary-light/50 hover:shadow-md transition-all">
-              <div className="absolute top-0 right-0 w-20 h-20 bg-accent-coral/10 rounded-full -mr-10 -mt-10"></div>
-              <div className="relative">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm border border-accent-coral/20">
-                    <FileText className="w-5 h-5 text-accent-coral" />
+              <p className="text-3xl font-bold text-neutral-dark mb-4">{selectedUnitData.customerCount || 0}</p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-neutral-mid flex items-center gap-1">
+                    <Activity className="w-3 h-3" />
+                    Revenue Contribution
+                  </span>
+                  <span className="font-semibold text-neutral-dark">
+                    {formatPercentage((selectedUnitData.revenue / businessUnits.reduce((sum, unit) => sum + unit.revenue, 0)) * 100)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-neutral-mid flex items-center gap-1">
+                    <BarChart3 className="w-3 h-3" />
+                    Avg Order Value
+                  </span>
+                  <span className="font-semibold text-neutral-dark">
+                    {formatCurrency(selectedUnitData.revenue / (selectedUnitData.customerCount || 1) / 12)}
+                  </span>
+                </div>
+              </div>
+            </BaseCard>
+
+            {/* Avg Revenue per Customer */}
+            <BaseCard variant="elevated" className="group hover:scale-[1.02] transition-transform">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-accent-blue/20 to-accent-blue/10 rounded-xl flex items-center justify-center shadow-md">
+                    <DollarSign className="w-6 h-6 text-accent-blue" strokeWidth={2} />
                   </div>
-                  <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Receivables</p>
+                  <div>
+                    <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Avg Revenue</p>
+                    <p className="text-xs text-neutral-mid">Per Customer</p>
+                  </div>
                 </div>
-                <p className="text-3xl font-bold text-neutral-dark">
-                  {formatCurrency(selectedUnitData.receivables)}
-                </p>
-                <p className="text-xs text-neutral-mid mt-1">Outstanding amount</p>
+                <div className="text-xs bg-accent-blue/10 text-accent-blue font-medium px-2 py-1 rounded-full">
+                  <TrendingUp className="w-3 h-3 inline mr-1" />
+                  Performance
+                </div>
               </div>
-            </div>
+              <p className="text-3xl font-bold text-neutral-dark mb-4">
+                {formatCurrency(selectedUnitData.customerCount > 0 ? selectedUnitData.revenue / selectedUnitData.customerCount : 0)}
+              </p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-neutral-mid flex items-center gap-1">
+                    <Target className="w-3 h-3" />
+                    Target per Customer
+                  </span>
+                  <span className="font-semibold text-neutral-dark">
+                    {formatCurrency(selectedUnitData.target / (selectedUnitData.customerCount || 1))}
+                  </span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                  <div 
+                    className="h-2 bg-gradient-to-r from-accent-blue to-blue-600 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min((selectedUnitData.revenue / selectedUnitData.target) * 100, 100)}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-neutral-mid flex items-center gap-1">
+                    <Percent className="w-3 h-3" />
+                    Customer Efficiency
+                  </span>
+                  <span className={`font-semibold ${
+                    selectedUnitData.achievement >= 100 ? 'text-green-600' : 'text-neutral-dark'
+                  }`}>
+                    {formatPercentage(selectedUnitData.achievement)}
+                  </span>
+                </div>
+              </div>
+            </BaseCard>
+
+            {/* Receivables */}
+            <BaseCard variant="elevated" className="group hover:scale-[1.02] transition-transform">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-accent-coral/20 to-accent-coral/10 rounded-xl flex items-center justify-center shadow-md">
+                    <FileText className="w-6 h-6 text-accent-coral" strokeWidth={2} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Receivables</p>
+                    <p className="text-xs text-neutral-mid">Outstanding</p>
+                  </div>
+                </div>
+                <div className={`text-xs font-medium px-2 py-1 rounded-full ${
+                  (selectedUnitData.receivables / selectedUnitData.revenue) > 0.3 
+                    ? 'bg-red-100 text-red-700' 
+                    : 'bg-green-100 text-green-700'
+                }`}>
+                  {(selectedUnitData.receivables / selectedUnitData.revenue) > 0.3 ? 'High' : 'Healthy'}
+                </div>
+              </div>
+              <p className="text-3xl font-bold text-neutral-dark mb-4">
+                {formatCurrency(selectedUnitData.receivables)}
+              </p>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-neutral-mid flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />
+                    Days Sales Outstanding
+                  </span>
+                  <span className="font-semibold text-neutral-dark">
+                    {Math.round((selectedUnitData.receivables / selectedUnitData.revenue) * 365)} days
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-neutral-mid flex items-center gap-1">
+                    <Percent className="w-3 h-3" />
+                    % of Revenue
+                  </span>
+                  <span className={`font-semibold ${
+                    (selectedUnitData.receivables / selectedUnitData.revenue) > 0.3 
+                      ? 'text-red-600' 
+                      : 'text-green-600'
+                  }`}>
+                    {formatPercentage((selectedUnitData.receivables / selectedUnitData.revenue) * 100)}
+                  </span>
+                </div>
+              </div>
+            </BaseCard>
           </div>
         </div>
       )}
