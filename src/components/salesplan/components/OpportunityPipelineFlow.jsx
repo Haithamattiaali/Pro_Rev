@@ -22,6 +22,28 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
     return <div className="text-center text-gray-500 py-4">Loading pipeline data...</div>
   }
   
+  // Sort pipeline stages in the desired order
+  const sortStages = (stages) => {
+    const stageOrder = ['running', 'contract review', 'signing', 'no status']
+    
+    return [...stages].sort((a, b) => {
+      const aName = a.stage?.toLowerCase() || ''
+      const bName = b.stage?.toLowerCase() || ''
+      
+      // Find index in desired order
+      let aIndex = stageOrder.findIndex(s => aName.includes(s))
+      let bIndex = stageOrder.findIndex(s => bName.includes(s))
+      
+      // If not found, put at the end
+      if (aIndex === -1) aIndex = stageOrder.length
+      if (bIndex === -1) bIndex = stageOrder.length
+      
+      return aIndex - bIndex
+    })
+  }
+  
+  const sortedPipeline = sortStages(pipeline.pipeline)
+  
   // Define stage colors and icons using brand colors
   const getStageStyle = (stage) => {
     // Map stages based on their name instead of order for better clarity
@@ -100,21 +122,21 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
               <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
                 <p className="text-xs text-neutral-mid font-medium">Total Pipeline</p>
                 <p className="text-lg font-bold text-primary">
-                  {formatCurrency(pipeline.pipeline.reduce((sum, stage) => sum + (stage.total_revenue || 0), 0))}
+                  {formatCurrency(sortedPipeline.reduce((sum, stage) => sum + (stage.total_revenue || 0), 0))}
                 </p>
               </div>
               <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
                 <p className="text-xs text-neutral-mid font-medium">Opportunities</p>
                 <p className="text-lg font-bold text-secondary">
-                  {pipeline.pipeline.reduce((sum, stage) => sum + (stage.count || 0), 0)}
+                  {sortedPipeline.reduce((sum, stage) => sum + (stage.count || 0), 0)}
                 </p>
               </div>
               <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
                 <p className="text-xs text-neutral-mid font-medium">Avg Deal Size</p>
                 <p className="text-lg font-bold text-accent-blue">
                   {formatCurrency(
-                    pipeline.pipeline.reduce((sum, stage) => sum + (stage.total_revenue || 0), 0) / 
-                    Math.max(pipeline.pipeline.reduce((sum, stage) => sum + (stage.count || 0), 0), 1)
+                    sortedPipeline.reduce((sum, stage) => sum + (stage.total_revenue || 0), 0) / 
+                    Math.max(sortedPipeline.reduce((sum, stage) => sum + (stage.count || 0), 0), 1)
                   )}
                 </p>
               </div>
@@ -151,10 +173,10 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                 </feMerge>
               </filter>
             </defs>
-            {pipeline.pipeline.map((stage, index) => {
-              if (index < pipeline.pipeline.length - 1) {
-                const startX = (100 / pipeline.pipeline.length) * index + (50 / pipeline.pipeline.length)
-                const endX = (100 / pipeline.pipeline.length) * (index + 1) + (50 / pipeline.pipeline.length)
+            {sortedPipeline.map((stage, index) => {
+              if (index < sortedPipeline.length - 1) {
+                const startX = (100 / sortedPipeline.length) * index + (50 / sortedPipeline.length)
+                const endX = (100 / sortedPipeline.length) * (index + 1) + (50 / sortedPipeline.length)
                 const curveHeight = 30
                 const isActive = stage.count > 0
                 
@@ -198,7 +220,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
           </svg>
           
           <div className="flex items-center justify-between mb-8 relative" style={{ zIndex: 10 }}>
-            {pipeline.pipeline.map((stage, index) => {
+            {sortedPipeline.map((stage, index) => {
               const style = getStageStyle(stage)
               const Icon = style.icon
               const isSelected = selectedStage === index
@@ -238,7 +260,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                               stroke={style.color.replace('bg-primary', '#9e1f63').replace('bg-secondary', '#424046').replace('bg-accent-blue', '#005b8c').replace('bg-neutral-mid', '#717171')}
                               strokeWidth="2"
                               fill="none"
-                              strokeDasharray={`${(((index + 1) / pipeline.pipeline.length) * 88)} 88`}
+                              strokeDasharray={`${(((index + 1) / sortedPipeline.length) * 88)} 88`}
                               strokeLinecap="round"
                             />
                           </svg>
@@ -261,7 +283,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                           {stage.stage}
                         </h4>
                         <p className="text-xs text-neutral-mid text-center mb-3">
-                          Stage {index + 1} of {pipeline.pipeline.length}
+                          Stage {index + 1} of {sortedPipeline.length}
                         </p>
                         
                         <div className="space-y-3">
@@ -297,11 +319,11 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                           </div>
                           
                           {/* Conversion Rate to Next Stage */}
-                          {index < pipeline.pipeline.length - 1 && stage.count > 0 && (
+                          {index < sortedPipeline.length - 1 && stage.count > 0 && (
                             <div className="pt-2 border-t border-secondary-light/20">
                               <p className="text-xs text-neutral-mid text-center">
-                                {pipeline.pipeline[index + 1].count > 0 ? 
-                                  `${((pipeline.pipeline[index + 1].count / stage.count) * 100).toFixed(0)}% to next` : 
+                                {sortedPipeline[index + 1].count > 0 ? 
+                                  `${((sortedPipeline[index + 1].count / stage.count) * 100).toFixed(0)}% to next` : 
                                   'No conversion'
                                 }
                               </p>
@@ -318,17 +340,17 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
           
           {/* Stage Details - Enhanced with Animation */}
           <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
-            selectedStage !== null && pipeline.pipeline[selectedStage].projects?.length > 0 ? 'max-h-[600px] opacity-100 mt-6' : 'max-h-0 opacity-0'
+            selectedStage !== null && sortedPipeline[selectedStage].projects?.length > 0 ? 'max-h-[600px] opacity-100 mt-6' : 'max-h-0 opacity-0'
           }`}>
-            {selectedStage !== null && pipeline.pipeline[selectedStage].projects?.length > 0 && (
+            {selectedStage !== null && sortedPipeline[selectedStage].projects?.length > 0 && (
               <div className="bg-gradient-to-br from-secondary-pale to-white rounded-xl p-6 border border-secondary-light/30 shadow-inner">
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <h5 className="text-lg font-bold text-secondary">
-                      Projects in {pipeline.pipeline[selectedStage].stage}
+                      Projects in {sortedPipeline[selectedStage].stage}
                     </h5>
                     <p className="text-sm text-neutral-mid mt-1">
-                      {pipeline.pipeline[selectedStage].projects.length} opportunities in this stage
+                      {sortedPipeline[selectedStage].projects.length} opportunities in this stage
                     </p>
                   </div>
                   <button 
@@ -342,7 +364,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                 </div>
                 
                 <div className="grid gap-3 max-h-[400px] overflow-y-auto custom-scrollbar">
-                  {pipeline.pipeline[selectedStage].projects.map((project, idx) => {
+                  {sortedPipeline[selectedStage].projects.map((project, idx) => {
                     const ServiceIcon = project.service?.includes('2PL') ? Package : Building2
                     const gpClass = project.est_gp_percent >= 0.3 ? 'bg-primary/10 text-primary' : 
                                   project.est_gp_percent >= 0.2 ? 'bg-accent-blue/10 text-accent-blue' : 
@@ -432,10 +454,10 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {allOpportunities.map((opp, index) => {
             // Find which stage this opportunity belongs to
-            const currentStage = pipeline.pipeline.find(stage => 
+            const currentStage = sortedPipeline.find(stage => 
               stage.projects?.some(p => p.project === opp.project)
             )
-            const stageIndex = currentStage ? pipeline.pipeline.indexOf(currentStage) : -1
+            const stageIndex = currentStage ? sortedPipeline.indexOf(currentStage) : -1
             const stageStyle = currentStage ? getStageStyle(currentStage) : getStageStyle({ order: 0 })
             
             // Get service icon
@@ -498,13 +520,13 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                   <div className="mt-4">
                     <div className="flex items-center justify-between text-xs text-neutral-mid mb-2">
                       <span>Pipeline Progress</span>
-                      <span>{stageIndex >= 0 ? `Stage ${stageIndex + 1} of ${pipeline.pipeline.length}` : 'Not Started'}</span>
+                      <span>{stageIndex >= 0 ? `Stage ${stageIndex + 1} of ${sortedPipeline.length}` : 'Not Started'}</span>
                     </div>
                     <div className="w-full bg-secondary-pale rounded-full h-2">
                       <div 
                         className={`h-2 rounded-full transition-all duration-500 ${stageStyle.color}`}
                         style={{ 
-                          width: stageIndex >= 0 ? `${((stageIndex + 1) / pipeline.pipeline.length) * 100}%` : '0%' 
+                          width: stageIndex >= 0 ? `${((stageIndex + 1) / sortedPipeline.length) * 100}%` : '0%' 
                         }}
                       />
                     </div>
