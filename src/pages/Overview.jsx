@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Banknote, Target, TrendingUp, Percent, Loader2, Truck, Warehouse, Calendar } from 'lucide-react'
+import { Banknote, Target, TrendingUp, Percent, Loader2, Truck, Warehouse, Calendar, BarChart3, Package, Activity, Users, Shield, AlertTriangle, Clock, CheckCircle } from 'lucide-react'
 import MetricCard from '../components/cards/MetricCard'
 import ContentCard from '../components/cards/ContentCard'
 import BaseCard from '../components/cards/BaseCard'
