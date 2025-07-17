@@ -18,6 +18,10 @@ const MultiSelectPanel = ({
   onClearAll,
   nonCompliantItems = [],
   missingDataDetails = {},
+  currentMonth,
+  currentQuarter,
+  currentYear,
+  modeType,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [hoveredItem, setHoveredItem] = useState(null);
@@ -154,6 +158,11 @@ const MultiSelectPanel = ({
           const isHovered = hoveredItem === item.value;
           const isNonCompliant = nonCompliantItems.includes(item.shortLabel) || nonCompliantItems.includes(item.label);
           const missingData = missingDataDetails[item.shortLabel] || missingDataDetails[item.label];
+          
+          // Check if this is the current period
+          const isCurrent = (modeType === 'M' && item.value === currentMonth) ||
+                           (modeType === 'Q' && item.value === currentQuarter) ||
+                           (modeType === 'Y' && item.value === currentYear);
 
           return (
             <motion.div
@@ -169,11 +178,13 @@ const MultiSelectPanel = ({
               <label
                 className={`
                   relative flex items-center gap-3 rounded-xl
-                  transition-all duration-200 ${densityStyles[viewDensity]}
+                  transition-all duration-300 ${densityStyles[viewDensity]}
                   ${isNonCompliant
                     ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-60'
                     : isSelected
                     ? 'bg-primary/10 border-primary text-primary shadow-sm cursor-pointer'
+                    : isCurrent
+                    ? 'bg-gradient-to-r from-neutral-light to-white border-neutral-mid/50 shadow-sm hover:shadow-md cursor-pointer'
                     : 'bg-white border-neutral-light hover:border-neutral-mid hover:shadow-sm cursor-pointer'
                   }
                   border
@@ -189,6 +200,8 @@ const MultiSelectPanel = ({
                     relative w-4 h-4 rounded-md border-2 transition-all
                     ${isSelected
                       ? 'bg-primary border-primary'
+                      : isCurrent
+                      ? 'bg-white border-primary/40'
                       : 'bg-white border-neutral-mid'
                     }
                   `}
@@ -206,8 +219,11 @@ const MultiSelectPanel = ({
                 </Checkbox.Root>
 
                 {/* Label */}
-                <span className={`flex-1 select-none flex items-center gap-2 ${isNonCompliant ? 'line-through text-gray-500' : ''}`}>
+                <span className={`flex-1 select-none flex items-center gap-2 ${isNonCompliant ? 'line-through text-gray-500' : isCurrent ? 'font-medium text-neutral-dark' : ''}`}>
                   {viewDensity === 'compact' ? item.shortLabel : item.label}
+                  {isCurrent && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+                  )}
                   {isNonCompliant && (
                     <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
                   )}
@@ -216,7 +232,9 @@ const MultiSelectPanel = ({
                 {/* Hover Effect */}
                 {isHovered && !isSelected && (
                   <motion.div
-                    className="absolute inset-0 bg-primary/5 rounded-xl pointer-events-none"
+                    className={`absolute inset-0 rounded-xl pointer-events-none ${
+                      isCurrent ? 'bg-primary/3' : 'bg-primary/5'
+                    }`}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
@@ -228,42 +246,10 @@ const MultiSelectPanel = ({
         })}
       </div>
 
-      {/* Footer with Apply/Reset buttons */}
+      {/* Footer info */}
       <div className="mt-3 pt-3 border-t border-neutral-light">
-        <div className="flex items-center justify-between">
-          <div className="text-[10px] text-neutral-mid">
-            Hold Shift to select range
-          </div>
-          <div className="flex items-center gap-1">
-            <button
-              onClick={onReset}
-              disabled={!hasChanges}
-              className={`
-                px-1.5 py-0.5 rounded text-[10px] font-semibold transition-all duration-150
-                hover:scale-102 active:scale-98
-                ${hasChanges
-                  ? 'text-neutral-dark hover:bg-orange-50 hover:text-orange-600'
-                  : 'text-neutral-mid cursor-not-allowed opacity-30'
-                }
-              `}
-            >
-              Reset
-            </button>
-            <button
-              onClick={onApply}
-              disabled={!hasChanges}
-              className={`
-                px-1.5 py-0.5 rounded text-[10px] font-semibold transition-all duration-150
-                hover:scale-102 active:scale-98
-                ${hasChanges
-                  ? 'bg-green-600 text-white hover:bg-green-700 shadow-sm hover:shadow-md animate-pulse'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-50'
-                }
-              `}
-            >
-              Apply Filters
-            </button>
-          </div>
+        <div className="text-center text-[10px] text-neutral-mid">
+          Hold Shift to select range
         </div>
       </div>
     </div>

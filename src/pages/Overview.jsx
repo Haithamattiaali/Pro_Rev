@@ -6,6 +6,7 @@ import BaseCard from '../components/cards/BaseCard'
 import GaugeChart from '../components/charts/GaugeChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { ExportButton } from '../components/export'
+import ToolbarSection from '../components/layout/ToolbarSection'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
@@ -97,21 +98,17 @@ const Overview = () => {
       {/* Period Filter */}
       <StickyPeriodFilter />
       
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-primary-dark tracking-tight">
-            Executive Overview - {periodFilter.year}
-          </h1>
-          <p className="text-neutral-mid mt-2">
-            {dataService.getPeriodLabel(periodFilter.period)} performance metrics and key insights
-          </p>
-        </div>
+      {/* Toolbar */}
+      <ToolbarSection
+        title={`Executive Overview - ${periodFilter.year}`}
+        subtitle={`${dataService.getPeriodLabel(periodFilter.period)} performance metrics and key insights`}
+      >
         <ExportButton 
           dashboardRef={dashboardRef}
-          variant="secondary"
+          variant="glass"
           size="medium"
         />
-      </div>
+      </ToolbarSection>
 
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -4,6 +4,7 @@ import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { ExportButton } from '../components/export'
 import TableExportButton from '../components/buttons/TableExportButton'
+import ToolbarSection from '../components/layout/ToolbarSection'
 import BaseTable from '../components/common/BaseTable'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
@@ -124,17 +125,17 @@ const Customers = () => {
       {/* Period Filter */}
       <StickyPeriodFilter />
       
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-primary-dark tracking-tight">Customer Performance</h1>
-          <p className="text-neutral-mid mt-2">Analyze customer-specific achievements and contributions</p>
-        </div>
+      {/* Toolbar */}
+      <ToolbarSection
+        title="Customer Performance"
+        subtitle="Analyze customer-specific achievements and contributions"
+      >
         <ExportButton 
           dashboardRef={null}
-          variant="secondary"
+          variant="glass"
           size="medium"
         />
-      </div>
+      </ToolbarSection>
 
       {/* Top Customers Overview */}
       <div className="dashboard-card">

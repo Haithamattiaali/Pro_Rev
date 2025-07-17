@@ -5,6 +5,7 @@ import MetricCard from '../components/cards/MetricCard'
 import { TrendingUp, FileSpreadsheet, Target, Calendar } from 'lucide-react'
 import { ExportButton } from '../components/export'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
+import ToolbarSection from '../components/layout/ToolbarSection'
 
 // Import chart components
 import GLChart from '../components/salesplan/charts/GLChart'
@@ -108,18 +109,17 @@ const SalesPlan = () => {
       {/* Period Filter */}
       <StickyPeriodFilter disableValidation={true} />
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-primary">Sales Plan</h1>
-          <p className="text-neutral-mid mt-1">{getPeriodLabel()}</p>
-        </div>
+      {/* Toolbar */}
+      <ToolbarSection
+        title="Sales Plan"
+        subtitle={getPeriodLabel()}
+      >
         <ExportButton 
           dashboardRef={dashboardRef}
-          variant="secondary"
+          variant="glass"
           size="medium"
         />
-      </div>
+      </ToolbarSection>
 
       {/* Top Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">

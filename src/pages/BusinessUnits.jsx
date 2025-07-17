@@ -5,6 +5,7 @@ import BusinessUnitBarChart from '../components/charts/BusinessUnitBarChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { ExportButton } from '../components/export'
 import TableExportButton from '../components/buttons/TableExportButton'
+import ToolbarSection from '../components/layout/ToolbarSection'
 import BaseTable from '../components/common/BaseTable'
 import BaseCard from '../components/cards/BaseCard'
 import { useFilter } from '../contexts/FilterContext'
@@ -121,17 +122,17 @@ const BusinessUnits = () => {
       {/* Period Filter */}
       <StickyPeriodFilter />
       
-      <div className="flex justify-between items-start">
-        <div>
-          <h1 className="text-3xl font-bold text-primary-dark tracking-tight">Business Units Performance</h1>
-          <p className="text-neutral-mid mt-2">Deep dive into service-specific metrics and trends</p>
-        </div>
+      {/* Toolbar */}
+      <ToolbarSection
+        title="Business Units Performance"
+        subtitle="Deep dive into service-specific metrics and trends"
+      >
         <ExportButton 
           dashboardRef={null}
-          variant="secondary"
+          variant="glass"
           size="medium"
         />
-      </div>
+      </ToolbarSection>
 
       {/* Business Unit Selector */}
       <div className="flex space-x-4">

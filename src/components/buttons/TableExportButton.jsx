@@ -86,10 +86,11 @@ const TableExportButton = ({
   return (
     <ExportButton
       onClick={exportTableToExcel}
-      variant="inline"
+      variant="minimal"
       size="small"
-      label=""
-      className={`opacity-70 hover:opacity-100 ${className}`}
+      showLabel={false}
+      tooltip={`Export ${title || filename}`}
+      className={className}
     />
   );
 };

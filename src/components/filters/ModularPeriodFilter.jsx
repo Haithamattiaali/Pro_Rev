@@ -18,7 +18,7 @@ const ModularPeriodFilter = ({ disableValidation = false }) => {
     resetFilters 
   } = useFilter();
   
-  const [activeMode, setActiveMode] = useState(pendingFilter.activeMode || 'M');
+  const [activeMode, setActiveMode] = useState(pendingFilter.activeMode || 'Y');
   const [isOpen, setIsOpen] = useState(false);
   const [viewDensity, setViewDensity] = useState('comfortable');
   const [showAppliedFeedback, setShowAppliedFeedback] = useState(false);
@@ -40,8 +40,28 @@ const ModularPeriodFilter = ({ disableValidation = false }) => {
     years: periodFilter.selectedYears || []
   };
 
-  // Mode configurations
+  // Get current date info for highlighting
+  const currentDate = new Date();
+  const currentMonth = currentDate.getMonth() + 1;
+  const currentQuarter = Math.ceil(currentMonth / 3);
+  const currentYear = currentDate.getFullYear();
+
+  // Generate years dynamically (current year and 2 previous years, newest first)
+  const yearItems = [
+    { value: currentYear, label: String(currentYear), shortLabel: String(currentYear) },
+    { value: currentYear - 1, label: String(currentYear - 1), shortLabel: String(currentYear - 1) },
+    { value: currentYear - 2, label: String(currentYear - 2), shortLabel: String(currentYear - 2) },
+  ];
+
+  // Mode configurations - reordered to Y-M-Q
   const modeConfig = {
+    Y: {
+      label: 'Years',
+      icon: Calendar,
+      items: yearItems,
+      selected: selectedYears,
+      key: 'selectedYears'
+    },
     M: {
       label: 'Months',
       icon: Calendar,
@@ -73,17 +93,6 @@ const ModularPeriodFilter = ({ disableValidation = false }) => {
       ],
       selected: selectedQuarters,
       key: 'selectedQuarters'
-    },
-    Y: {
-      label: 'Years',
-      icon: Calendar,
-      items: [
-        { value: 2023, label: '2023', shortLabel: '2023' },
-        { value: 2024, label: '2024', shortLabel: '2024' },
-        { value: 2025, label: '2025', shortLabel: '2025' },
-      ],
-      selected: selectedYears,
-      key: 'selectedYears'
     }
   };
 
@@ -172,15 +181,26 @@ const ModularPeriodFilter = ({ disableValidation = false }) => {
       return;
     }
     
+    // Update pending state
     handlePendingChange({
       [currentConfig.key]: newSelection
     });
+    
+    // Auto-apply changes immediately
+    setTimeout(() => {
+      applyFilters();
+    }, 0);
   };
 
   const handleModeChange = (mode) => {
     setActiveMode(mode);
     setValidationError(''); // Clear error when switching modes
     handlePendingChange({ activeMode: mode });
+    
+    // Auto-apply mode change
+    setTimeout(() => {
+      applyFilters();
+    }, 0);
   };
 
   const handleChipRemove = (value, mode) => {
@@ -191,6 +211,11 @@ const ModularPeriodFilter = ({ disableValidation = false }) => {
     handlePendingChange({
       [config.key]: newSelection
     });
+    
+    // Auto-apply removal
+    setTimeout(() => {
+      applyFilters();
+    }, 0);
   };
 
   const handleApply = () => {
@@ -216,6 +241,11 @@ const ModularPeriodFilter = ({ disableValidation = false }) => {
     } else if (activeMode === 'Y') {
       handlePendingChange({ selectedYears: [] });
     }
+    
+    // Auto-apply the reset
+    setTimeout(() => {
+      applyFilters();
+    }, 0);
   };
 
   const handleGlobalSelectAll = () => {
@@ -228,6 +258,11 @@ const ModularPeriodFilter = ({ disableValidation = false }) => {
       selectedQuarters: modeConfig.Q.items.map(item => item.value),
       selectedYears: modeConfig.Y.items.map(item => item.value)
     });
+    
+    // Auto-apply
+    setTimeout(() => {
+      applyFilters();
+    }, 0);
   };
 
   const handleGlobalClear = () => {
@@ -240,6 +275,11 @@ const ModularPeriodFilter = ({ disableValidation = false }) => {
       selectedQuarters: [],
       selectedYears: []
     });
+    
+    // Auto-apply
+    setTimeout(() => {
+      applyFilters();
+    }, 0);
   };
 
   // Get display text for current selections
@@ -322,11 +362,6 @@ const ModularPeriodFilter = ({ disableValidation = false }) => {
                     maxDisplay={3}
                     interactive={false}
                   />
-                  {hasChanges && (
-                    <span className="ml-2 text-xs text-orange-600 font-medium">
-                      • Unsaved changes
-                    </span>
-                  )}
                 </div>
                 <motion.div
                   animate={{ rotate: isOpen ? 180 : 0 }}
@@ -384,6 +419,10 @@ const ModularPeriodFilter = ({ disableValidation = false }) => {
                         onClearAll={handleGlobalClear}
                         nonCompliantItems={!disableValidation && activeMode === 'M' && validationData ? validationData.nonCompliantMonths : []}
                         missingDataDetails={!disableValidation && activeMode === 'M' && validationData ? validationData.missingDataDetails : {}}
+                        currentMonth={currentMonth}
+                        currentQuarter={currentQuarter}
+                        currentYear={currentYear}
+                        modeType={activeMode}
                       />
                     </motion.div>
                   </Popover.Content>
