@@ -99,4 +99,4 @@ const YearDropdown = ({ value, onChange, availableYears, className = '' }) => {
   );
 };
 
-export default YearDropdown;
+export default React.memo(YearDropdown);

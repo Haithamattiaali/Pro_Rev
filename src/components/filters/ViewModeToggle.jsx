@@ -51,4 +51,4 @@ const ViewModeToggle = ({ value, onChange, className = '' }) => {
   );
 };
 
-export default ViewModeToggle;
+export default React.memo(ViewModeToggle);

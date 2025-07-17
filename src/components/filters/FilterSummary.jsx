@@ -36,4 +36,12 @@ const FilterSummary = ({ displayLabel, isPartialPeriod, dateRange, className = '
   );
 };
 
-export default FilterSummary;
+export default React.memo(FilterSummary, (prevProps, nextProps) => {
+  // Only re-render if actual values change
+  return (
+    prevProps.displayLabel === nextProps.displayLabel &&
+    prevProps.isPartialPeriod === nextProps.isPartialPeriod &&
+    prevProps.dateRange?.start?.getTime() === nextProps.dateRange?.start?.getTime() &&
+    prevProps.dateRange?.end?.getTime() === nextProps.dateRange?.end?.getTime()
+  );
+});

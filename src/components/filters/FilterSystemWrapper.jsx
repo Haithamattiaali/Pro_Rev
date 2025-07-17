@@ -1,7 +1,8 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { useHierarchicalFilter } from '../../contexts/HierarchicalFilterContext';
 import { useFilter } from '../../contexts/FilterContext';
 import HierarchicalFilter from './HierarchicalFilter';
+import { debounce } from 'lodash';
 
 /**
  * Wrapper component that bridges the new hierarchical filter system
@@ -11,6 +12,23 @@ const FilterSystemWrapper = ({ useNewSystem = true, ...props }) => {
   const hierarchicalFilter = useNewSystem ? useHierarchicalFilter() : null;
   const { handlePeriodChange } = useFilter();
   const lastUpdateRef = useRef(null);
+
+  // Create a debounced update function to prevent rapid sync updates
+  const debouncedSync = useCallback(
+    debounce((params) => {
+      handlePeriodChange({
+        period: params.period,
+        year: params.year,
+        month: params.month,
+        quarter: params.quarter,
+        // Also pass the new multi-select format for components that support it
+        selectedYears: params.year ? [params.year] : [],
+        selectedMonths: params.month ? [params.month] : [],
+        selectedQuarters: params.quarter ? [params.quarter] : []
+      });
+    }, 100), // 100ms debounce to prevent flashing
+    [handlePeriodChange]
+  );
 
   // Sync hierarchical filter changes to legacy filter context
   useEffect(() => {
@@ -28,24 +46,15 @@ const FilterSystemWrapper = ({ useNewSystem = true, ...props }) => {
     
     lastUpdateRef.current = updateKey;
     
-    // Update legacy filter context
-    handlePeriodChange({
-      period: params.period,
-      year: params.year,
-      month: params.month,
-      quarter: params.quarter,
-      // Also pass the new multi-select format for components that support it
-      selectedYears: params.year ? [params.year] : [],
-      selectedMonths: params.month ? [params.month] : [],
-      selectedQuarters: params.quarter ? [params.quarter] : []
-    });
+    // Use debounced sync to prevent rapid updates
+    debouncedSync(params);
   }, [
     useNewSystem,
     hierarchicalFilter?.filterState.selectedYear,
     hierarchicalFilter?.filterState.viewMode,
     hierarchicalFilter?.filterState.selectedPeriod,
     hierarchicalFilter?.filterState.quickPreset,
-    handlePeriodChange
+    debouncedSync
   ]);
 
   if (!useNewSystem) {

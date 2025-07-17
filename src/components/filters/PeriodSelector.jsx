@@ -87,4 +87,4 @@ const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, className
   );
 };
 
-export default PeriodSelector;
+export default React.memo(PeriodSelector);

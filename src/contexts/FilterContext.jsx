@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import dataService from '../services/dataService';
 
 const FilterContext = createContext();
@@ -187,10 +187,19 @@ export const FilterProvider = ({ children }) => {
     setHasChanges(false);
   };
 
+  // Track last cache clear to prevent duplicates
+  const lastCacheClearRef = useRef(null);
+  
   // Legacy handlePeriodChange for backward compatibility
   const handlePeriodChange = (filterConfig) => {
-    // Clear cache when filters change
-    dataService.clearCache();
+    // Create a cache key to prevent duplicate clears
+    const cacheKey = `${filterConfig.year}-${filterConfig.period}-${filterConfig.month}-${filterConfig.quarter}`;
+    
+    // Only clear cache if the key has changed
+    if (lastCacheClearRef.current !== cacheKey) {
+      lastCacheClearRef.current = cacheKey;
+      dataService.clearCache();
+    }
     
     // Handle both new multi-select format and legacy format
     if ('selectedMonths' in filterConfig || 'selectedQuarters' in filterConfig || 'selectedYears' in filterConfig) {

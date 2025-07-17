@@ -174,9 +174,6 @@ export const HierarchicalFilterProvider = ({ children }) => {
         }
       }
       
-      // Clear cache when filter changes
-      dataService.clearCache();
-      
       return {
         ...prev,
         selectedYear: year,
@@ -214,9 +211,6 @@ export const HierarchicalFilterProvider = ({ children }) => {
         }
       }
       
-      // Clear cache when filter changes
-      dataService.clearCache();
-      
       return {
         ...prev,
         viewMode: mode,
@@ -234,8 +228,7 @@ export const HierarchicalFilterProvider = ({ children }) => {
       quickPreset: null // Clear any quick preset
     }));
     
-    // Clear cache when filter changes
-    dataService.clearCache();
+    // Cache clearing is handled by FilterContext to prevent multiple clears
   }, []);
 
   // Handle quick preset selection
@@ -248,8 +241,7 @@ export const HierarchicalFilterProvider = ({ children }) => {
       viewMode: preset === 'YTD' ? 'yearly' : prev.viewMode
     }));
     
-    // Clear cache when filter changes
-    dataService.clearCache();
+    // Cache clearing is handled by FilterContext to prevent multiple clears
   }, [currentYear]);
 
   // Handle comparison mode

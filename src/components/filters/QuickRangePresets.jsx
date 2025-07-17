@@ -49,4 +49,4 @@ const QuickRangePresets = ({ value, onChange, presets, className = '' }) => {
   );
 };
 
-export default QuickRangePresets;
+export default React.memo(QuickRangePresets);
