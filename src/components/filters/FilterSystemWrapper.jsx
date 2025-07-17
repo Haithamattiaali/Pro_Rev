@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useHierarchicalFilter } from '../../contexts/HierarchicalFilterContext';
 import { useFilter } from '../../contexts/FilterContext';
 import HierarchicalFilter from './HierarchicalFilter';
@@ -10,12 +10,23 @@ import HierarchicalFilter from './HierarchicalFilter';
 const FilterSystemWrapper = ({ useNewSystem = true, ...props }) => {
   const hierarchicalFilter = useNewSystem ? useHierarchicalFilter() : null;
   const { handlePeriodChange } = useFilter();
+  const lastUpdateRef = useRef(null);
 
   // Sync hierarchical filter changes to legacy filter context
   useEffect(() => {
     if (!useNewSystem || !hierarchicalFilter) return;
 
     const params = hierarchicalFilter.getApiParameters();
+    
+    // Create a stable key for comparison to prevent infinite loops
+    const updateKey = `${params.year}-${params.period}-${params.month}-${params.quarter}`;
+    
+    // Only update if the key has changed
+    if (lastUpdateRef.current === updateKey) {
+      return;
+    }
+    
+    lastUpdateRef.current = updateKey;
     
     // Update legacy filter context
     handlePeriodChange({
