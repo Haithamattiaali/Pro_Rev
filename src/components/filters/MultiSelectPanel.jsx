@@ -54,6 +54,14 @@ const MultiSelectPanel = ({
       return; // Don't allow selection of non-compliant items
     }
     
+    console.log('🔲 Checkbox toggle:', {
+      item: item.label,
+      value,
+      currentlySelected: selected.includes(value),
+      willBeSelected: !selected.includes(value),
+      currentSelections: selected
+    });
+    
     if (selected.includes(value)) {
       onChange(selected.filter(v => v !== value));
     } else {
