@@ -36,6 +36,9 @@ export class BackendExcelCompiler {
       } else if (currentPath.includes('trends') || exportType === 'trends') {
         exportEndpoint = 'trends';
         filename = `proceed-trends-${year}.xlsx`;
+      } else if (currentPath.includes('sales-plan') || exportType === 'salesPlan') {
+        exportEndpoint = 'sales-plan';
+        filename = `proceed-sales-plan-${period}-${year}.xlsx`;
       } else {
         // Default to overview
         exportEndpoint = 'overview';

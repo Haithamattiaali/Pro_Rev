@@ -3,8 +3,6 @@ import dataService from '../../../services/dataService'
 import OpportunityInsights from '../components/OpportunityInsights'
 import OpportunityPipeline from '../components/OpportunityPipeline'
 import OpportunityPipelineFlow from '../components/OpportunityPipelineFlow'
-import OpportunityServiceBreakdown from '../components/OpportunityServiceBreakdown'
-import OpportunitiesByLocation from '../components/OpportunitiesByLocation'
 import ServicePortfolioInsight from '../components/ServicePortfolioInsight'
 import { Loader2 } from 'lucide-react'
 
@@ -14,7 +12,6 @@ const OpportunitiesChart = ({ data }) => {
   const [pipeline, setPipeline] = useState(null)
   const [pipelineFlow, setPipelineFlow] = useState(null)
   const [serviceData, setServiceData] = useState(null)
-  const [locationData, setLocationData] = useState(null)
   const [opportunities, setOpportunities] = useState(null)
   const [matrixData, setMatrixData] = useState(null)
   const [activeView, setActiveView] = useState('pipeline-flow')
@@ -23,12 +20,11 @@ const OpportunitiesChart = ({ data }) => {
     const fetchData = async () => {
       setLoading(true)
       try {
-        const [insightsData, pipelineData, pipelineFlowData, serviceAnalysis, locationAnalysis, opportunitiesData, matrixAnalysis] = await Promise.all([
+        const [insightsData, pipelineData, pipelineFlowData, serviceAnalysis, opportunitiesData, matrixAnalysis] = await Promise.all([
           dataService.getOpportunitiesInsights(),
           dataService.getOpportunitiesPipeline(),
           dataService.getOpportunitiesPipelineByStatus(),
           dataService.getOpportunitiesServiceAnalysis(),
-          dataService.getOpportunitiesByLocation(),
           dataService.getOpportunities(),
           dataService.getOpportunitiesMatrix()
         ])
@@ -36,7 +32,6 @@ const OpportunitiesChart = ({ data }) => {
         setPipeline(pipelineData)
         setPipelineFlow(pipelineFlowData)
         setServiceData(serviceAnalysis)
-        setLocationData(locationAnalysis)
         setOpportunities(opportunitiesData)
         setMatrixData(matrixAnalysis)
       } catch (error) {
@@ -81,26 +76,6 @@ const OpportunitiesChart = ({ data }) => {
         >
           Pipeline Analysis
         </button>
-        <button
-          onClick={() => setActiveView('location')}
-          className={`px-4 py-2 rounded-md font-medium transition-all ${
-            activeView === 'location'
-              ? 'bg-white text-primary shadow-sm'
-              : 'text-secondary hover:text-secondary-dark'
-          }`}
-        >
-          Location Analysis
-        </button>
-        <button
-          onClick={() => setActiveView('service')}
-          className={`px-4 py-2 rounded-md font-medium transition-all ${
-            activeView === 'service'
-              ? 'bg-white text-primary shadow-sm'
-              : 'text-secondary hover:text-secondary-dark'
-          }`}
-        >
-          Service Analysis
-        </button>
         {/* Commented out Quick Insights and Value Bands as requested
         <button
           onClick={() => setActiveView('insights')}
@@ -128,8 +103,6 @@ const OpportunitiesChart = ({ data }) => {
       {/* Content */}
       {activeView === 'value-matrix' && <ServicePortfolioInsight serviceData={serviceData} />}
       {activeView === 'pipeline-flow' && <OpportunityPipelineFlow pipeline={pipelineFlow} />}
-      {activeView === 'location' && <OpportunitiesByLocation locationData={locationData} />}
-      {activeView === 'service' && <OpportunityServiceBreakdown serviceData={serviceData} />}
       {/* Commented out Quick Insights and Value Bands content as requested
       {activeView === 'insights' && <OpportunityInsights insights={insights} />}
       {activeView === 'pipeline' && <OpportunityPipeline pipeline={pipeline} />}

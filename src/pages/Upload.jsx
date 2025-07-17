@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Upload as UploadIcon, FileSpreadsheet, CheckCircle, AlertCircle, X, Loader2 } from 'lucide-react'
+import { Upload as UploadIcon, FileSpreadsheet, CheckCircle, AlertCircle, X, Loader2, Download, FileDown } from 'lucide-react'
 import apiService from '../services/api.service'
 import ValidationAlert from '../components/alerts/ValidationAlert'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
@@ -159,6 +159,57 @@ const Upload = () => {
       </div>
 
       <div className="grid gap-6">
+        {/* Template Download Card */}
+        <div className="bg-white rounded-lg shadow-sm border border-neutral-light p-6">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h2 className="text-lg font-semibold text-primary-dark mb-2">Download Template</h2>
+              <p className="text-sm text-neutral-mid mb-4">
+                Download an Excel template pre-filled with your current dashboard data. 
+                You can modify this template and upload it back to update your data.
+              </p>
+              <div className="space-y-2 text-sm text-neutral-dark">
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span>Contains all your current revenue data</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span>Pre-formatted with required columns</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-green-600" />
+                  <span>Ready to edit and re-upload</span>
+                </div>
+              </div>
+            </div>
+            <div className="ml-6">
+              <button
+                onClick={async () => {
+                  try {
+                    const blob = await apiService.downloadTemplate();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `proceed-revenue-template-${new Date().toISOString().split('T')[0]}.xlsx`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                  } catch (error) {
+                    console.error('Download error:', error);
+                    setError('Failed to download template. Please try again.');
+                  }
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Download Template
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* File Requirements Card */}
         <div className="bg-white rounded-lg shadow-sm border border-neutral-light p-6">
           <h2 className="text-lg font-semibold text-primary-dark mb-4">File Requirements</h2>

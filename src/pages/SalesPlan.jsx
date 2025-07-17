@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useFilter } from '../contexts/FilterContext'
 import dataService from '../services/dataService'
 import MetricCard from '../components/cards/MetricCard'
 import { TrendingUp, FileSpreadsheet, Target, Calendar } from 'lucide-react'
-import ExportButton from '../components/buttons/ExportButton'
+import { ExportButton } from '../components/export'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 
 // Import chart components
@@ -21,6 +21,7 @@ const SalesPlan = () => {
   const { periodFilter } = useFilter()
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('gl')
+  const dashboardRef = useRef(null)
   
   // Data states
   const [overviewData, setOverviewData] = useState(null)
@@ -103,7 +104,7 @@ const SalesPlan = () => {
   }
 
   return (
-    <div className="p-6 bg-neutral-light min-h-screen">
+    <div className="p-6 bg-neutral-light min-h-screen" ref={dashboardRef} data-dashboard="true">
       {/* Period Filter */}
       <StickyPeriodFilter disableValidation={true} />
 
@@ -114,8 +115,9 @@ const SalesPlan = () => {
           <p className="text-neutral-mid mt-1">{getPeriodLabel()}</p>
         </div>
         <ExportButton 
+          dashboardRef={dashboardRef}
           variant="secondary"
-          onClick={() => console.log('Export sales plan')}
+          size="medium"
         />
       </div>
 

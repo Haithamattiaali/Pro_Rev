@@ -71,6 +71,32 @@ class ApiService {
     return this.request('/years');
   }
 
+  // Download Excel template
+  async downloadTemplate(year = null) {
+    try {
+      await connectionManager.ensureConnection();
+      
+      const params = year ? `?year=${year}` : '';
+      const response = await fetch(`${connectionManager.baseUrl}/template/download${params}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        }
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to download template');
+      }
+
+      return response.blob();
+    } catch (error) {
+      console.error('Template download error:', error);
+      throw error;
+    }
+  }
+
   // Upload Excel file
   async uploadExcelFile(file) {
     const formData = new FormData();

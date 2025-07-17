@@ -34,6 +34,7 @@ const ExportDialog = ({ isOpen, onClose, dashboardRef }) => {
     if (path.includes('business-units')) return 'businessUnits';
     if (path.includes('customers')) return 'customers';
     if (path.includes('trends')) return 'trends';
+    if (path.includes('sales-plan')) return 'salesPlan';
     return 'overview'; // default
   };
 
