@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Banknote, Target, TrendingUp, Percent, Loader2, Truck, Warehouse, Calendar, Users, Package, BarChart3, Activity, Clock, AlertTriangle, Shield, CheckCircle } from 'lucide-react'
+import { Banknote, Target, TrendingUp, Percent, Loader2, Truck, Warehouse, Calendar } from 'lucide-react'
 import MetricCard from '../components/cards/MetricCard'
-import EnhancedMetricCard from '../components/cards/EnhancedMetricCard'
 import ContentCard from '../components/cards/ContentCard'
 import BaseCard from '../components/cards/BaseCard'
 import GaugeChart from '../components/charts/GaugeChart'
@@ -116,62 +115,32 @@ const Overview = () => {
 
       {/* Key Metrics Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <EnhancedMetricCard
+        <MetricCard
           title="Total Revenue"
           value={overview.revenue}
           icon={Banknote}
           iconColor="green"
-          trend={overview.achievement >= 100 ? "up" : "down"}
-          trendValue={`${formatPercentage(overview.achievement)}`}
-          trendLabel="vs Target"
-          progress={overview.achievement}
-          progressLabel="Target Achievement"
-          status={overview.achievement >= 100 ? "success" : overview.achievement >= 80 ? "warning" : "danger"}
-          statusLabel={overview.achievement >= 100 ? "On Track" : "At Risk"}
-          detail={`${formatCurrency(Math.abs(overview.revenue - overview.target))} ${overview.revenue >= overview.target ? 'over' : 'to go'}`}
-          detailIcon={overview.revenue >= overview.target ? Shield : AlertTriangle}
-          footer={`Updated ${new Date().toLocaleDateString()}`}
-          footerIcon={Clock}
+          trend="up"
+          trendValue={`${formatPercentage(overview.achievement)} vs Target`}
         />
-        <EnhancedMetricCard
+        <MetricCard
           title="Target"
           value={overview.target}
           icon={Target}
           iconColor="blue"
-          subtitle={`${periodFilter.period} Target`}
-          comparison={formatCurrency(overview.revenue)}
-          comparisonLabel="Current Revenue"
-          detail={`${dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter).length} months period`}
-          detailIcon={Calendar}
-          alert={overview.achievement < 80 ? "Revenue is below 80% of target. Review action items." : null}
-          alertType="warning"
         />
-        <EnhancedMetricCard
+        <MetricCard
           title="Gross Profit"
           value={overview.profit}
           icon={TrendingUp}
           iconColor="primary"
-          trend={overview.profitMargin >= 25 ? "up" : "down"}
-          trendValue={`${formatPercentage(overview.profitMargin)}`}
-          trendLabel="Profit Margin"
-          status={overview.profitMargin >= 30 ? "success" : overview.profitMargin >= 20 ? "warning" : "danger"}
-          statusLabel={overview.profitMargin >= 30 ? "Healthy" : "Review"}
-          detail={`From ${formatCurrency(overview.revenue)} revenue`}
-          detailIcon={BarChart3}
         />
-        <EnhancedMetricCard
+        <MetricCard
           title="Gross Profit Margin"
           value={overview.profitMargin}
           format="percentage"
           icon={Percent}
           iconColor="coral"
-          trend={overview.profitMargin >= 25 ? "up" : "down"}
-          trendValue={overview.profitMargin >= 25 ? "Above 25%" : "Below 25%"}
-          trendLabel="Industry Benchmark"
-          progress={(overview.profitMargin / 40) * 100}
-          progressLabel="Industry Best (40%)"
-          detail={`Cost ratio: ${formatPercentage(100 - overview.profitMargin)}`}
-          detailIcon={Activity}
         />
       </div>
 
@@ -190,136 +159,47 @@ const Overview = () => {
           <div className="col-span-2">
             <h3 className="text-lg font-semibold text-secondary mb-4">Business Unit Performance</h3>
             <div className="space-y-4">
-              {serviceBreakdown.map((unit) => {
-                const isTransportation = unit.service_type === 'Transportation';
-                const achievement = unit.achievement_percentage;
-                const achievementStatus = getAchievementStatus(achievement);
-                
-                return (
-                  <BaseCard 
-                    key={unit.service_type} 
-                    variant="elevated" 
-                    padding="normal"
-                    className="transition-all hover:scale-[1.02]"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start space-x-4">
-                        <div className={`p-3 rounded-xl shadow-md ${
-                          isTransportation 
-                            ? 'bg-gradient-to-br from-accent-blue/20 to-accent-blue/10' 
-                            : 'bg-gradient-to-br from-primary/20 to-primary/10'
-                        }`}>
-                          {isTransportation ? (
-                            <Truck className="w-8 h-8 text-accent-blue" strokeWidth={1.5} />
-                          ) : (
-                            <Warehouse className="w-8 h-8 text-primary" strokeWidth={1.5} />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <p className="font-bold text-neutral-dark text-xl">{unit.service_type}</p>
-                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                              achievementStatus === 'high' ? 'bg-green-100 text-green-700' :
-                              achievementStatus === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-red-100 text-red-700'
-                            }`}>
-                              {achievementStatus === 'high' ? (
-                                <Shield className="w-3 h-3" />
-                              ) : achievementStatus === 'medium' ? (
-                                <AlertTriangle className="w-3 h-3" />
-                              ) : (
-                                <AlertTriangle className="w-3 h-3" />
-                              )}
-                              {achievementStatus === 'high' ? 'Exceeding' : 
-                               achievementStatus === 'medium' ? 'On Track' : 'Behind'}
-                            </span>
-                          </div>
-                          
-                          {/* Metrics Grid */}
-                          <div className="grid grid-cols-3 gap-4 mt-3">
-                            <div>
-                              <div className="flex items-center gap-1 text-xs text-neutral-mid mb-1">
-                                <Banknote className="w-3 h-3" />
-                                <span>Revenue</span>
-                              </div>
-                              <p className={`font-bold text-lg ${
-                                unit.revenue >= unit.target ? 'text-green-600' : 'text-neutral-dark'
-                              }`}>
-                                {formatCurrency(unit.revenue)}
-                              </p>
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-1 text-xs text-neutral-mid mb-1">
-                                <Target className="w-3 h-3" />
-                                <span>Target</span>
-                              </div>
-                              <p className="font-bold text-lg text-accent-blue">
-                                {formatCurrency(unit.target)}
-                              </p>
-                            </div>
-                            <div>
-                              <div className="flex items-center gap-1 text-xs text-neutral-mid mb-1">
-                                <TrendingUp className="w-3 h-3" />
-                                <span>Gap/Surplus</span>
-                              </div>
-                              <p className={`font-bold text-lg ${
-                                unit.revenue >= unit.target ? 'text-green-600' : 'text-red-600'
-                              }`}>
-                                {unit.revenue >= unit.target ? '+' : ''}{formatCurrency(unit.revenue - unit.target)}
-                              </p>
-                            </div>
-                          </div>
-                          
-                          {/* Progress Bar */}
-                          <div className="mt-4">
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="text-xs font-medium text-gray-600">Achievement Progress</span>
-                              <span className={`text-sm font-bold ${
-                                achievementStatus === 'high' ? 'text-green-600' :
-                                achievementStatus === 'medium' ? 'text-yellow-600' :
-                                'text-red-600'
-                              }`}>
-                                {formatPercentage(achievement)}
-                              </span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div 
-                                className={`h-2 rounded-full transition-all duration-500 ${
-                                  achievement >= 100 ? 'bg-green-500' :
-                                  achievement >= 80 ? 'bg-yellow-500' :
-                                  'bg-red-500'
-                                }`}
-                                style={{ width: `${Math.min(achievement, 120)}%` }}
-                              />
-                            </div>
-                          </div>
-                        </div>
+              {serviceBreakdown.map((unit) => (
+                <BaseCard 
+                  key={unit.service_type} 
+                  variant="filled" 
+                  padding="small"
+                  className="transition-all"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-start space-x-3">
+                      <div className="p-2 bg-white rounded-lg shadow-sm">
+                        {unit.service_type === 'Transportation' ? (
+                          <Truck className="w-6 h-6 text-accent-blue" />
+                        ) : (
+                          <Warehouse className="w-6 h-6 text-primary" />
+                        )}
                       </div>
-                      
-                      {/* Side Metrics */}
-                      <div className="text-right space-y-2">
-                        <div>
-                          <p className="text-xs text-neutral-mid">Profit Margin</p>
-                          <p className={`text-lg font-bold ${
-                            unit.profit_margin >= 30 ? 'text-green-600' :
-                            unit.profit_margin >= 20 ? 'text-yellow-600' :
-                            'text-red-600'
-                          }`}>
-                            {formatPercentage(unit.profit_margin || ((unit.revenue - (unit.cost || 0)) / unit.revenue * 100))}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-xs text-neutral-mid">Customers</p>
-                          <div className="flex items-center justify-end gap-1">
-                            <Users className="w-4 h-4 text-neutral-mid" />
-                            <span className="font-semibold">{unit.customer_count || 'N/A'}</span>
-                          </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-900">{unit.service_type}</p>
+                        <div className="flex items-baseline gap-3 mt-1">
+                          <span className="text-xl font-bold text-primary">
+                            {formatCurrency(unit.revenue)}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            of {formatCurrency(unit.target)} target
+                          </span>
                         </div>
                       </div>
                     </div>
-                  </BaseCard>
-                );
-              })}
+                    <div className="text-right">
+                      <p className={`text-2xl font-bold ${
+                        unit.achievement_percentage >= 100 ? 'text-green-600' :
+                        unit.achievement_percentage >= 80 ? 'text-yellow-600' :
+                        'text-red-600'
+                      }`}>
+                        {formatPercentage(unit.achievement_percentage)}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">achievement</p>
+                    </div>
+                  </div>
+                </BaseCard>
+              ))}
             </div>
           </div>
         </div>
