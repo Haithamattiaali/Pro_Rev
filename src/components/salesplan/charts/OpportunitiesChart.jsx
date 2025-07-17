@@ -5,7 +5,7 @@ import OpportunityPipeline from '../components/OpportunityPipeline'
 import OpportunityPipelineFlow from '../components/OpportunityPipelineFlow'
 import OpportunityServiceBreakdown from '../components/OpportunityServiceBreakdown'
 import OpportunitiesByLocation from '../components/OpportunitiesByLocation'
-import OpportunityMatrix from '../components/OpportunityMatrix'
+import ServicePortfolioInsight from '../components/ServicePortfolioInsight'
 import { Loader2 } from 'lucide-react'
 
 const OpportunitiesChart = ({ data }) => {
@@ -17,7 +17,7 @@ const OpportunitiesChart = ({ data }) => {
   const [locationData, setLocationData] = useState(null)
   const [opportunities, setOpportunities] = useState(null)
   const [matrixData, setMatrixData] = useState(null)
-  const [activeView, setActiveView] = useState('value-matrix')
+  const [activeView, setActiveView] = useState('pipeline-flow')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -60,33 +60,33 @@ const OpportunitiesChart = ({ data }) => {
   return (
     <div className="space-y-6">
       {/* View Toggle */}
-      <div className="flex gap-2 flex-wrap bg-gray-100 p-1 rounded-lg">
-        <button
-          onClick={() => setActiveView('value-matrix')}
-          className={`px-4 py-2 rounded-md font-medium transition-all ${
-            activeView === 'value-matrix'
-              ? 'bg-white text-primary shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
-          }`}
-        >
-          Value Matrix
-        </button>
+      <div className="flex gap-2 flex-wrap bg-secondary-pale p-1 rounded-lg">
         <button
           onClick={() => setActiveView('pipeline-flow')}
           className={`px-4 py-2 rounded-md font-medium transition-all ${
             activeView === 'pipeline-flow'
               ? 'bg-white text-primary shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              : 'text-secondary hover:text-secondary-dark'
           }`}
         >
           Pipeline Status
+        </button>
+        <button
+          onClick={() => setActiveView('value-matrix')}
+          className={`px-4 py-2 rounded-md font-medium transition-all ${
+            activeView === 'value-matrix'
+              ? 'bg-white text-primary shadow-sm'
+              : 'text-secondary hover:text-secondary-dark'
+          }`}
+        >
+          Pipeline Analysis
         </button>
         <button
           onClick={() => setActiveView('location')}
           className={`px-4 py-2 rounded-md font-medium transition-all ${
             activeView === 'location'
               ? 'bg-white text-primary shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              : 'text-secondary hover:text-secondary-dark'
           }`}
         >
           Location Analysis
@@ -96,7 +96,7 @@ const OpportunitiesChart = ({ data }) => {
           className={`px-4 py-2 rounded-md font-medium transition-all ${
             activeView === 'service'
               ? 'bg-white text-primary shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+              : 'text-secondary hover:text-secondary-dark'
           }`}
         >
           Service Analysis
@@ -126,7 +126,7 @@ const OpportunitiesChart = ({ data }) => {
       </div>
 
       {/* Content */}
-      {activeView === 'value-matrix' && <OpportunityMatrix matrixData={matrixData} />}
+      {activeView === 'value-matrix' && <ServicePortfolioInsight serviceData={serviceData} />}
       {activeView === 'pipeline-flow' && <OpportunityPipelineFlow pipeline={pipelineFlow} />}
       {activeView === 'location' && <OpportunitiesByLocation locationData={locationData} />}
       {activeView === 'service' && <OpportunityServiceBreakdown serviceData={serviceData} />}
