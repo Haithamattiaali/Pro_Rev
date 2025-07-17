@@ -140,7 +140,7 @@ const FilterBar = () => {
   const ActivePanelComponent = panels[activePanel].component;
   
   return (
-    <div ref={dropdownRef} className="bg-white/95 backdrop-blur-xl p-1.5 rounded-xl shadow-sm border border-neutral-light/50">
+    <div ref={dropdownRef} className="relative bg-white/95 backdrop-blur-xl p-1.5 rounded-xl shadow-sm border border-neutral-light/50">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           {/* Panel Selector */}
@@ -180,8 +180,8 @@ const FilterBar = () => {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className={`
-              flex items-center gap-1.5 px-2 py-1 rounded-md
-              bg-white border transition-all min-w-[140px] max-w-[200px]
+              flex items-center gap-1 px-1.5 py-0.5 rounded-md
+              bg-white border transition-all min-w-[120px] max-w-[160px]
               ${isOpen 
                 ? 'border-primary shadow-sm' 
                 : 'border-neutral-light hover:border-neutral-mid hover:shadow-sm'
@@ -219,10 +219,10 @@ const FilterBar = () => {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-            className="absolute left-0 right-0 top-full mt-1 p-1 bg-white/95 backdrop-blur-xl rounded-lg shadow-lg border border-neutral-light/50 overflow-hidden z-50"
-            style={{ maxWidth: '100%' }}
+            className="absolute left-0 top-full mt-1 p-1 bg-white backdrop-blur-xl rounded-lg shadow-xl border border-neutral-light overflow-hidden"
+            style={{ width: '280px', zIndex: 9999 }}
           >
-            <div className="max-h-[240px] overflow-y-auto">
+            <div className="max-h-[180px] overflow-y-auto">
               <ActivePanelComponent
                 selections={selections[activePanel]}
                 onChange={(values) => handleSelectionChange(activePanel, values)}

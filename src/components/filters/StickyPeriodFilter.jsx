@@ -30,7 +30,7 @@ const StickyPeriodFilter = ({ useModular = true, useNewFilterBar = true, disable
       {/* Placeholder to maintain space */}
       <div ref={placeholderRef}>
         {/* Sticky version */}
-        <div className={`relative ${isSticky ? 'fixed top-[64px] left-64 right-0 z-40 bg-neutral-light px-6 pt-6 shadow-md' : ''}`}>
+        <div className={`relative ${isSticky ? 'fixed top-[64px] left-64 right-0 z-[100] bg-neutral-light px-6 pt-6 shadow-md' : ''}`}>
           <FilterComponent disableValidation={disableValidation} />
         </div>
         

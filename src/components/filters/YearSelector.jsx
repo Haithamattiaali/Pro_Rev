@@ -57,7 +57,7 @@ const YearSelector = ({ selections = [], onChange }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.02 }}
               className={`
-                relative p-2 rounded-lg border transition-all
+                relative p-1.5 rounded-md border transition-all
                 ${isSelected
                   ? 'bg-primary/10 border-primary text-primary'
                   : 'bg-white border-neutral-light hover:border-neutral-mid'
@@ -66,7 +66,7 @@ const YearSelector = ({ selections = [], onChange }) => {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
             >
-              <div className="flex items-center justify-center gap-2">
+              <div className="flex items-center justify-center gap-1">
                 <div className={`
                   w-3 h-3 rounded border flex items-center justify-center transition-all
                   ${isSelected
@@ -84,7 +84,7 @@ const YearSelector = ({ selections = [], onChange }) => {
                     </motion.div>
                   )}
                 </div>
-                <span className="text-sm font-medium">{year}</span>
+                <span className="text-xs font-medium">{year}</span>
               </div>
               {year === currentYear && (
                 <span className="absolute top-1 right-2 text-[10px] text-primary/60">Current</span>

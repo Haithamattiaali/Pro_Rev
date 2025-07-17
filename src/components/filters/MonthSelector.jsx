@@ -86,7 +86,7 @@ const MonthSelector = ({ selections = [], onChange, disabled }) => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.01 }}
               className={`
-                relative p-2 rounded-md border transition-all
+                relative p-1 rounded border transition-all
                 ${isSelected
                   ? 'bg-primary/10 border-primary text-primary'
                   : 'bg-white border-neutral-light hover:border-neutral-mid'
