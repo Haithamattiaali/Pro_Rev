@@ -83,7 +83,19 @@ class DataService {
   }
 
   // Get period label
-  getPeriodLabel(period) {
+  getPeriodLabel(period, month = null, quarter = null) {
+    // Month names
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                       'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    if (period === 'MTD' && month) {
+      return monthNames[month - 1] || 'Month to Date';
+    }
+    
+    if (period === 'QTD' && quarter) {
+      return `Q${quarter}`;
+    }
+    
     const labels = {
       MTD: 'Month to Date',
       QTD: 'Quarter to Date',

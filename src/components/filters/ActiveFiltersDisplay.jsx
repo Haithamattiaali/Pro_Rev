@@ -5,7 +5,8 @@ const ActiveFiltersDisplay = ({ selections, compact = false }) => {
   const { years, months, quarters } = selections;
   
   // Month names for display
-  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 
+                       'July', 'August', 'September', 'October', 'November', 'December'];
   
   // Get display text
   const getDisplayText = () => {
@@ -44,9 +45,9 @@ const ActiveFiltersDisplay = ({ selections, compact = false }) => {
   
   if (compact) {
     return (
-      <div className="text-sm">
-        <div className="font-semibold text-neutral-dark">{primary}</div>
-        <div className="text-xs text-neutral-mid">{secondary}</div>
+      <div className="text-xs">
+        <div className="font-medium text-neutral-dark">{primary}</div>
+        <div className="text-[10px] text-neutral-mid">{secondary}</div>
       </div>
     );
   }

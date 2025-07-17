@@ -20,8 +20,8 @@ const FilterBar = () => {
     quarters: []
   });
   
-  // Track active panel
-  const [activePanel, setActivePanel] = useState('years');
+  // Track active panel - default to months if year is selected
+  const [activePanel, setActivePanel] = useState(selections.years.length > 0 ? 'months' : 'years');
   const [isOpen, setIsOpen] = useState(false);
   
   // Compute the period type based on selections
@@ -111,29 +111,29 @@ const FilterBar = () => {
   const ActivePanelComponent = panels[activePanel].component;
   
   return (
-    <div className="bg-white/95 backdrop-blur-xl p-4 rounded-2xl shadow-lg border border-white/20">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+    <div className="bg-white/95 backdrop-blur-xl p-2 rounded-xl shadow-sm border border-neutral-light/50">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
           {/* Panel Selector */}
-          <div className="inline-flex bg-neutral-light rounded-xl p-1 shadow-inner">
+          <div className="inline-flex bg-neutral-light/50 rounded-lg p-0.5">
             {Object.entries(panels).map(([key, panel]) => (
               <motion.button
                 key={key}
                 onClick={() => setActivePanel(key)}
                 className={`
-                  relative px-6 py-2 rounded-lg text-sm font-medium transition-all
+                  relative px-4 py-1 rounded-md text-xs font-medium transition-all
                   ${activePanel === key
                     ? 'text-white'
                     : 'text-neutral-dark hover:text-primary'
                   }
                 `}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+                whileHover={{ scale: 1.01 }}
+                whileTap={{ scale: 0.99 }}
               >
                 {activePanel === key && (
                   <motion.div
                     layoutId="activePanel"
-                    className="absolute inset-0 bg-primary rounded-lg shadow-md"
+                    className="absolute inset-0 bg-primary rounded-md shadow-sm"
                     initial={false}
                     transition={{
                       type: "spring",
@@ -151,11 +151,11 @@ const FilterBar = () => {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className={`
-              flex items-center gap-3 px-4 py-2.5 rounded-xl
-              bg-white border transition-all min-w-[200px]
+              flex items-center gap-2 px-3 py-1.5 rounded-lg
+              bg-white border transition-all min-w-[180px]
               ${isOpen 
-                ? 'border-primary shadow-lg scale-[1.02]' 
-                : 'border-neutral-light hover:border-neutral-mid hover:shadow-md'
+                ? 'border-primary shadow-sm' 
+                : 'border-neutral-light hover:border-neutral-mid hover:shadow-sm'
               }
             `}
           >
@@ -178,7 +178,7 @@ const FilterBar = () => {
         <img 
           src={companyLogo} 
           alt="Company Logo" 
-          className="h-10 w-auto object-contain"
+          className="h-8 w-auto object-contain"
         />
       </div>
       
@@ -188,7 +188,7 @@ const FilterBar = () => {
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
           exit={{ opacity: 0, height: 0 }}
-          className="mt-4 p-4 bg-neutral-light/50 rounded-xl"
+          className="mt-2 p-2 bg-neutral-light/30 rounded-lg"
         >
           <ActivePanelComponent
             selections={selections[activePanel]}
@@ -197,14 +197,6 @@ const FilterBar = () => {
           />
         </motion.div>
       )}
-      
-      {/* Full Active Filters Display */}
-      <div className="mt-4">
-        <ActiveFiltersDisplay 
-          selections={selections}
-          compact={false}
-        />
-      </div>
     </div>
   );
 };

@@ -116,7 +116,7 @@ const Overview = () => {
       {/* Toolbar */}
       <ToolbarSection
         title={`Executive Overview - ${periodFilter.year}`}
-        subtitle={`${dataService.getPeriodLabel(periodFilter.period)} performance metrics and key insights`}
+        subtitle={`${dataService.getPeriodLabel(periodFilter.period, periodFilter.month, periodFilter.quarter)} performance metrics and key insights`}
       >
         <ExportButton 
           dashboardRef={dashboardRef}

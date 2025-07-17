@@ -54,26 +54,26 @@ const MonthSelector = ({ selections = [], onChange, disabled }) => {
   }
   
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-neutral-dark">Select Months</h3>
-        <div className="flex gap-2">
+        <h3 className="text-xs font-medium text-neutral-dark">Select Months</h3>
+        <div className="flex gap-1">
           <button
             onClick={handleSelectAll}
-            className="text-xs px-2 py-1 rounded text-primary hover:bg-primary/10 transition-colors"
+            className="text-[10px] px-1.5 py-0.5 rounded text-primary hover:bg-primary/10 transition-colors"
           >
-            Select All
+            All
           </button>
           <button
             onClick={handleClearAll}
-            className="text-xs px-2 py-1 rounded text-neutral-mid hover:bg-neutral-light transition-colors"
+            className="text-[10px] px-1.5 py-0.5 rounded text-neutral-mid hover:bg-neutral-light transition-colors"
           >
             Clear
           </button>
         </div>
       </div>
       
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-1">
         {months.map((month, index) => {
           const isSelected = selections.includes(month.value);
           const isCurrent = month.value === currentMonth;
@@ -84,21 +84,21 @@ const MonthSelector = ({ selections = [], onChange, disabled }) => {
               onClick={() => handleToggle(month.value)}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.02 }}
+              transition={{ delay: index * 0.01 }}
               className={`
-                relative p-3 rounded-lg border transition-all
+                relative p-2 rounded-md border transition-all
                 ${isSelected
                   ? 'bg-primary/10 border-primary text-primary'
                   : 'bg-white border-neutral-light hover:border-neutral-mid'
                 }
               `}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
             >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">{month.short}</span>
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-xs font-medium">{month.short}</span>
                 <div className={`
-                  w-4 h-4 rounded border-2 flex items-center justify-center transition-all
+                  w-3 h-3 rounded border flex items-center justify-center transition-all
                   ${isSelected
                     ? 'bg-primary border-primary'
                     : 'bg-white border-neutral-mid'
@@ -110,7 +110,7 @@ const MonthSelector = ({ selections = [], onChange, disabled }) => {
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     >
-                      <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                      <Check className="w-2 h-2 text-white" strokeWidth={3} />
                     </motion.div>
                   )}
                 </div>
