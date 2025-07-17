@@ -93,7 +93,7 @@ const QuarterSelector = ({ selections = [], onChange, disabled }) => {
                   <div className="text-[10px] text-neutral-mid">{quarter.months}</div>
                 </div>
                 <div className={`
-                  w-4 h-4 rounded border flex items-center justify-center transition-all
+                  w-3 h-3 rounded border flex items-center justify-center transition-all
                   ${isSelected
                     ? 'bg-primary border-primary'
                     : 'bg-white border-neutral-mid'
@@ -105,7 +105,7 @@ const QuarterSelector = ({ selections = [], onChange, disabled }) => {
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 500, damping: 30 }}
                     >
-                      <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
+                      <Check className="w-2 h-2 text-white" strokeWidth={3} />
                     </motion.div>
                   )}
                 </div>

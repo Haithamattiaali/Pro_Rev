@@ -45,9 +45,9 @@ const ActiveFiltersDisplay = ({ selections, compact = false }) => {
   
   if (compact) {
     return (
-      <div className="text-xs">
-        <div className="font-medium text-neutral-dark">{primary}</div>
-        <div className="text-[10px] text-neutral-mid">{secondary}</div>
+      <div className="text-[10px]">
+        <div className="font-medium text-neutral-dark truncate">{primary}</div>
+        <div className="text-[9px] text-neutral-mid truncate">{secondary}</div>
       </div>
     );
   }

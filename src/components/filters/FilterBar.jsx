@@ -1,5 +1,5 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, ChevronDown } from 'lucide-react';
 import { useFilter } from '../../contexts/FilterContext';
 import YearSelector from './YearSelector';
@@ -10,19 +10,48 @@ import companyLogo from '../../assets/logo.png';
 import { debounce } from 'lodash';
 
 const FilterBar = () => {
-  const { handlePeriodChange } = useFilter();
-  const currentYear = new Date().getFullYear();
+  const { handlePeriodChange, periodFilter } = useFilter();
+  const dropdownRef = useRef(null);
   
-  // Single source of truth for selections
+  // Initialize selections from FilterContext to maintain persistence
   const [selections, setSelections] = useState({
-    years: [currentYear],
-    months: [],
-    quarters: []
+    years: periodFilter.selectedYears || [],
+    months: periodFilter.selectedMonths || [],
+    quarters: periodFilter.selectedQuarters || []
   });
   
-  // Track active panel - default to months if year is selected
-  const [activePanel, setActivePanel] = useState(selections.years.length > 0 ? 'months' : 'years');
+  // Track active panel based on current selections
+  const getDefaultPanel = () => {
+    if (selections.months.length > 0) return 'months';
+    if (selections.quarters.length > 0) return 'quarters';
+    return selections.years.length > 0 ? 'months' : 'years';
+  };
+  
+  const [activePanel, setActivePanel] = useState(getDefaultPanel());
   const [isOpen, setIsOpen] = useState(false);
+  
+  // Sync with FilterContext changes
+  useEffect(() => {
+    setSelections({
+      years: periodFilter.selectedYears || [],
+      months: periodFilter.selectedMonths || [],
+      quarters: periodFilter.selectedQuarters || []
+    });
+  }, [periodFilter.selectedYears, periodFilter.selectedMonths, periodFilter.selectedQuarters]);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isOpen]);
   
   // Compute the period type based on selections
   const getPeriodType = useCallback((sel) => {
@@ -111,24 +140,24 @@ const FilterBar = () => {
   const ActivePanelComponent = panels[activePanel].component;
   
   return (
-    <div className="bg-white/95 backdrop-blur-xl p-2 rounded-xl shadow-sm border border-neutral-light/50">
+    <div ref={dropdownRef} className="bg-white/95 backdrop-blur-xl p-1.5 rounded-xl shadow-sm border border-neutral-light/50">
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {/* Panel Selector */}
-          <div className="inline-flex bg-neutral-light/50 rounded-lg p-0.5">
+          <div className="inline-flex bg-neutral-light/50 rounded-md p-0.5">
             {Object.entries(panels).map(([key, panel]) => (
               <motion.button
                 key={key}
                 onClick={() => setActivePanel(key)}
                 className={`
-                  relative px-4 py-1 rounded-md text-xs font-medium transition-all
+                  relative px-2 py-0.5 rounded text-[10px] font-medium transition-all
                   ${activePanel === key
                     ? 'text-white'
                     : 'text-neutral-dark hover:text-primary'
                   }
                 `}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 {activePanel === key && (
                   <motion.div
@@ -151,15 +180,15 @@ const FilterBar = () => {
           <button
             onClick={() => setIsOpen(!isOpen)}
             className={`
-              flex items-center gap-2 px-3 py-1.5 rounded-lg
-              bg-white border transition-all min-w-[180px]
+              flex items-center gap-1.5 px-2 py-1 rounded-md
+              bg-white border transition-all min-w-[140px] max-w-[200px]
               ${isOpen 
                 ? 'border-primary shadow-sm' 
                 : 'border-neutral-light hover:border-neutral-mid hover:shadow-sm'
               }
             `}
           >
-            <div className="flex-1 text-left">
+            <div className="flex-1 text-left truncate">
               <ActiveFiltersDisplay 
                 selections={selections}
                 compact={true}
@@ -167,9 +196,9 @@ const FilterBar = () => {
             </div>
             <motion.div
               animate={{ rotate: isOpen ? 180 : 0 }}
-              transition={{ duration: 0.2 }}
+              transition={{ duration: 0.15 }}
             >
-              <ChevronDown className="w-4 h-4 text-neutral-mid" />
+              <ChevronDown className="w-3 h-3 text-neutral-mid flex-shrink-0" />
             </motion.div>
           </button>
         </div>
@@ -178,25 +207,31 @@ const FilterBar = () => {
         <img 
           src={companyLogo} 
           alt="Company Logo" 
-          className="h-8 w-auto object-contain"
+          className="h-6 w-auto object-contain"
         />
       </div>
       
       {/* Expanded Panel */}
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          exit={{ opacity: 0, height: 0 }}
-          className="mt-2 p-2 bg-neutral-light/30 rounded-lg"
-        >
-          <ActivePanelComponent
-            selections={selections[activePanel]}
-            onChange={(values) => handleSelectionChange(activePanel, values)}
-            disabled={activePanel !== 'years' && selections.years.length === 0}
-          />
-        </motion.div>
-      )}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -10 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
+            className="absolute left-0 right-0 top-full mt-1 p-1 bg-white/95 backdrop-blur-xl rounded-lg shadow-lg border border-neutral-light/50 overflow-hidden z-50"
+            style={{ maxWidth: '100%' }}
+          >
+            <div className="max-h-[240px] overflow-y-auto">
+              <ActivePanelComponent
+                selections={selections[activePanel]}
+                onChange={(values) => handleSelectionChange(activePanel, values)}
+                disabled={activePanel !== 'years' && selections.years.length === 0}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
