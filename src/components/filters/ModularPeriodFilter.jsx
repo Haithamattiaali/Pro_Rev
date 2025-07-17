@@ -187,6 +187,12 @@ const ModularPeriodFilter = ({ disableValidation = false }) => {
     });
     
     // Auto-apply changes immediately
+    console.log('🎯 ModularPeriodFilter: Selection changed', {
+      mode: activeMode,
+      newSelection,
+      key: currentConfig.key,
+      pendingState: { ...pendingFilter, [currentConfig.key]: newSelection }
+    });
     setTimeout(() => {
       applyFilters();
     }, 0);

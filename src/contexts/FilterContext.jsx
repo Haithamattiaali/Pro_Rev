@@ -96,6 +96,7 @@ export const FilterProvider = ({ children }) => {
 
   // Handle pending changes (before applying)
   const handlePendingChange = (filterConfig) => {
+    console.log('🔍 FilterContext: handlePendingChange called with:', filterConfig);
     setPendingFilter(prev => {
       const newFilter = {
         ...prev,
@@ -111,6 +112,7 @@ export const FilterProvider = ({ children }) => {
         newFilter.selectedMonths = [];
       }
       
+      console.log('🔍 FilterContext: New pending filter state:', newFilter);
       return newFilter;
     });
   };
@@ -155,8 +157,19 @@ export const FilterProvider = ({ children }) => {
     }
     
     console.log('🔄 Applying filters:', {
-      from: { period: periodFilter.period, year: periodFilter.year, month: periodFilter.month },
-      to: { period: newFilter.period, year: newFilter.year, month: newFilter.month }
+      from: { 
+        period: periodFilter.period, 
+        year: periodFilter.year, 
+        month: periodFilter.month,
+        selectedMonths: periodFilter.selectedMonths 
+      },
+      to: { 
+        period: newFilter.period, 
+        year: newFilter.year, 
+        month: newFilter.month,
+        selectedMonths: newFilter.selectedMonths,
+        pendingMonths: pendingFilter.selectedMonths
+      }
     });
     
     setPeriodFilter(newFilter);
