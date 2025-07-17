@@ -33,11 +33,11 @@ const ModularPeriodFilter = ({ disableValidation = false }) => {
     selectedYears = [],
   } = pendingFilter;
 
-  // Get applied selections for display when popover is closed
-  const appliedSelections = {
-    months: periodFilter.selectedMonths || [],
-    quarters: periodFilter.selectedQuarters || [],
-    years: periodFilter.selectedYears || []
+  // Use pending selections for immediate visual feedback
+  const displaySelections = {
+    months: selectedMonths,
+    quarters: selectedQuarters,
+    years: selectedYears
   };
 
   // Get current date info for highlighting
@@ -356,11 +356,11 @@ const ModularPeriodFilter = ({ disableValidation = false }) => {
               >
                 <div className="flex-1 text-left">
                   <PeriodChips
-                    selections={appliedSelections}
+                    selections={displaySelections}
                     modeConfig={modeConfig}
-                    onRemove={null}
+                    onRemove={handleChipRemove}
                     maxDisplay={3}
-                    interactive={false}
+                    interactive={true}
                   />
                 </div>
                 <motion.div

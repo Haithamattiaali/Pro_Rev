@@ -32,6 +32,15 @@ const Overview = () => {
       setLoading(true);
       setError(null);
       
+      console.log('📊 Overview: Fetching data with filters:', {
+        year: periodFilter.year,
+        period: periodFilter.period,
+        month: periodFilter.month,
+        quarter: periodFilter.quarter,
+        selectedMonths: periodFilter.selectedMonths,
+        selectedYears: periodFilter.selectedYears
+      });
+      
       try {
         const data = await dataService.getOverviewData(
           periodFilter.year, 
@@ -39,6 +48,11 @@ const Overview = () => {
           periodFilter.month,
           periodFilter.quarter
         );
+        console.log('📊 Overview: Received data:', {
+          revenue: data.overview?.revenue,
+          target: data.overview?.target,
+          serviceBreakdownCount: data.serviceBreakdown?.length
+        });
         setOverviewData(data);
       } catch (err) {
         console.error('Error fetching overview data:', err);

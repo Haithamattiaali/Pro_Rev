@@ -159,10 +159,8 @@ const MultiSelectPanel = ({
           const isNonCompliant = nonCompliantItems.includes(item.shortLabel) || nonCompliantItems.includes(item.label);
           const missingData = missingDataDetails[item.shortLabel] || missingDataDetails[item.label];
           
-          // Check if this is the current period
-          const isCurrent = (modeType === 'M' && item.value === currentMonth) ||
-                           (modeType === 'Q' && item.value === currentQuarter) ||
-                           (modeType === 'Y' && item.value === currentYear);
+          // Disable current period highlighting as it's not required
+          const isCurrent = false;
 
           return (
             <motion.div

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import dataService from '../services/dataService';
 
 const FilterContext = createContext();
 
@@ -41,7 +42,9 @@ export const FilterProvider = ({ children }) => {
   // Track if there are unsaved changes
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Update legacy values when multi-select changes
+  // This effect is no longer needed as we compute values in applyFilters
+  // Commenting out to prevent circular updates
+  /*
   useEffect(() => {
     const { selectedMonths, selectedQuarters, selectedYears } = periodFilter;
     
@@ -79,6 +82,7 @@ export const FilterProvider = ({ children }) => {
       setPeriodFilter(updates);
     }
   }, [periodFilter.selectedMonths, periodFilter.selectedQuarters, periodFilter.selectedYears]);
+  */
 
   // Check if pending changes differ from applied filters
   useEffect(() => {
@@ -113,13 +117,49 @@ export const FilterProvider = ({ children }) => {
 
   // Apply pending changes to active filters
   const applyFilters = () => {
-    setPeriodFilter(prev => ({
-      ...prev,
+    // Clear the data cache to ensure fresh data is fetched
+    dataService.clearCache();
+    
+    const newFilter = {
+      ...periodFilter,
       selectedMonths: pendingFilter.selectedMonths,
       selectedQuarters: pendingFilter.selectedQuarters,
       selectedYears: pendingFilter.selectedYears,
       activeMode: pendingFilter.activeMode
-    }));
+    };
+    
+    // Compute period and year values immediately
+    if (pendingFilter.selectedYears.length === 0) {
+      newFilter.period = 'NONE';
+      newFilter.year = null;
+      newFilter.month = null;
+      newFilter.quarter = null;
+    } else if (pendingFilter.selectedMonths.length === 0 && pendingFilter.selectedQuarters.length === 0) {
+      // Only year selected, show full year
+      newFilter.period = 'YTD';
+      newFilter.year = pendingFilter.selectedYears[0];
+      newFilter.month = null;
+      newFilter.quarter = null;
+    } else if (pendingFilter.selectedMonths.length > 0) {
+      // Months selected
+      newFilter.period = 'MTD';
+      newFilter.year = pendingFilter.selectedYears[0];
+      newFilter.month = pendingFilter.selectedMonths[0];
+      newFilter.quarter = null;
+    } else if (pendingFilter.selectedQuarters.length > 0) {
+      // Quarters selected
+      newFilter.period = 'QTD';
+      newFilter.year = pendingFilter.selectedYears[0];
+      newFilter.month = null;
+      newFilter.quarter = pendingFilter.selectedQuarters[0];
+    }
+    
+    console.log('🔄 Applying filters:', {
+      from: { period: periodFilter.period, year: periodFilter.year, month: periodFilter.month },
+      to: { period: newFilter.period, year: newFilter.year, month: newFilter.month }
+    });
+    
+    setPeriodFilter(newFilter);
     setHasChanges(false);
   };
 
@@ -136,13 +176,50 @@ export const FilterProvider = ({ children }) => {
 
   // Legacy handlePeriodChange for backward compatibility
   const handlePeriodChange = (filterConfig) => {
+    // Clear cache when filters change
+    dataService.clearCache();
+    
     // Handle both new multi-select format and legacy format
     if ('selectedMonths' in filterConfig || 'selectedQuarters' in filterConfig || 'selectedYears' in filterConfig) {
-      // New format - apply immediately for legacy components
-      setPeriodFilter(prev => ({
-        ...prev,
+      // New format - compute period and year values
+      const newFilter = {
+        ...periodFilter,
         ...filterConfig
-      }));
+      };
+      
+      // Compute period and year values based on selections
+      const { selectedMonths = [], selectedQuarters = [], selectedYears = [] } = newFilter;
+      
+      if (selectedYears.length === 0) {
+        newFilter.period = 'NONE';
+        newFilter.year = null;
+        newFilter.month = null;
+        newFilter.quarter = null;
+      } else if (selectedMonths.length === 0 && selectedQuarters.length === 0) {
+        newFilter.period = 'YTD';
+        newFilter.year = selectedYears[0];
+        newFilter.month = null;
+        newFilter.quarter = null;
+      } else if (selectedMonths.length > 0) {
+        newFilter.period = 'MTD';
+        newFilter.year = selectedYears[0];
+        newFilter.month = selectedMonths[0];
+        newFilter.quarter = null;
+      } else if (selectedQuarters.length > 0) {
+        newFilter.period = 'QTD';
+        newFilter.year = selectedYears[0];
+        newFilter.month = null;
+        newFilter.quarter = selectedQuarters[0];
+      }
+      
+      console.log('📊 Filter change (multi-select):', {
+        period: newFilter.period,
+        year: newFilter.year,
+        month: newFilter.month,
+        selections: { months: selectedMonths, quarters: selectedQuarters, years: selectedYears }
+      });
+      
+      setPeriodFilter(newFilter);
       // Also update pending to keep in sync
       setPendingFilter(prev => ({
         ...prev,
@@ -181,7 +258,7 @@ export const FilterProvider = ({ children }) => {
         selectedMonths: updates.selectedMonths,
         selectedQuarters: updates.selectedQuarters,
         selectedYears: updates.selectedYears,
-        activeMode: updates.activeMode || 'M'
+        activeMode: updates.activeMode || 'Y'
       });
     }
   };

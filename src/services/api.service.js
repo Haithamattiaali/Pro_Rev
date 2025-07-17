@@ -24,6 +24,7 @@ class ApiService {
     let url = `/overview?year=${year}&period=${period}`;
     if (month !== null) url += `&month=${month}`;
     if (quarter !== null) url += `&quarter=${quarter}`;
+    console.log('🌐 API: Requesting overview data:', url);
     return this.request(url);
   }
 
