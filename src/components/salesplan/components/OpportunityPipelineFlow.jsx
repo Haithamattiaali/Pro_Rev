@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { ChevronRight, AlertCircle, CheckCircle, Clock, Building2, Package, MapPin, TrendingUp } from 'lucide-react'
+import { ChevronRight, AlertCircle, CheckCircle, Clock, Building2, Package, MapPin, TrendingUp, PlayCircle, FileText, PenTool, XCircle } from 'lucide-react'
 import { formatCurrency } from '../../../utils/formatters'
 
 const OpportunityPipelineFlow = ({ pipeline }) => {
@@ -24,47 +24,50 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
   
   // Define stage colors and icons using brand colors
   const getStageStyle = (stage) => {
-    switch (stage.order) {
-      case 0:
-        return {
-          color: 'bg-neutral-mid',
-          lightColor: 'bg-neutral-light',
-          borderColor: 'border-neutral-mid/30',
-          textColor: 'text-neutral-mid',
-          icon: AlertCircle
-        }
-      case 1:
-        return {
-          color: 'bg-secondary',
-          lightColor: 'bg-secondary-pale',
-          borderColor: 'border-secondary/30',
-          textColor: 'text-secondary',
-          icon: Clock
-        }
-      case 2:
-        return {
-          color: 'bg-accent-blue',
-          lightColor: 'bg-accent-blue/10',
-          borderColor: 'border-accent-blue/30',
-          textColor: 'text-accent-blue',
-          icon: AlertCircle
-        }
-      case 3:
-        return {
-          color: 'bg-primary',
-          lightColor: 'bg-primary-light/10',
-          borderColor: 'border-primary/30',
-          textColor: 'text-primary',
-          icon: CheckCircle
-        }
-      default:
-        return {
-          color: 'bg-neutral-mid',
-          lightColor: 'bg-neutral-light',
-          borderColor: 'border-neutral-mid/30',
-          textColor: 'text-neutral-mid',
-          icon: ChevronRight
-        }
+    // Map stages based on their name instead of order for better clarity
+    const stageName = stage.stage?.toLowerCase() || ''
+    
+    if (stageName.includes('running')) {
+      return {
+        color: 'bg-primary',
+        lightColor: 'bg-primary-light/10',
+        borderColor: 'border-primary/30',
+        textColor: 'text-primary',
+        icon: PlayCircle
+      }
+    } else if (stageName.includes('contract') || stageName.includes('review')) {
+      return {
+        color: 'bg-accent-blue',
+        lightColor: 'bg-accent-blue/10',
+        borderColor: 'border-accent-blue/30',
+        textColor: 'text-accent-blue',
+        icon: FileText
+      }
+    } else if (stageName.includes('signing') || stageName.includes('sign')) {
+      return {
+        color: 'bg-secondary',
+        lightColor: 'bg-secondary-pale',
+        borderColor: 'border-secondary/30',
+        textColor: 'text-secondary',
+        icon: PenTool
+      }
+    } else if (stageName.includes('no status') || stageName === 'no status') {
+      return {
+        color: 'bg-neutral-mid',
+        lightColor: 'bg-neutral-light',
+        borderColor: 'border-neutral-mid/30',
+        textColor: 'text-neutral-mid',
+        icon: XCircle
+      }
+    } else {
+      // Default fallback
+      return {
+        color: 'bg-neutral-mid',
+        lightColor: 'bg-neutral-light',
+        borderColor: 'border-neutral-mid/30',
+        textColor: 'text-neutral-mid',
+        icon: AlertCircle
+      }
     }
   }
   
@@ -232,7 +235,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                               cx="16"
                               cy="16"
                               r="14"
-                              stroke={style.color.replace('bg-', '#').replace('primary', '9e1f63').replace('secondary', '424046').replace('accent-blue', '005b8c').replace('neutral-mid', '717171')}
+                              stroke={style.color.replace('bg-primary', '#9e1f63').replace('bg-secondary', '#424046').replace('bg-accent-blue', '#005b8c').replace('bg-neutral-mid', '#717171')}
                               strokeWidth="2"
                               fill="none"
                               strokeDasharray={`${(((index + 1) / pipeline.pipeline.length) * 88)} 88`}
