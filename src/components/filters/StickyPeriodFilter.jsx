@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ModularPeriodFilter from './ModularPeriodFilter';
 import FilterBar from './FilterBar';
+import FilterSystemWrapper from './FilterSystemWrapper';
 
-const StickyPeriodFilter = ({ useModular = true, useNewFilterBar = true, disableValidation = false }) => {
+const StickyPeriodFilter = ({ useModular = true, useNewFilterBar = true, useHierarchical = false, disableValidation = false }) => {
   const [isSticky, setIsSticky] = useState(false);
   const placeholderRef = useRef(null);
 
@@ -22,8 +23,13 @@ const StickyPeriodFilter = ({ useModular = true, useNewFilterBar = true, disable
     return () => mainElement.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Use new FilterBar by default
-  const FilterComponent = useNewFilterBar ? FilterBar : ModularPeriodFilter;
+  // Choose filter component based on props
+  const getFilterComponent = () => {
+    if (useHierarchical) {
+      return <FilterSystemWrapper useNewSystem={true} />;
+    }
+    return useNewFilterBar ? <FilterBar disableValidation={disableValidation} /> : <ModularPeriodFilter disableValidation={disableValidation} />;
+  };
 
   return (
     <>
@@ -31,7 +37,7 @@ const StickyPeriodFilter = ({ useModular = true, useNewFilterBar = true, disable
       <div ref={placeholderRef}>
         {/* Sticky version */}
         <div className={`relative ${isSticky ? 'fixed top-[64px] left-64 right-0 z-[100] bg-neutral-light px-6 pt-6 shadow-md' : ''}`}>
-          <FilterComponent disableValidation={disableValidation} />
+          {getFilterComponent()}
         </div>
         
         {/* Spacer when sticky */}
