@@ -194,49 +194,31 @@ export const FilterProvider = ({ children }) => {
     
     // Handle both new multi-select format and legacy format
     if ('selectedMonths' in filterConfig || 'selectedQuarters' in filterConfig || 'selectedYears' in filterConfig) {
-      // New format - compute period and year values
+      // New format - directly use provided values including computed period
       const newFilter = {
         ...periodFilter,
         ...filterConfig
       };
       
-      // Compute period and year values based on selections
-      const { selectedMonths = [], selectedQuarters = [], selectedYears = [] } = newFilter;
-      
-      if (selectedYears.length === 0) {
-        newFilter.period = 'NONE';
-        newFilter.year = null;
-        newFilter.month = null;
-        newFilter.quarter = null;
-      } else if (selectedMonths.length === 0 && selectedQuarters.length === 0) {
-        newFilter.period = 'YTD';
-        newFilter.year = selectedYears[0];
-        newFilter.month = null;
-        newFilter.quarter = null;
-      } else if (selectedMonths.length > 0) {
-        newFilter.period = 'MTD';
-        newFilter.year = selectedYears[0];
-        newFilter.month = selectedMonths[0];
-        newFilter.quarter = null;
-      } else if (selectedQuarters.length > 0) {
-        newFilter.period = 'QTD';
-        newFilter.year = selectedYears[0];
-        newFilter.month = null;
-        newFilter.quarter = selectedQuarters[0];
-      }
-      
       console.log('📊 Filter change (multi-select):', {
         period: newFilter.period,
         year: newFilter.year,
         month: newFilter.month,
-        selections: { months: selectedMonths, quarters: selectedQuarters, years: selectedYears }
+        selections: { 
+          months: newFilter.selectedMonths, 
+          quarters: newFilter.selectedQuarters, 
+          years: newFilter.selectedYears 
+        }
       });
       
       setPeriodFilter(newFilter);
       // Also update pending to keep in sync
       setPendingFilter(prev => ({
         ...prev,
-        ...filterConfig
+        selectedMonths: newFilter.selectedMonths || [],
+        selectedQuarters: newFilter.selectedQuarters || [],
+        selectedYears: newFilter.selectedYears || [],
+        activeMode: newFilter.activeMode || prev.activeMode
       }));
     } else {
       // Legacy format - convert to multi-select

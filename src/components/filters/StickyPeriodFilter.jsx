@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ModularPeriodFilter from './ModularPeriodFilter';
+import FilterBar from './FilterBar';
 
-const StickyPeriodFilter = ({ useModular = true, disableValidation = false }) => {
+const StickyPeriodFilter = ({ useModular = true, useNewFilterBar = true, disableValidation = false }) => {
   const [isSticky, setIsSticky] = useState(false);
   const placeholderRef = useRef(null);
 
@@ -21,8 +22,8 @@ const StickyPeriodFilter = ({ useModular = true, disableValidation = false }) =>
     return () => mainElement.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // For now, always use the new ModularPeriodFilter
-  const FilterComponent = ModularPeriodFilter;
+  // Use new FilterBar by default
+  const FilterComponent = useNewFilterBar ? FilterBar : ModularPeriodFilter;
 
   return (
     <>
