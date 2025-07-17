@@ -5,6 +5,9 @@ import { formatCurrency } from '../../../utils/formatters'
 const OpportunityPipelineFlow = ({ pipeline }) => {
   const [selectedStage, setSelectedStage] = useState(null)
   const [allOpportunities, setAllOpportunities] = useState([])
+  const [filterStage, setFilterStage] = useState('all') // 'all', 'running', 'contract review', 'signing', 'no status'
+  const [filterCity, setFilterCity] = useState('all')
+  const [filterService, setFilterService] = useState('all') // 'all', '2PL', '3PL'
   
   useEffect(() => {
     // Fetch all opportunities for the cards
@@ -43,6 +46,43 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
   }
   
   const sortedPipeline = sortStages(pipeline.pipeline)
+  
+  // Get unique cities and service types from opportunities
+  const uniqueCities = [...new Set(allOpportunities.map(opp => opp.location || 'Unknown').filter(loc => loc !== 'Unknown'))].sort()
+  const serviceTypes = ['2PL', '3PL']
+  
+  // Filter opportunities based on all active filters
+  const filteredOpportunities = allOpportunities.filter(opp => {
+    // Stage filter
+    if (filterStage !== 'all') {
+      const currentStage = sortedPipeline.find(stage => 
+        stage.projects?.some(p => p.project === opp.project)
+      )
+      if (currentStage?.stage?.toLowerCase() !== filterStage) return false
+    }
+    
+    // City filter
+    if (filterCity !== 'all' && opp.location !== filterCity) return false
+    
+    // Service filter
+    if (filterService !== 'all') {
+      const is2PL = opp.service?.includes('2PL')
+      const is3PL = !is2PL
+      if (filterService === '2PL' && !is2PL) return false
+      if (filterService === '3PL' && !is3PL) return false
+    }
+    
+    return true
+  })
+  
+  // Calculate dynamic analytics for filtered data
+  const filteredAnalytics = {
+    totalValue: filteredOpportunities.reduce((sum, opp) => sum + (opp.est_monthly_revenue || 0), 0),
+    avgGP: filteredOpportunities.length > 0 
+      ? filteredOpportunities.reduce((sum, opp) => sum + (opp.est_gp_percent || 0), 0) / filteredOpportunities.length
+      : 0,
+    count: filteredOpportunities.length
+  }
   
   // Define stage colors and icons using brand colors
   const getStageStyle = (stage) => {
@@ -118,7 +158,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
             </div>
             
             {/* Pipeline Metrics Summary */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
                 <p className="text-xs text-neutral-mid font-medium">Total Pipeline</p>
                 <p className="text-lg font-bold text-primary">
@@ -139,17 +179,6 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                     Math.max(sortedPipeline.reduce((sum, stage) => sum + (stage.count || 0), 0), 1)
                   )}
                 </p>
-              </div>
-              <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
-                <p className="text-xs text-neutral-mid font-medium">Pipeline Health</p>
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1">
-                    {[1,2,3,4,5].map(i => (
-                      <div key={i} className={`w-2 h-4 rounded-sm ${i <= 4 ? 'bg-primary' : 'bg-neutral-light'}`}></div>
-                    ))}
-                  </div>
-                  <span className="text-sm font-bold text-primary">Good</span>
-                </div>
               </div>
             </div>
           </div>
@@ -448,11 +477,178 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
         </div>
       </div>
       
-      {/* All Opportunity Cards */}
-      <div className="mt-8">
-        <h3 className="text-lg font-bold text-secondary mb-6">All Opportunities</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {allOpportunities.map((opp, index) => {
+      {/* All Opportunity Cards with Filters */}
+      <div className="mt-12 bg-gradient-to-br from-white to-secondary-pale/20 rounded-2xl shadow-lg border border-secondary-light/30 p-8">
+        {/* Dynamic Analytics Bar */}
+        <div className="mb-6 bg-gradient-to-r from-primary/10 via-accent-blue/10 to-secondary/10 rounded-xl p-4 border border-primary/20">
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="text-xs text-neutral-mid font-medium">Filtered Value</p>
+              <p className="text-2xl font-bold text-primary">{formatCurrency(filteredAnalytics.totalValue)}</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-mid font-medium">Average GP</p>
+              <p className="text-2xl font-bold text-accent-blue">{(filteredAnalytics.avgGP * 100).toFixed(1)}%</p>
+            </div>
+            <div>
+              <p className="text-xs text-neutral-mid font-medium">Opportunities</p>
+              <p className="text-2xl font-bold text-secondary">{filteredAnalytics.count}</p>
+            </div>
+          </div>
+        </div>
+        
+        {/* Header with Filters */}
+        <div className="mb-8">
+          <div className="flex flex-col gap-6">
+            <div>
+              <h3 className="text-2xl font-bold text-secondary">All Opportunities</h3>
+              <p className="text-sm text-neutral-mid mt-1">Use filters to analyze specific segments</p>
+            </div>
+            
+            {/* Filter Sections */}
+            <div className="space-y-4">
+              {/* Stage Filters */}
+              <div>
+                <p className="text-sm font-semibold text-primary mb-2">Pipeline Stage</p>
+                <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setFilterStage('all')}
+                className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                  filterStage === 'all' 
+                    ? 'bg-primary text-white shadow-lg' 
+                    : 'bg-white text-primary border border-primary/30 hover:border-primary hover:shadow-md hover:bg-primary/5'
+                }`}
+              >
+                All Stages
+                <span className="ml-2 text-xs font-bold bg-white/20 px-2 py-0.5 rounded-full">
+                  {allOpportunities.length}
+                </span>
+              </button>
+              
+              {sortedPipeline.map((stage) => {
+                const style = getStageStyle(stage)
+                const Icon = style.icon
+                const stageName = stage.stage?.toLowerCase() || ''
+                const count = allOpportunities.filter(opp => {
+                  const oppStage = sortedPipeline.find(s => 
+                    s.projects?.some(p => p.project === opp.project)
+                  )
+                  return oppStage?.stage?.toLowerCase() === stageName
+                }).length
+                
+                return (
+                  <button
+                    key={stage.stage}
+                    onClick={() => setFilterStage(stageName)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 ${
+                      filterStage === stageName 
+                        ? `${style.color} text-white shadow-lg` 
+                        : `bg-white ${style.textColor} border ${style.borderColor} hover:${style.lightColor} hover:shadow-md`
+                    }`}
+                  >
+                    <Icon className="w-4 h-4" />
+                    {stage.stage}
+                    <span className={`ml-1 text-xs font-bold px-2 py-0.5 rounded-full ${
+                      filterStage === stageName ? 'bg-white/20' : style.lightColor
+                    }`}>
+                      {count}
+                    </span>
+                  </button>
+                )
+              })}
+                </div>
+              </div>
+              
+              {/* Service Type Filters */}
+              <div>
+                <p className="text-sm font-semibold text-primary mb-2">Service Type</p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setFilterService('all')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                      filterService === 'all' 
+                        ? 'bg-primary text-white shadow-lg' 
+                        : 'bg-white text-primary border border-primary/30 hover:border-primary hover:shadow-md hover:bg-primary/5'
+                    }`}
+                  >
+                    All Services
+                  </button>
+                  {serviceTypes.map(service => {
+                    const count = allOpportunities.filter(opp => {
+                      const is2PL = opp.service?.includes('2PL')
+                      return service === '2PL' ? is2PL : !is2PL
+                    }).length
+                    const serviceColor = service === '2PL' ? 'primary' : 'accent-blue'
+                    
+                    return (
+                      <button
+                        key={service}
+                        onClick={() => setFilterService(service)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 ${
+                          filterService === service 
+                            ? `bg-${serviceColor} text-white shadow-lg` 
+                            : `bg-white text-${serviceColor} border border-${serviceColor}/30 hover:bg-${serviceColor}/10 hover:shadow-md`
+                        }`}
+                      >
+                        {service === '2PL' ? <Package className="w-4 h-4" /> : <Building2 className="w-4 h-4" />}
+                        {service}
+                        <span className={`ml-1 text-xs font-bold px-2 py-0.5 rounded-full ${
+                          filterService === service ? 'bg-white/20' : `bg-${serviceColor}/10`
+                        }`}>
+                          {count}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              
+              {/* City Filters */}
+              <div>
+                <p className="text-sm font-semibold text-primary mb-2">Location</p>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    onClick={() => setFilterCity('all')}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
+                      filterCity === 'all' 
+                        ? 'bg-primary text-white shadow-lg' 
+                        : 'bg-white text-primary border border-primary/30 hover:border-primary hover:shadow-md hover:bg-primary/5'
+                    }`}
+                  >
+                    All Locations
+                  </button>
+                  {uniqueCities.map(city => {
+                    const count = allOpportunities.filter(opp => opp.location === city).length
+                    
+                    return (
+                      <button
+                        key={city}
+                        onClick={() => setFilterCity(city)}
+                        className={`px-4 py-2 rounded-lg font-medium transition-all duration-300 flex items-center gap-2 ${
+                          filterCity === city 
+                            ? 'bg-primary text-white shadow-lg' 
+                            : 'bg-white text-primary border border-primary/30 hover:border-primary hover:shadow-md hover:bg-primary/5'
+                        }`}
+                      >
+                        <MapPin className="w-4 h-4" />
+                        {city}
+                        <span className={`ml-1 text-xs font-bold px-2 py-0.5 rounded-full ${
+                          filterCity === city ? 'bg-white/20' : 'bg-primary/10'
+                        }`}>
+                          {count}
+                        </span>
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Opportunities Grid with Better Separation */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {filteredOpportunities.map((opp, index) => {
             // Find which stage this opportunity belongs to
             const currentStage = sortedPipeline.find(stage => 
               stage.projects?.some(p => p.project === opp.project)
@@ -469,7 +665,14 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                                'text-accent-coral bg-accent-coral/10'
             
             return (
-              <div key={index} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-secondary-light/30">
+              <div 
+                key={index} 
+                className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-secondary-light/30 transform hover:-translate-y-1"
+                style={{
+                  animationDelay: `${index * 50}ms`,
+                  animation: 'fadeInUp 0.5s ease-out forwards'
+                }}
+              >
                 {/* Status Bar */}
                 <div className={`h-1 ${stageStyle.color}`}></div>
                 
@@ -536,7 +739,37 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
             )
           })}
         </div>
+        
+        {/* No Results Message */}
+        {filteredOpportunities.length === 0 && (
+          <div className="text-center py-12">
+            <p className="text-neutral-mid text-lg">No opportunities found matching your filters</p>
+            <button 
+              onClick={() => {
+                setFilterStage('all')
+                setFilterCity('all')
+                setFilterService('all')
+              }}
+              className="mt-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-colors"
+            >
+              Clear All Filters
+            </button>
+          </div>
+        )}
       </div>
+      
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   )
 }
