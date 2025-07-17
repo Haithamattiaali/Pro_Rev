@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, ChevronDown } from 'lucide-react';
 import { useFilter } from '../../contexts/FilterContext';
@@ -29,6 +30,8 @@ const FilterBar = () => {
   
   const [activePanel, setActivePanel] = useState(getDefaultPanel());
   const [isOpen, setIsOpen] = useState(false);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
+  const buttonRef = useRef(null);
   
   // Sync with FilterContext changes
   useEffect(() => {
@@ -39,17 +42,37 @@ const FilterBar = () => {
     });
   }, [periodFilter.selectedYears, periodFilter.selectedMonths, periodFilter.selectedQuarters]);
   
-  // Close dropdown when clicking outside
+  // Update dropdown position when opening
+  useEffect(() => {
+    if (isOpen && buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + 4,
+        left: rect.left
+      });
+    }
+  }, [isOpen]);
+  
+  // Close dropdown when clicking outside or scrolling
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target) && 
+          !event.target.closest('[data-dropdown-portal]')) {
         setIsOpen(false);
       }
     };
     
+    const handleScroll = () => {
+      setIsOpen(false);
+    };
+    
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
+      document.addEventListener('scroll', handleScroll, true);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+        document.removeEventListener('scroll', handleScroll, true);
+      };
     }
   }, [isOpen]);
   
@@ -178,6 +201,7 @@ const FilterBar = () => {
           
           {/* Selection Display */}
           <button
+            ref={buttonRef}
             onClick={() => setIsOpen(!isOpen)}
             className={`
               flex items-center gap-1 px-1.5 py-0.5 rounded-md
@@ -211,16 +235,22 @@ const FilterBar = () => {
         />
       </div>
       
-      {/* Expanded Panel */}
-      <AnimatePresence>
-        {isOpen && (
+      {/* Expanded Panel - Rendered via Portal */}
+      {isOpen && ReactDOM.createPortal(
+        <AnimatePresence>
           <motion.div
+            data-dropdown-portal
             initial={{ opacity: 0, scale: 0.95, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: -10 }}
             transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
-            className="absolute left-0 top-full mt-1 p-1 bg-white backdrop-blur-xl rounded-lg shadow-xl border border-neutral-light overflow-hidden"
-            style={{ width: '280px', zIndex: 9999 }}
+            className="fixed p-1 bg-white backdrop-blur-xl rounded-lg shadow-xl border border-neutral-light overflow-hidden"
+            style={{ 
+              width: '280px', 
+              zIndex: 99999,
+              top: `${dropdownPosition.top}px`,
+              left: `${dropdownPosition.left}px`
+            }}
           >
             <div className="max-h-[180px] overflow-y-auto">
               <ActivePanelComponent
@@ -230,8 +260,9 @@ const FilterBar = () => {
               />
             </div>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 };
