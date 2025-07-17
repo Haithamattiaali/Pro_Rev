@@ -111,7 +111,7 @@ const Overview = () => {
   return (
     <div className="space-y-6" ref={dashboardRef} data-dashboard="true">
       {/* Period Filter */}
-      <StickyPeriodFilter />
+      <StickyPeriodFilter useHierarchical={true} />
       
       {/* Toolbar */}
       <ToolbarSection

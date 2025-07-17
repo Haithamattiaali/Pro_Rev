@@ -106,7 +106,7 @@ const Customers = () => {
   if (!periodFilter.year || periodFilter.period === 'NONE') {
     return (
       <div className="space-y-6">
-        <StickyPeriodFilter />
+        <StickyPeriodFilter useHierarchical={true} />
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
@@ -123,7 +123,7 @@ const Customers = () => {
   return (
     <div className="space-y-6">
       {/* Period Filter */}
-      <StickyPeriodFilter />
+      <StickyPeriodFilter useHierarchical={true} />
       
       {/* Toolbar */}
       <ToolbarSection
