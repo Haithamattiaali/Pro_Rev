@@ -38,7 +38,8 @@ const Overview = () => {
         month: periodFilter.month,
         quarter: periodFilter.quarter,
         selectedMonths: periodFilter.selectedMonths,
-        selectedYears: periodFilter.selectedYears
+        selectedYears: periodFilter.selectedYears,
+        rawFilter: periodFilter
       });
       
       try {

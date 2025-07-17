@@ -21,7 +21,7 @@ export const FilterProvider = ({ children }) => {
     // Multi-select arrays (new)
     selectedMonths: [],
     selectedQuarters: [],
-    selectedYears: [currentYear], // Keep current year as default
+    selectedYears: [currentYear], // Default to current year
     activeMode: 'Y', // Start with year mode
     
     // Legacy single values (for backward compatibility)

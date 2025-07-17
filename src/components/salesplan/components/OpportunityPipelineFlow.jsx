@@ -187,7 +187,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
         {/* Pipeline Stages */}
         <div className="relative bg-white rounded-xl p-6 shadow-inner border border-secondary-light/10">
           {/* SVG Curved Paths */}
-          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }}>
+          <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 5 }} viewBox="0 0 100 100" preserveAspectRatio="none">
             <defs>
               <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
                 <stop offset="0%" stopColor="#9e1f63" stopOpacity="0.1" />
@@ -213,7 +213,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                   <g key={`path-${index}`}>
                     {/* Background Path */}
                     <path
-                      d={`M ${startX}% 50% Q ${(startX + endX) / 2}% ${50 - curveHeight}% ${endX}% 50%`}
+                      d={`M ${startX} 50 Q ${(startX + endX) / 2} ${50 - curveHeight} ${endX} 50`}
                       fill="none"
                       stroke="#e2e1e6"
                       strokeWidth="2"
@@ -223,7 +223,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                     {/* Active Path */}
                     {isActive && (
                       <path
-                        d={`M ${startX}% 50% Q ${(startX + endX) / 2}% ${50 - curveHeight}% ${endX}% 50%`}
+                        d={`M ${startX} 50 Q ${(startX + endX) / 2} ${50 - curveHeight} ${endX} 50`}
                         fill="none"
                         stroke="url(#pathGradient)"
                         strokeWidth="3"
@@ -237,7 +237,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                         <animateMotion
                           dur="3s"
                           repeatCount="indefinite"
-                          path={`M ${startX}% 50% Q ${(startX + endX) / 2}% ${50 - curveHeight}% ${endX}% 50%`}
+                          path={`M ${startX} 50 Q ${(startX + endX) / 2} ${50 - curveHeight} ${endX} 50`}
                         />
                       </circle>
                     )}
@@ -444,7 +444,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
             )}
           </div>
           
-          <style jsx>{`
+          <style>{`
             @keyframes slideIn {
               from {
                 opacity: 0;
@@ -758,7 +758,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
         )}
       </div>
       
-      <style jsx>{`
+      <style>{`
         @keyframes fadeInUp {
           from {
             opacity: 0;
