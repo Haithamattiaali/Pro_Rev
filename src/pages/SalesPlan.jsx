@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useFilter } from '../contexts/FilterContext'
+import { SalesPlanProvider, useSalesPlanData } from '../contexts/SalesPlanContext'
 import dataService from '../services/dataService'
 import MetricCard from '../components/cards/MetricCard'
 import { TrendingUp, FileSpreadsheet, Target } from 'lucide-react'
 import { ExportButton } from '../components/export'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import ToolbarSection from '../components/layout/ToolbarSection'
-import SalesPlanFilterSummary from '../components/salesplan/SalesPlanFilterSummary'
-
 // Import chart components
 import GLChart from '../components/salesplan/charts/GLChart'
 import BusinessUnitChart from '../components/salesplan/charts/BusinessUnitChart'
@@ -19,8 +18,9 @@ import GLTable from '../components/salesplan/tables/GLTable'
 import BusinessUnitTable from '../components/salesplan/tables/BusinessUnitTable'
 import MonthlyTable from '../components/salesplan/tables/MonthlyTable'
 
-const SalesPlan = () => {
+const SalesPlanContent = () => {
   const { periodFilter } = useFilter()
+  const { setActualDateRange } = useSalesPlanData()
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('gl')
   const dashboardRef = useRef(null)
@@ -96,6 +96,11 @@ const SalesPlan = () => {
         setBusinessUnitData(byBU)
         setMonthlyData(monthly)
         setOpportunitiesData(opportunities)
+        
+        // Update the actual date range in context
+        if (overview && overview.actualDateRange) {
+          setActualDateRange(overview.actualDateRange)
+        }
       } catch (error) {
         console.error('Error fetching sales plan data:', error)
       } finally {
@@ -152,9 +157,6 @@ const SalesPlan = () => {
     <div className="p-6 bg-neutral-light min-h-screen" ref={dashboardRef} data-dashboard="true">
       {/* Period Filter */}
       <StickyPeriodFilter useHierarchical={true} disableValidation={true} />
-      
-      {/* Custom Summary for Sales Plan */}
-      <SalesPlanFilterSummary />
 
       {/* Toolbar */}
       <ToolbarSection
@@ -301,6 +303,14 @@ const SalesPlan = () => {
         )}
       </div>
     </div>
+  )
+}
+
+const SalesPlan = () => {
+  return (
+    <SalesPlanProvider>
+      <SalesPlanContent />
+    </SalesPlanProvider>
   )
 }
 

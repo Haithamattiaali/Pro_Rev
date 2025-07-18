@@ -50,6 +50,21 @@ class SalesPlanService {
       
       const monthlyData = await db.all(monthlySql, [year, ...periodFilter.params, ...serviceParams]);
       
+      // Get actual date range from the monthly data
+      let actualDateRange = null;
+      if (monthlyData && monthlyData.length > 0) {
+        const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const months = monthlyData.map(d => d.month);
+        const sortedMonths = months.sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
+        
+        actualDateRange = {
+          firstMonth: sortedMonths[0],
+          lastMonth: sortedMonths[sortedMonths.length - 1],
+          monthCount: sortedMonths.length,
+          months: sortedMonths
+        };
+      }
+      
       // Get service type breakdown (only if not filtered by service)
       let serviceTypeData = [];
       if (!serviceType || serviceType === 'all') {
@@ -78,7 +93,8 @@ class SalesPlanService {
         monthlyData,
         serviceTypeData,
         year,
-        period
+        period,
+        actualDateRange
       };
     } catch (error) {
       console.error('Error getting sales plan overview:', error);

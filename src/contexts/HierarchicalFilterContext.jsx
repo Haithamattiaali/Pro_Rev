@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import dataService from '../services/dataService';
+import { useSalesPlanData } from './SalesPlanContext';
 
 const HierarchicalFilterContext = createContext();
 
@@ -18,6 +19,9 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
   const currentQuarter = Math.ceil(currentMonth / 3);
+  
+  // Get sales plan data if available
+  const { actualDateRange } = useSalesPlanData();
 
   // Core filter state
   const [filterState, setFilterState] = useState({
@@ -153,50 +157,67 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
       const period = validPeriods[0];
       
       if (viewMode === 'yearly') {
-        // For display purposes, always show calendar year range
-        startDate = new Date(year, 0, 1);
+        // For display purposes, show actual data range when available
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         
-        // For current year, show YTD up to current month
-        if (year === currentYear) {
-          endDate = new Date(year, currentMonth - 1, new Date(year, currentMonth, 0).getDate());
-          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          if (currentMonth === 12) {
-            displayLabel = `Full Year ${year}`;
+        // Check if we have sales plan actual date range
+        if (actualDateRange && actualDateRange.monthCount > 0) {
+          // Use actual data range from the backend
+          const firstMonthIndex = monthNames.indexOf(actualDateRange.firstMonth);
+          const lastMonthIndex = monthNames.indexOf(actualDateRange.lastMonth);
+          
+          startDate = new Date(year, firstMonthIndex, 1);
+          endDate = new Date(year, lastMonthIndex + 1, 0);
+          
+          if (actualDateRange.monthCount === 12) {
+            displayLabel = `Full Year ${year} Forecast`;
           } else {
-            displayLabel = `${year} (Jan-${monthNames[currentMonth - 1]})`;
+            displayLabel = `${year} Forecast (${actualDateRange.firstMonth}-${actualDateRange.lastMonth})`;
           }
         } else {
-          // For past years, check if we have full year data
-          const yearValidation = validationData[year];
-          if (yearValidation && yearValidation.compliantMonths && yearValidation.compliantMonths.length > 0) {
-            const monthMap = {
-              'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3,
-              'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7,
-              'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-            };
-            
-            const compliantMonthIndices = yearValidation.compliantMonths
-              .map(m => monthMap[m])
-              .filter(idx => idx !== undefined)
-              .sort((a, b) => a - b);
-            
-            if (compliantMonthIndices.length === 12) {
-              endDate = new Date(year, 11, 31);
+          // Default behavior when no actual date range is available
+          startDate = new Date(year, 0, 1);
+          
+          if (year === currentYear) {
+            endDate = new Date(year, currentMonth - 1, new Date(year, currentMonth, 0).getDate());
+            if (currentMonth === 12) {
               displayLabel = `Full Year ${year}`;
-            } else if (compliantMonthIndices.length > 0) {
-              // Show actual calendar range, but note if data is partial
-              const lastCompliantMonth = compliantMonthIndices[compliantMonthIndices.length - 1];
-              endDate = new Date(year, 11, 31);
-              const lastMonthName = yearValidation.compliantMonths.find(m => monthMap[m] === lastCompliantMonth);
-              displayLabel = `Full Year ${year}`;
-              // Data validation warnings will be shown separately
+            } else {
+              displayLabel = `${year} (Jan-${monthNames[currentMonth - 1]})`;
+            }
+          } else {
+            // For past years, check if we have full year data
+            const yearValidation = validationData[year];
+            if (yearValidation && yearValidation.compliantMonths && yearValidation.compliantMonths.length > 0) {
+              const monthMap = {
+                'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3,
+                'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7,
+                'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+              };
+              
+              const compliantMonthIndices = yearValidation.compliantMonths
+                .map(m => monthMap[m])
+                .filter(idx => idx !== undefined)
+                .sort((a, b) => a - b);
+              
+              if (compliantMonthIndices.length === 12) {
+                endDate = new Date(year, 11, 31);
+                displayLabel = `Full Year ${year}`;
+              } else if (compliantMonthIndices.length > 0) {
+                // Show actual calendar range, but note if data is partial
+                const lastCompliantMonth = compliantMonthIndices[compliantMonthIndices.length - 1];
+                endDate = new Date(year, 11, 31);
+                const lastMonthName = yearValidation.compliantMonths.find(m => monthMap[m] === lastCompliantMonth);
+                displayLabel = `Full Year ${year}`;
+                // Data validation warnings will be shown separately
+              } else {
+                endDate = new Date(year, 11, 31);
+                displayLabel = `Full Year ${year}`;
+              }
             } else {
               endDate = new Date(year, 11, 31);
               displayLabel = `Full Year ${year}`;
             }
-          } else {
-            endDate = new Date(year, 11, 31);
-            displayLabel = `Full Year ${year}`;
           }
         }
         periodType = 'YTD';
@@ -294,16 +315,35 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
       
       switch (filterState.quickPreset) {
         case 'YTD':
-          startDate = new Date(currentYear, 0, 1);
-          endDate = today;
           const ytdMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          if (currentMonth === 12) {
-            displayLabel = `Full Year ${currentYear}`;
+          
+          // Check if we have sales plan actual date range
+          if (actualDateRange && actualDateRange.monthCount > 0) {
+            // Use actual data range from the backend
+            const firstMonthIndex = ytdMonthNames.indexOf(actualDateRange.firstMonth);
+            const lastMonthIndex = ytdMonthNames.indexOf(actualDateRange.lastMonth);
+            
+            startDate = new Date(currentYear, firstMonthIndex, 1);
+            endDate = new Date(currentYear, lastMonthIndex + 1, 0);
+            
+            if (actualDateRange.monthCount === 12) {
+              displayLabel = `Full Year ${currentYear} Forecast`;
+            } else {
+              displayLabel = `${currentYear} Forecast (${actualDateRange.firstMonth}-${actualDateRange.lastMonth})`;
+            }
+            isPartialPeriod = false; // Not partial when showing forecast data
           } else {
-            displayLabel = `${currentYear} (Jan-${ytdMonthNames[currentMonth - 1]})`;
+            // Default behavior
+            startDate = new Date(currentYear, 0, 1);
+            endDate = today;
+            if (currentMonth === 12) {
+              displayLabel = `Full Year ${currentYear}`;
+            } else {
+              displayLabel = `${currentYear} (Jan-${ytdMonthNames[currentMonth - 1]})`;
+            }
+            isPartialPeriod = true; // Always partial for current year YTD
           }
           periodType = 'YTD';
-          isPartialPeriod = true; // Always partial for current year YTD
           break;
           
         case 'QTD':
