@@ -4,6 +4,9 @@ import { motion } from 'framer-motion';
 
 const FilterSummary = ({ displayLabel, isPartialPeriod, dateRange, className = '' }) => {
   const formatDate = (date) => {
+    if (!date || isNaN(date.getTime())) {
+      return 'Invalid Date';
+    }
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   };
 
@@ -22,7 +25,10 @@ const FilterSummary = ({ displayLabel, isPartialPeriod, dateRange, className = '
           <h3 className="text-xs font-medium text-neutral-mid uppercase tracking-wide">Currently Showing</h3>
           <p className="text-base font-semibold text-primary mt-0.5">{displayLabel}</p>
           <p className="text-xs text-neutral-mid mt-1">
-            {formatDate(dateRange.start)} - {formatDate(dateRange.end)}
+            {dateRange && dateRange.start && dateRange.end 
+              ? `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`
+              : 'Date range not available'
+            }
           </p>
         </div>
         {isPartialPeriod && (

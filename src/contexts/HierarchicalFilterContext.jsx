@@ -114,13 +114,21 @@ export const HierarchicalFilterProvider = ({ children }) => {
         } else if (viewMode === 'monthly') {
           periods.forEach(period => {
             const month = parseInt(period);
-            dates.push(new Date(year, month - 1, 1), new Date(year, month, 0));
+            if (!isNaN(month) && month >= 1 && month <= 12) {
+              dates.push(new Date(year, month - 1, 1), new Date(year, month, 0));
+            }
           });
         }
       });
       
-      startDate = new Date(Math.min(...dates));
-      endDate = new Date(Math.max(...dates));
+      if (dates.length > 0) {
+        startDate = new Date(Math.min(...dates));
+        endDate = new Date(Math.max(...dates));
+      } else {
+        // Fallback to current year if no valid dates
+        startDate = new Date(currentYear, 0, 1);
+        endDate = new Date(currentYear, 11, 31);
+      }
       
       // Create display label for multi-select
       if (years.length > 1) {
@@ -152,8 +160,14 @@ export const HierarchicalFilterProvider = ({ children }) => {
         periodType = 'QTD';
       } else if (viewMode === 'monthly') {
         const month = parseInt(period);
-        startDate = new Date(year, month - 1, 1);
-        endDate = new Date(year, month, 0);
+        if (!isNaN(month) && month >= 1 && month <= 12) {
+          startDate = new Date(year, month - 1, 1);
+          endDate = new Date(year, month, 0);
+        } else {
+          // Fallback to January if invalid month
+          startDate = new Date(year, 0, 1);
+          endDate = new Date(year, 0, 31);
+        }
         
         const monthName = startDate.toLocaleString('en-US', { month: 'long' });
         displayLabel = `${monthName} ${year}`;
