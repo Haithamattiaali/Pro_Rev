@@ -262,7 +262,7 @@ class ExcelExportService {
       ['PROCEED REVENUE DASHBOARD - MONTHLY TRENDS'],
       [`Year: ${year}`],
       [],
-      ['Month', 'Revenue', 'Target', 'Achievement %', 'Cost', 'Profit', 'Profit Margin %']
+      ['Month', 'Days', 'Revenue', 'Target', 'Achievement %', 'Cost', 'Profit', 'Profit Margin %']
     ];
 
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -271,6 +271,7 @@ class ExcelExportService {
       data.forEach(month => {
         trendData.push([
           month.name,
+          month.days || 30,  // Include days data
           this.formatCurrency(month.revenue),
           this.formatCurrency(month.target),
           `${this.formatPercentage(month.achievement)}%`,
@@ -288,9 +289,13 @@ class ExcelExportService {
         profit: acc.profit + month.profit
       }), { revenue: 0, target: 0, cost: 0, profit: 0 });
 
+      // Calculate total days
+      const totalDays = data.reduce((acc, month) => acc + (month.days || 30), 0);
+      
       trendData.push([]);
       trendData.push([
         'TOTAL',
+        totalDays,
         this.formatCurrency(totals.revenue),
         this.formatCurrency(totals.target),
         `${this.formatPercentage(totals.target > 0 ? (totals.revenue / totals.target) * 100 : 0)}%`,
@@ -303,6 +308,7 @@ class ExcelExportService {
     const ws = XLSX.utils.aoa_to_sheet(trendData);
     ws['!cols'] = [
       { wch: 12 }, // Month
+      { wch: 10 }, // Days
       { wch: 15 }, // Revenue
       { wch: 15 }, // Target
       { wch: 15 }, // Achievement
@@ -484,12 +490,13 @@ class ExcelExportService {
       const monthlyData = [
         ['Monthly Breakdown'],
         [],
-        ['Month', 'Business Unit', 'Revenue', 'Cost', 'Profit']
+        ['Month', 'Days', 'Business Unit', 'Revenue', 'Cost', 'Profit']
       ];
       
       data.monthlyBreakdown.forEach(item => {
         monthlyData.push([
           item.month,
+          item.days || 30,  // Include days data
           item.businessUnit,
           this.formatCurrency(item.revenue),
           this.formatCurrency(item.cost),
@@ -498,7 +505,7 @@ class ExcelExportService {
       });
       
       const ws = XLSX.utils.aoa_to_sheet(monthlyData);
-      ws['!cols'] = [{ wch: 12 }, { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
+      ws['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 15 }];
       XLSX.utils.book_append_sheet(wb, ws, 'Monthly Breakdown');
     }
     
@@ -795,7 +802,7 @@ class ExcelExportService {
         ['Monthly Sales Plan Trend'],
         [`Year: ${year}`],
         [],
-        ['Month', 'Baseline Forecast', 'Opportunities', 'Total Forecast', 'Cumulative Forecast']
+        ['Month', 'Days', 'Baseline Forecast', 'Opportunities', 'Total Forecast', 'Cumulative Forecast']
       ];
       
       let cumulative = 0;
@@ -803,6 +810,7 @@ class ExcelExportService {
         cumulative += item.total_forecast || 0;
         monthlyData.push([
           item.month_name,
+          item.days || 30,  // Include days data
           this.formatCurrency(item.baseline_forecast),
           this.formatCurrency(item.opportunity_value),
           this.formatCurrency(item.total_forecast),
@@ -811,7 +819,7 @@ class ExcelExportService {
       });
       
       const wsMonthly = XLSX.utils.aoa_to_sheet(monthlyData);
-      wsMonthly['!cols'] = [{ wch: 12 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 20 }];
+      wsMonthly['!cols'] = [{ wch: 12 }, { wch: 10 }, { wch: 18 }, { wch: 18 }, { wch: 18 }, { wch: 20 }];
       XLSX.utils.book_append_sheet(wb, wsMonthly, 'Monthly Trend');
     }
     
