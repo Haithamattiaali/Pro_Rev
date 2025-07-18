@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import dataService from '../services/dataService';
 import { useSalesPlanData } from './SalesPlanContext';
 
@@ -19,6 +20,10 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;
   const currentQuarter = Math.ceil(currentMonth / 3);
+  
+  // Get current route
+  const location = useLocation();
+  const isOnSalesPlanPage = location.pathname === '/sales-plan';
   
   // Get sales plan data if available
   const { actualDateRange } = useSalesPlanData();
@@ -160,19 +165,22 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
         // For display purposes, show actual data range when available
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         
-        // Check if we have sales plan actual date range
-        if (actualDateRange && actualDateRange.monthCount > 0) {
-          // Use actual data range from the backend
-          const firstMonthIndex = monthNames.indexOf(actualDateRange.firstMonth);
-          const lastMonthIndex = monthNames.indexOf(actualDateRange.lastMonth);
+        // Check if we're on Sales Plan page
+        if (isOnSalesPlanPage) {
+          // For Sales Plan, always show full year for YTD
+          startDate = new Date(year, 0, 1);
+          endDate = new Date(year, 11, 31);
           
-          startDate = new Date(year, firstMonthIndex, 1);
-          endDate = new Date(year, lastMonthIndex + 1, 0);
-          
-          if (actualDateRange.monthCount === 12) {
-            displayLabel = `Full Year ${year} Forecast`;
+          // Use actual data range if available, otherwise show full year
+          if (actualDateRange && actualDateRange.monthCount > 0) {
+            if (actualDateRange.monthCount === 12) {
+              displayLabel = `Full Year ${year} Forecast`;
+            } else {
+              displayLabel = `${year} Forecast (${actualDateRange.firstMonth}-${actualDateRange.lastMonth})`;
+            }
           } else {
-            displayLabel = `${year} Forecast (${actualDateRange.firstMonth}-${actualDateRange.lastMonth})`;
+            // Default to full year forecast while data loads
+            displayLabel = `Full Year ${year} Forecast`;
           }
         } else {
           // Default behavior when no actual date range is available
@@ -317,23 +325,26 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
         case 'YTD':
           const ytdMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
           
-          // Check if we have sales plan actual date range
-          if (actualDateRange && actualDateRange.monthCount > 0) {
-            // Use actual data range from the backend
-            const firstMonthIndex = ytdMonthNames.indexOf(actualDateRange.firstMonth);
-            const lastMonthIndex = ytdMonthNames.indexOf(actualDateRange.lastMonth);
+          // Check if we're on Sales Plan page
+          if (isOnSalesPlanPage) {
+            // For Sales Plan, always show full year for YTD
+            startDate = new Date(currentYear, 0, 1);
+            endDate = new Date(currentYear, 11, 31);
             
-            startDate = new Date(currentYear, firstMonthIndex, 1);
-            endDate = new Date(currentYear, lastMonthIndex + 1, 0);
-            
-            if (actualDateRange.monthCount === 12) {
-              displayLabel = `Full Year ${currentYear} Forecast`;
+            // Use actual data range if available
+            if (actualDateRange && actualDateRange.monthCount > 0) {
+              if (actualDateRange.monthCount === 12) {
+                displayLabel = `Full Year ${currentYear} Forecast`;
+              } else {
+                displayLabel = `${currentYear} Forecast (${actualDateRange.firstMonth}-${actualDateRange.lastMonth})`;
+              }
             } else {
-              displayLabel = `${currentYear} Forecast (${actualDateRange.firstMonth}-${actualDateRange.lastMonth})`;
+              // Default to full year forecast
+              displayLabel = `Full Year ${currentYear} Forecast`;
             }
-            isPartialPeriod = false; // Not partial when showing forecast data
+            isPartialPeriod = false; // Not partial for forecast data
           } else {
-            // Default behavior
+            // Default behavior for other pages
             startDate = new Date(currentYear, 0, 1);
             endDate = today;
             if (currentMonth === 12) {
@@ -390,7 +401,7 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
       legacyMonth: viewMode === 'monthly' ? parseInt(selectedPeriod) : null,
       legacyQuarter: viewMode === 'quarterly' ? parseInt(selectedPeriod.replace('Q', '')) : null
     };
-  }, [filterState, currentYear, currentMonth, currentQuarter, validationData]);
+  }, [filterState, currentYear, currentMonth, currentQuarter, validationData, isOnSalesPlanPage, actualDateRange]);
 
   // Get available periods based on view mode and year
   const getAvailablePeriods = useCallback(() => {
