@@ -16,9 +16,9 @@ const FilterSystemWrapper = ({ useNewSystem = true, ...props }) => {
   // Create a debounced update function to prevent rapid sync updates
   const debouncedSync = useCallback(
     debounce((params) => {
-      console.log('🔄 FilterSystemWrapper: debouncedSync called with:', params);
+      // console.log('🔄 FilterSystemWrapper: debouncedSync called with:', params);
       handlePeriodChange(params);
-    }, 100), // 100ms debounce to prevent flashing
+    }, 300), // 300ms debounce to prevent flashing and reduce rapid updates
     [handlePeriodChange]
   );
 
@@ -29,10 +29,18 @@ const FilterSystemWrapper = ({ useNewSystem = true, ...props }) => {
     const params = hierarchicalFilter.getApiParameters();
     const { filterState } = hierarchicalFilter;
     
-    // Create a stable key for comparison to prevent infinite loops
-    const updateKey = filterState.multiSelectMode 
-      ? `${filterState.selectedYears.join(',')}-${filterState.selectedPeriods.join(',')}-${filterState.viewMode}`
-      : `${params.year}-${params.period}-${params.month}-${params.quarter}`;
+    // Create a more comprehensive key including all relevant state
+    const updateKey = JSON.stringify({
+      year: params.year,
+      period: params.period,
+      month: params.month,
+      quarter: params.quarter,
+      multiSelectMode: filterState.multiSelectMode,
+      selectedYears: filterState.selectedYears,
+      selectedPeriods: filterState.selectedPeriods,
+      viewMode: filterState.viewMode,
+      quickPreset: filterState.quickPreset
+    });
     
     // Only update if the key has changed
     if (lastUpdateRef.current === updateKey) {
@@ -67,19 +75,13 @@ const FilterSystemWrapper = ({ useNewSystem = true, ...props }) => {
       syncParams.selectedQuarters = params.quarter ? [params.quarter] : [];
     }
     
-    console.log('🔄 FilterSystemWrapper: Syncing with params:', syncParams);
+    // console.log('🔄 FilterSystemWrapper: Syncing with params:', syncParams);
     
     // Use debounced sync to prevent rapid updates
     debouncedSync(syncParams);
   }, [
     useNewSystem,
-    hierarchicalFilter?.filterState.selectedYear,
-    hierarchicalFilter?.filterState.selectedYears,
-    hierarchicalFilter?.filterState.viewMode,
-    hierarchicalFilter?.filterState.selectedPeriod,
-    hierarchicalFilter?.filterState.selectedPeriods,
-    hierarchicalFilter?.filterState.quickPreset,
-    hierarchicalFilter?.filterState.multiSelectMode,
+    hierarchicalFilter,
     debouncedSync
   ]);
 

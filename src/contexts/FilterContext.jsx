@@ -214,21 +214,34 @@ export const FilterProvider = ({ children }) => {
         ...filterConfig
       };
       
-      console.log('📊 FilterContext: handlePeriodChange received:', filterConfig);
-      console.log('📊 Filter change (multi-select):', {
-        period: newFilter.period,
-        year: newFilter.year,
-        month: newFilter.month,
-        multiSelectMode: newFilter.multiSelectMode,
-        selectedPeriods: newFilter.selectedPeriods,
-        viewMode: newFilter.viewMode,
-        selections: { 
-          months: newFilter.selectedMonths, 
-          quarters: newFilter.selectedQuarters, 
-          years: newFilter.selectedYears 
-        },
-        filterConfig: filterConfig
+      // Check if anything actually changed to prevent unnecessary updates
+      const hasChanged = Object.keys(filterConfig).some(key => {
+        if (Array.isArray(filterConfig[key]) && Array.isArray(periodFilter[key])) {
+          return JSON.stringify(filterConfig[key]) !== JSON.stringify(periodFilter[key]);
+        }
+        return filterConfig[key] !== periodFilter[key];
       });
+      
+      if (!hasChanged) {
+        // console.log('📊 FilterContext: No changes detected, skipping update');
+        return;
+      }
+      
+      // console.log('📊 FilterContext: handlePeriodChange received:', filterConfig);
+      // console.log('📊 Filter change (multi-select):', {
+      //   period: newFilter.period,
+      //   year: newFilter.year,
+      //   month: newFilter.month,
+      //   multiSelectMode: newFilter.multiSelectMode,
+      //   selectedPeriods: newFilter.selectedPeriods,
+      //   viewMode: newFilter.viewMode,
+      //   selections: { 
+      //     months: newFilter.selectedMonths, 
+      //     quarters: newFilter.selectedQuarters, 
+      //     years: newFilter.selectedYears 
+      //   },
+      //   filterConfig: filterConfig
+      // });
       
       setPeriodFilter(newFilter);
       // Also update pending to keep in sync

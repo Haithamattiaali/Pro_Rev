@@ -304,7 +304,7 @@ export const HierarchicalFilterProvider = ({ children }) => {
 
   // Handle period change (supports both single and multi-select)
   const handlePeriodChange = useCallback((periodOrPeriods) => {
-    console.log('🎯 HierarchicalFilterContext: handlePeriodChange called with:', periodOrPeriods);
+    // console.log('🎯 HierarchicalFilterContext: handlePeriodChange called with:', periodOrPeriods);
     
     setFilterState(prev => {
       let newState;
@@ -327,12 +327,12 @@ export const HierarchicalFilterProvider = ({ children }) => {
         };
       }
       
-      console.log('🎯 HierarchicalFilterContext: New filter state:', {
-        multiSelectMode: newState.multiSelectMode,
-        selectedPeriods: newState.selectedPeriods,
-        selectedPeriod: newState.selectedPeriod,
-        viewMode: newState.viewMode
-      });
+      // console.log('🎯 HierarchicalFilterContext: New filter state:', {
+      //   multiSelectMode: newState.multiSelectMode,
+      //   selectedPeriods: newState.selectedPeriods,
+      //   selectedPeriod: newState.selectedPeriod,
+      //   viewMode: newState.viewMode
+      // });
       
       return newState;
     });
