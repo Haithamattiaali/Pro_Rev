@@ -21,8 +21,21 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
       .catch(console.error)
   }, [])
   
-  if (!pipeline?.pipeline || pipeline.pipeline.length === 0) {
-    return <div className="text-center text-gray-500 py-4">Loading pipeline data...</div>
+  if (!pipeline?.pipeline || pipeline?.totals?.total_opportunities === 0) {
+    return (
+      <div className="mt-12 bg-gradient-to-br from-white to-secondary-pale/20 rounded-2xl shadow-lg border border-secondary-light/30 p-8">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary-pale flex items-center justify-center">
+            <AlertCircle className="w-8 h-8 text-secondary" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Opportunities Data Available</h3>
+          <p className="text-gray-500 mb-4">Upload opportunities data to see pipeline analysis and insights</p>
+          <p className="text-sm text-gray-400">
+            Include opportunities data in the "Opportunities" sheet of your Excel upload
+          </p>
+        </div>
+      </div>
+    )
   }
   
   // Sort pipeline stages in the desired order

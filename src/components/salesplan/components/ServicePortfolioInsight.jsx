@@ -5,7 +5,20 @@ import { formatCurrency, formatPercentage } from '../../../utils/formatters';
 
 const ServicePortfolioInsight = ({ serviceData }) => {
   if (!serviceData?.services || serviceData.services.length === 0) {
-    return null;
+    return (
+      <div className="mt-12 bg-gradient-to-br from-white to-secondary-pale/20 rounded-2xl shadow-lg border border-secondary-light/30 p-8">
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary-pale flex items-center justify-center">
+            <AlertCircle className="w-8 h-8 text-secondary" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">No Service Analysis Data Available</h3>
+          <p className="text-gray-500 mb-4">Upload opportunities data to see service portfolio analysis</p>
+          <p className="text-sm text-gray-400">
+            Include opportunities data in the "Opportunities" sheet of your Excel upload
+          </p>
+        </div>
+      </div>
+    );
   }
 
   // Prepare scatter data for revenue vs GP analysis
