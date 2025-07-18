@@ -1094,3 +1094,4 @@ if (server) {
 
 // Export app for testing
 module.exports = app;// Auto-deploy test: Fri Jul 18 08:39:27 +03 2025
+// Auto-deploy verification: Fri Jul 18 09:37:59 +03 2025
