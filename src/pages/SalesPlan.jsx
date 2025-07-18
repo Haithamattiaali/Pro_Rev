@@ -38,10 +38,17 @@ const SalesPlan = () => {
       try {
         const { year, period, month, quarter } = periodFilter
         
+        // Prepare multi-select parameters if in multi-select mode
+        const multiSelectParams = periodFilter.multiSelectMode ? {
+          years: periodFilter.selectedYears || [periodFilter.year],
+          periods: periodFilter.selectedPeriods || [],
+          viewMode: periodFilter.viewMode || 'quarterly'
+        } : null;
+        
         // Fetch all data in parallel
         const [overview, byGL, byBU, monthly, opportunities] = await Promise.all([
-          dataService.getSalesPlanOverview(year, period, month, quarter),
-          dataService.getSalesPlanByGL(year, period, month, quarter),
+          dataService.getSalesPlanOverview(year, period, month, quarter, multiSelectParams),
+          dataService.getSalesPlanByGL(year, period, month, quarter, multiSelectParams),
           fetch(`${import.meta.env.VITE_API_URL}/sales-plan/by-business-unit?year=${year}&period=${period}${month ? `&month=${month}` : ''}${quarter ? `&quarter=${quarter}` : ''}`).then(r => r.json()),
           dataService.getSalesPlanMonthly(year),
           dataService.getOpportunities()
@@ -90,7 +97,7 @@ const SalesPlan = () => {
   if (!periodFilter.year || periodFilter.period === 'NONE') {
     return (
       <div className="p-6 bg-neutral-light min-h-screen">
-        <StickyPeriodFilter disableValidation={true} />
+        <StickyPeriodFilter useHierarchical={true} disableValidation={true} />
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
@@ -107,7 +114,7 @@ const SalesPlan = () => {
   return (
     <div className="p-6 bg-neutral-light min-h-screen" ref={dashboardRef} data-dashboard="true">
       {/* Period Filter */}
-      <StickyPeriodFilter disableValidation={true} />
+      <StickyPeriodFilter useHierarchical={true} disableValidation={true} />
 
       {/* Toolbar */}
       <ToolbarSection

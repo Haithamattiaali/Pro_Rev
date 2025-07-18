@@ -57,7 +57,14 @@ const Overview = () => {
           multiSelectMode: periodFilter.multiSelectMode,
           multiSelectParams,
           selectedPeriods: periodFilter.selectedPeriods,
-          viewMode: periodFilter.viewMode
+          viewMode: periodFilter.viewMode,
+          periodFilter: {
+            year: periodFilter.year,
+            period: periodFilter.period,
+            selectedYears: periodFilter.selectedYears,
+            selectedMonths: periodFilter.selectedMonths,
+            selectedQuarters: periodFilter.selectedQuarters
+          }
         });
         
         const data = await dataService.getOverviewData(

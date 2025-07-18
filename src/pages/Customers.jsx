@@ -67,9 +67,18 @@ const Customers = () => {
         setCustomerAchievement(achievementData)
         setServiceBreakdown(breakdownData)
         
-        // Set first customer as selected by default
-        if (customersData.length > 0 && !selectedCustomer) {
-          setSelectedCustomer(customersData[0].customer)
+        // Set first customer as selected by default, but preserve existing selection if customer still exists
+        if (customersData.length > 0) {
+          if (selectedCustomer) {
+            // Check if currently selected customer still exists in new data
+            const customerStillExists = customersData.some(c => c.customer === selectedCustomer)
+            if (!customerStillExists) {
+              setSelectedCustomer(customersData[0].customer)
+            }
+          } else {
+            // No customer selected yet, select first one
+            setSelectedCustomer(customersData[0].customer)
+          }
         }
       } catch (err) {
         console.error('Error fetching customer data:', err)

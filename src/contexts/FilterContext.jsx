@@ -225,7 +225,8 @@ export const FilterProvider = ({ children }) => {
           months: newFilter.selectedMonths, 
           quarters: newFilter.selectedQuarters, 
           years: newFilter.selectedYears 
-        }
+        },
+        filterConfig: filterConfig
       });
       
       setPeriodFilter(newFilter);

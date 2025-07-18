@@ -49,15 +49,36 @@ const FilterSystemWrapper = ({ useNewSystem = true, ...props }) => {
     
     lastUpdateRef.current = updateKey;
     
-    // Use debounced sync to prevent rapid updates
-    debouncedSync({
+    // Build proper sync params based on multi-select mode
+    const syncParams = {
       ...params,
-      // Pass multi-select arrays when in multi-select mode
       selectedYears: filterState.multiSelectMode ? filterState.selectedYears : [params.year],
-      selectedPeriods: filterState.multiSelectMode ? filterState.selectedPeriods : [],
       multiSelectMode: filterState.multiSelectMode,
       viewMode: filterState.viewMode
-    });
+    };
+    
+    // Properly handle selectedPeriods for multi-select
+    if (filterState.multiSelectMode) {
+      syncParams.selectedPeriods = filterState.selectedPeriods;
+      
+      // Convert periods to months/quarters based on viewMode
+      if (filterState.viewMode === 'monthly') {
+        syncParams.selectedMonths = filterState.selectedPeriods.map(p => parseInt(p));
+        syncParams.selectedQuarters = [];
+      } else if (filterState.viewMode === 'quarterly') {
+        syncParams.selectedMonths = [];
+        syncParams.selectedQuarters = filterState.selectedPeriods.map(p => parseInt(p.replace('Q', '')));
+      }
+    } else {
+      syncParams.selectedPeriods = [];
+      syncParams.selectedMonths = params.month ? [params.month] : [];
+      syncParams.selectedQuarters = params.quarter ? [params.quarter] : [];
+    }
+    
+    console.log('🔄 FilterSystemWrapper: Syncing with params:', syncParams);
+    
+    // Use debounced sync to prevent rapid updates
+    debouncedSync(syncParams);
   }, [
     useNewSystem,
     hierarchicalFilter?.filterState.selectedYear,
