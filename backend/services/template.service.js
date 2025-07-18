@@ -21,7 +21,7 @@ class TemplateService {
       const revenueData = await this.fetchAllRevenueData(year);
       const revenueTemplateData = this.formatDataForTemplate(revenueData);
       const wsRevenue = xlsx.utils.json_to_sheet(revenueTemplateData, {
-        header: ['Customer', 'Service_Type', 'Year', 'Month', 'Cost', 'Target', 'Revenue', 'Receivables Collected']
+        header: ['Customer', 'Service_Type', 'Year', 'Month', 'Cost', 'Target', 'Revenue', 'Receivables Collected', 'Days']
       });
       wsRevenue['!cols'] = [
         { wch: 30 }, // Customer
@@ -31,7 +31,8 @@ class TemplateService {
         { wch: 15 }, // Cost
         { wch: 15 }, // Target
         { wch: 15 }, // Revenue
-        { wch: 20 }  // Receivables Collected
+        { wch: 20 }, // Receivables Collected
+        { wch: 10 }  // Days
       ];
       xlsx.utils.book_append_sheet(wb, wsRevenue, 'Revenue Data');
       
@@ -39,7 +40,7 @@ class TemplateService {
       const salesPlanData = await this.fetchAllSalesPlanData(year);
       const salesPlanTemplateData = this.formatSalesPlanForTemplate(salesPlanData);
       const wsSalesPlan = xlsx.utils.json_to_sheet(salesPlanTemplateData, {
-        header: ['gl', 'month', 'year', 'service_type', 'baseline_forecast', 'opportunity_value']
+        header: ['gl', 'month', 'year', 'service_type', 'baseline_forecast', 'opportunity_value', 'days']
       });
       wsSalesPlan['!cols'] = [
         { wch: 15 }, // gl
@@ -47,7 +48,8 @@ class TemplateService {
         { wch: 10 }, // year
         { wch: 20 }, // service_type
         { wch: 20 }, // baseline_forecast
-        { wch: 20 }  // opportunity_value
+        { wch: 20 }, // opportunity_value
+        { wch: 10 }  // days
       ];
       xlsx.utils.book_append_sheet(wb, wsSalesPlan, 'Sales Plan');
       
@@ -94,7 +96,8 @@ class TemplateService {
         cost,
         target,
         revenue,
-        receivables_collected
+        receivables_collected,
+        days
       FROM revenue_data
       ${year ? 'WHERE year = ?' : ''}
       ORDER BY year DESC, 
@@ -141,7 +144,8 @@ class TemplateService {
       'Cost': row.cost || 0,
       'Target': row.target || 0,
       'Revenue': row.revenue || 0,
-      'Receivables Collected': row.receivables_collected || 0
+      'Receivables Collected': row.receivables_collected || 0,
+      'Days': row.days || 30
     }));
   }
 
@@ -158,7 +162,8 @@ class TemplateService {
         year,
         service_type,
         baseline_forecast,
-        opportunity_value
+        opportunity_value,
+        days
       FROM sales_plan_data
       ${year ? 'WHERE year = ?' : ''}
       ORDER BY year DESC, 
@@ -224,7 +229,8 @@ class TemplateService {
       'year': row.year,
       'service_type': row.service_type,
       'baseline_forecast': row.baseline_forecast || 0,
-      'opportunity_value': row.opportunity_value || 0
+      'opportunity_value': row.opportunity_value || 0,
+      'days': row.days || 30
     }));
   }
 
@@ -270,11 +276,11 @@ class TemplateService {
       const expectedSheets = {
         'Revenue Data': [
           'Customer', 'Service_Type', 'Year', 'Month', 
-          'Cost', 'Target', 'Revenue', 'Receivables Collected'
+          'Cost', 'Target', 'Revenue', 'Receivables Collected', 'Days'
         ],
         'Sales Plan': [
           'gl', 'month', 'year', 'service_type', 
-          'baseline_forecast', 'opportunity_value'
+          'baseline_forecast', 'opportunity_value', 'days'
         ],
         'Opportunities': [
           'project', 'service', 'location', 'scope_of_work', 

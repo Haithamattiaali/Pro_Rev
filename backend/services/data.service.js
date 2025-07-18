@@ -182,7 +182,7 @@ class DataService {
         COUNT(DISTINCT customer) as customer_count,
         COUNT(DISTINCT service_type) as service_count,
         CASE 
-          WHEN SUM(COALESCE(target, 0)) > 0 THEN (SUM(revenue) / SUM(COALESCE(target, 0))) * 100 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement_percentage
       FROM revenue_data
@@ -291,7 +291,7 @@ class DataService {
         COUNT(DISTINCT customer) as customer_count,
         COUNT(DISTINCT service_type) as service_count,
         CASE 
-          WHEN SUM(COALESCE(target, 0)) > 0 THEN (SUM(revenue) / SUM(COALESCE(target, 0))) * 100 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement_percentage
       FROM revenue_data

@@ -100,14 +100,36 @@ class PersistentDatabase {
   
   runMigrations() {
     try {
-      // No longer adding original_target, original_cost, or analysis_date columns
       console.log('Running migrations...');
       
+      // Check if we need to add days column to revenue_data
+      const revenueColumns = this.db.prepare("PRAGMA table_info(revenue_data)").all();
+      const hasDaysInRevenue = revenueColumns.some(col => col.name === 'days');
+      
+      if (!hasDaysInRevenue) {
+        console.log('Adding days column to revenue_data...');
+        this.db.prepare('ALTER TABLE revenue_data ADD COLUMN days INTEGER DEFAULT 30').run();
+      }
+      
+      // Check if we need to add days column to sales_plan_data
+      const salesPlanExists = this.db.prepare(
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='sales_plan_data'"
+      ).get();
+      
+      if (salesPlanExists) {
+        const salesPlanColumns = this.db.prepare("PRAGMA table_info(sales_plan_data)").all();
+        const hasDaysInSalesPlan = salesPlanColumns.some(col => col.name === 'days');
+        
+        if (!hasDaysInSalesPlan) {
+          console.log('Adding days column to sales_plan_data...');
+          this.db.prepare('ALTER TABLE sales_plan_data ADD COLUMN days INTEGER DEFAULT 30').run();
+        }
+      }
+      
       // Check if we need to drop the old columns
-      const columns = this.db.prepare("PRAGMA table_info(revenue_data)").all();
-      const hasOriginalTarget = columns.some(col => col.name === 'original_target');
-      const hasAnalysisDate = columns.some(col => col.name === 'analysis_date');
-      const hasOriginalCost = columns.some(col => col.name === 'original_cost');
+      const hasOriginalTarget = revenueColumns.some(col => col.name === 'original_target');
+      const hasAnalysisDate = revenueColumns.some(col => col.name === 'analysis_date');
+      const hasOriginalCost = revenueColumns.some(col => col.name === 'original_cost');
       
       if (hasOriginalTarget || hasAnalysisDate || hasOriginalCost) {
         console.log('Note: Pro-rating columns still exist in database. They will be ignored.');

@@ -71,15 +71,16 @@ class ETLService {
       const stmt = db.db.prepare(`
         INSERT INTO revenue_data (
           customer, service_type, year, month,
-          cost, target, revenue, receivables_collected,
+          cost, target, revenue, receivables_collected, days,
           updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         ON CONFLICT(customer, service_type, year, month)
         DO UPDATE SET
           cost = excluded.cost,
           target = excluded.target,
           revenue = excluded.revenue,
           receivables_collected = excluded.receivables_collected,
+          days = excluded.days,
           updated_at = datetime('now')
       `);
       
@@ -101,7 +102,8 @@ class ETLService {
             cleanedData.cost,
             cleanedData.target,
             cleanedData.revenue,
-            cleanedData.receivables_collected
+            cleanedData.receivables_collected,
+            cleanedData.days
           );
           
           if (result.changes > 0) {
@@ -150,7 +152,8 @@ class ETLService {
       cost: parseFloat(row.Cost) || 0,
       target: parseFloat(row.Target) || 0,
       revenue: parseFloat(row.Revenue) || 0,
-      receivables_collected: parseFloat(row['Receivables Collected']) || 0
+      receivables_collected: parseFloat(row['Receivables Collected']) || 0,
+      days: parseInt(row.Days) || 30  // Default to 30 days if not provided
     };
   }
 
@@ -167,13 +170,14 @@ class ETLService {
     const transaction = db.transaction((records) => {
       const stmt = db.db.prepare(`
         INSERT INTO sales_plan_data (
-          gl, month, year, service_type, baseline_forecast, opportunity_value,
+          gl, month, year, service_type, baseline_forecast, opportunity_value, days,
           updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
         ON CONFLICT(gl, month, year, service_type)
         DO UPDATE SET
           baseline_forecast = excluded.baseline_forecast,
           opportunity_value = excluded.opportunity_value,
+          days = excluded.days,
           updated_at = datetime('now')
       `);
       
@@ -192,7 +196,8 @@ class ETLService {
             cleanedData.year,
             cleanedData.service_type,
             cleanedData.baseline_forecast,
-            cleanedData.opportunity_value
+            cleanedData.opportunity_value,
+            cleanedData.days
           );
           
           if (result.changes > 0) {
@@ -236,7 +241,8 @@ class ETLService {
       year: parseInt(row.year) || new Date().getFullYear(),
       service_type: String(row.service_type).trim(),
       baseline_forecast: parseFloat(row.baseline_forecast) || 0,
-      opportunity_value: parseFloat(row.opportunity_value) || 0
+      opportunity_value: parseFloat(row.opportunity_value) || 0,
+      days: parseInt(row.days) || 30  // Default to 30 days if not provided
     };
   }
   
