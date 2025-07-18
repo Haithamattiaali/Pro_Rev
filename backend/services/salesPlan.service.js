@@ -87,7 +87,7 @@ class SalesPlanService {
   }
   
   // Get monthly sales plan data for chart
-  async getSalesPlanMonthly(year, serviceType = null) {
+  async getSalesPlanMonthly(year, period = 'YTD', month = null, quarter = null, serviceType = null) {
     try {
       // Add service type filter
       let serviceCondition = '';
@@ -97,6 +97,41 @@ class SalesPlanService {
         serviceParams = [serviceType];
       }
       
+      // Add month filtering based on period
+      let monthFilter = '';
+      const monthParams = [];
+      
+      if (period === 'MTD' && month) {
+        // For MTD, show only the specified month
+        monthFilter = ' AND month = ?';
+        monthParams.push(this.getMonthName(month));
+      } else if (period === 'QTD' && quarter) {
+        // For QTD, show only the 3 months of the specified quarter
+        const startMonth = (quarter - 1) * 3 + 1;
+        const quarterMonths = [];
+        for (let m = startMonth; m < startMonth + 3; m++) {
+          quarterMonths.push(this.getMonthName(m));
+        }
+        monthFilter = ` AND month IN (${quarterMonths.map(() => '?').join(',')})`;
+        monthParams.push(...quarterMonths);
+      } else if (period === 'YTD') {
+        // For YTD, show all months up to current month for current year
+        const currentDate = new Date();
+        const currentYear = currentDate.getFullYear();
+        const currentMonth = currentDate.getMonth() + 1;
+        
+        if (year === currentYear) {
+          // For current year, only show months up to current month
+          const ytdMonths = [];
+          for (let m = 1; m <= currentMonth; m++) {
+            ytdMonths.push(this.getMonthName(m));
+          }
+          monthFilter = ` AND month IN (${ytdMonths.map(() => '?').join(',')})`;
+          monthParams.push(...ytdMonths);
+        }
+        // For past years, show all 12 months (no filter needed)
+      }
+      
       const sql = `
         SELECT 
           month,
@@ -104,7 +139,7 @@ class SalesPlanService {
           SUM(opportunity_value) as opportunity_value,
           SUM(baseline_forecast + opportunity_value) as total
         FROM sales_plan_data
-        WHERE year = ?${serviceCondition}
+        WHERE year = ?${serviceCondition}${monthFilter}
         GROUP BY month
         ORDER BY 
           CASE month
@@ -115,7 +150,7 @@ class SalesPlanService {
           END
       `;
       
-      const data = await db.all(sql, [year, ...serviceParams]);
+      const data = await db.all(sql, [year, ...serviceParams, ...monthParams]);
       
       // Format for chart
       return {

@@ -265,9 +265,9 @@ class DataService {
     return this.getCachedData(key, () => apiService.getSalesPlanOverview(year, period, month, quarter, serviceType));
   }
 
-  async getSalesPlanMonthly(year = new Date().getFullYear(), serviceType = null) {
-    const key = this.getCacheKey('salesPlanMonthly', year, serviceType);
-    return this.getCachedData(key, () => apiService.getSalesPlanMonthly(year, serviceType));
+  async getSalesPlanMonthly(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null) {
+    const key = this.getCacheKey('salesPlanMonthly', year, period, month, quarter, serviceType);
+    return this.getCachedData(key, () => apiService.getSalesPlanMonthly(year, period, month, quarter, serviceType));
   }
 
   async getSalesPlanByGL(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {

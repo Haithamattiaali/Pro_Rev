@@ -85,7 +85,7 @@ const SalesPlan = () => {
           multiSelectParams ? 
             { data: [], message: 'Multi-select not supported for Business Units yet' } :
             fetch(`${import.meta.env.VITE_API_URL}/sales-plan/by-business-unit?year=${year}&period=${period}${month ? `&month=${month}` : ''}${quarter ? `&quarter=${quarter}` : ''}`).then(r => r.json()),
-          dataService.getSalesPlanMonthly(year),
+          dataService.getSalesPlanMonthly(year, period, month, quarter),
           dataService.getOpportunities()
         ])
         

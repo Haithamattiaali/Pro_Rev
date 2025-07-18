@@ -886,8 +886,20 @@ app.get('/api/sales-plan/overview', async (req, res) => {
 // Get monthly sales plan data
 app.get('/api/sales-plan/monthly', async (req, res) => {
   try {
-    const { year = new Date().getFullYear(), serviceType = null } = req.query;
-    const data = await salesPlanService.getSalesPlanMonthly(parseInt(year), serviceType);
+    const { 
+      year = new Date().getFullYear(), 
+      period = 'YTD',
+      month = null,
+      quarter = null,
+      serviceType = null 
+    } = req.query;
+    const data = await salesPlanService.getSalesPlanMonthly(
+      parseInt(year), 
+      period,
+      month ? parseInt(month) : null,
+      quarter ? parseInt(quarter) : null,
+      serviceType
+    );
     res.json(data);
   } catch (error) {
     console.error('Sales plan monthly error:', error);

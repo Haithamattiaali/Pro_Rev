@@ -356,8 +356,10 @@ class ApiService {
     });
   }
 
-  async getSalesPlanMonthly(year, serviceType = null) {
-    let url = `/sales-plan/monthly?year=${year}`;
+  async getSalesPlanMonthly(year, period = 'YTD', month = null, quarter = null, serviceType = null) {
+    let url = `/sales-plan/monthly?year=${year}&period=${period}`;
+    if (month !== null) url += `&month=${month}`;
+    if (quarter !== null) url += `&quarter=${quarter}`;
     if (serviceType !== null && serviceType !== 'all') url += `&serviceType=${serviceType}`;
     return this.request(url);
   }
