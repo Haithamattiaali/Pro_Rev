@@ -32,8 +32,8 @@ class ApiService {
       periodsLength: multiSelectParams?.periods?.length
     });
     
-    if (multiSelectParams && multiSelectParams.periods?.length > 0) {
-      console.log('🌐 API: Using multi-select endpoint');
+    if (multiSelectParams && multiSelectParams.periods && multiSelectParams.periods.length > 0) {
+      console.log('🌐 API: Using multi-select endpoint with periods:', multiSelectParams.periods);
       return this.getOverviewDataMultiSelect(multiSelectParams);
     }
     

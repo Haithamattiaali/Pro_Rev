@@ -39,11 +39,30 @@ const SalesPlan = () => {
         const { year, period, month, quarter } = periodFilter
         
         // Prepare multi-select parameters if in multi-select mode
-        const multiSelectParams = periodFilter.multiSelectMode ? {
-          years: periodFilter.selectedYears || [periodFilter.year],
-          periods: periodFilter.selectedPeriods || [],
-          viewMode: periodFilter.viewMode || 'quarterly'
-        } : null;
+        let multiSelectParams = null;
+        
+        // Check if we have quarters or months selected (even single selection in multi-select mode)
+        const hasQuarters = periodFilter.selectedQuarters && periodFilter.selectedQuarters.length > 0;
+        const hasMonths = periodFilter.selectedMonths && periodFilter.selectedMonths.length > 0;
+        const hasMultipleSelections = (periodFilter.selectedQuarters && periodFilter.selectedQuarters.length > 1) ||
+                                     (periodFilter.selectedMonths && periodFilter.selectedMonths.length > 1) ||
+                                     (periodFilter.selectedYears && periodFilter.selectedYears.length > 1);
+        
+        if (periodFilter.multiSelectMode && (hasQuarters || hasMonths || hasMultipleSelections)) {
+          // Build periods array from selectedQuarters/selectedMonths
+          let periods = [];
+          if (periodFilter.selectedQuarters && periodFilter.selectedQuarters.length > 0) {
+            periods = periodFilter.selectedQuarters.map(q => `Q${q}`);
+          } else if (periodFilter.selectedMonths && periodFilter.selectedMonths.length > 0) {
+            periods = periodFilter.selectedMonths.map(m => String(m));
+          }
+          
+          multiSelectParams = {
+            years: periodFilter.selectedYears || [periodFilter.year],
+            periods: periods,
+            viewMode: periodFilter.viewMode || (periodFilter.selectedQuarters?.length > 0 ? 'quarterly' : 'monthly')
+          };
+        }
         
         // Fetch all data in parallel
         const [overview, byGL, byBU, monthly, opportunities] = await Promise.all([
