@@ -21,18 +21,18 @@ class TemplateService {
       const revenueData = await this.fetchAllRevenueData(year);
       const revenueTemplateData = this.formatDataForTemplate(revenueData);
       const wsRevenue = xlsx.utils.json_to_sheet(revenueTemplateData, {
-        header: ['Customer', 'Service_Type', 'Year', 'Month', 'Cost', 'Target', 'Revenue', 'Receivables Collected', 'Days']
+        header: ['Customer', 'Service_Type', 'Year', 'Month', 'Days', 'Cost', 'Target', 'Revenue', 'Receivables Collected']
       });
       wsRevenue['!cols'] = [
         { wch: 30 }, // Customer
         { wch: 20 }, // Service_Type
         { wch: 10 }, // Year
         { wch: 10 }, // Month
+        { wch: 10 }, // Days
         { wch: 15 }, // Cost
         { wch: 15 }, // Target
         { wch: 15 }, // Revenue
-        { wch: 20 }, // Receivables Collected
-        { wch: 10 }  // Days
+        { wch: 20 }  // Receivables Collected
       ];
       xlsx.utils.book_append_sheet(wb, wsRevenue, 'Revenue Data');
       
@@ -40,16 +40,16 @@ class TemplateService {
       const salesPlanData = await this.fetchAllSalesPlanData(year);
       const salesPlanTemplateData = this.formatSalesPlanForTemplate(salesPlanData);
       const wsSalesPlan = xlsx.utils.json_to_sheet(salesPlanTemplateData, {
-        header: ['gl', 'month', 'year', 'service_type', 'baseline_forecast', 'opportunity_value', 'days']
+        header: ['gl', 'month', 'days', 'year', 'service_type', 'baseline_forecast', 'opportunity_value']
       });
       wsSalesPlan['!cols'] = [
         { wch: 15 }, // gl
         { wch: 10 }, // month
+        { wch: 10 }, // days
         { wch: 10 }, // year
         { wch: 20 }, // service_type
         { wch: 20 }, // baseline_forecast
-        { wch: 20 }, // opportunity_value
-        { wch: 10 }  // days
+        { wch: 20 }  // opportunity_value
       ];
       xlsx.utils.book_append_sheet(wb, wsSalesPlan, 'Sales Plan');
       
@@ -141,11 +141,11 @@ class TemplateService {
       'Service_Type': row.service_type,
       'Year': row.year,
       'Month': row.month,
+      'Days': row.days || 30,
       'Cost': row.cost || 0,
       'Target': row.target || 0,
       'Revenue': row.revenue || 0,
-      'Receivables Collected': row.receivables_collected || 0,
-      'Days': row.days || 30
+      'Receivables Collected': row.receivables_collected || 0
     }));
   }
 
@@ -226,11 +226,11 @@ class TemplateService {
     return data.map(row => ({
       'gl': row.gl,
       'month': row.month,
+      'days': row.days || 30,
       'year': row.year,
       'service_type': row.service_type,
       'baseline_forecast': row.baseline_forecast || 0,
-      'opportunity_value': row.opportunity_value || 0,
-      'days': row.days || 30
+      'opportunity_value': row.opportunity_value || 0
     }));
   }
 
@@ -275,12 +275,12 @@ class TemplateService {
       // Define expected structure for each sheet
       const expectedSheets = {
         'Revenue Data': [
-          'Customer', 'Service_Type', 'Year', 'Month', 
-          'Cost', 'Target', 'Revenue', 'Receivables Collected', 'Days'
+          'Customer', 'Service_Type', 'Year', 'Month', 'Days',
+          'Cost', 'Target', 'Revenue', 'Receivables Collected'
         ],
         'Sales Plan': [
-          'gl', 'month', 'year', 'service_type', 
-          'baseline_forecast', 'opportunity_value', 'days'
+          'gl', 'month', 'days', 'year', 'service_type', 
+          'baseline_forecast', 'opportunity_value'
         ],
         'Opportunities': [
           'project', 'service', 'location', 'scope_of_work', 
