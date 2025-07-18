@@ -907,6 +907,34 @@ app.get('/api/sales-plan/monthly', async (req, res) => {
   }
 });
 
+// Multi-select sales plan monthly
+app.post('/api/sales-plan/monthly/multi-select', async (req, res) => {
+  try {
+    const { years = [], periods = [], viewMode = 'quarterly', serviceType = null } = req.body;
+    
+    console.log('🌐 API /sales-plan/monthly/multi-select received:', { years, periods, viewMode, serviceType });
+    
+    // Convert periods to months/quarters based on viewMode
+    const filters = {
+      years: years.map(y => parseInt(y)),
+      months: [],
+      quarters: []
+    };
+    
+    if (viewMode === 'monthly') {
+      filters.months = periods.map(p => parseInt(p));
+    } else if (viewMode === 'quarterly') {
+      filters.quarters = periods.map(p => parseInt(p.replace('Q', '')));
+    }
+    
+    const data = await salesPlanService.getSalesPlanMonthlyMultiSelect(filters, serviceType);
+    res.json(data);
+  } catch (error) {
+    console.error('Sales plan monthly multi-select error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get sales plan by GL account
 app.get('/api/sales-plan/by-gl', async (req, res) => {
   try {

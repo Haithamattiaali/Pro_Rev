@@ -168,6 +168,92 @@ class SalesPlanService {
     }
   }
   
+  // Get multi-select monthly sales plan data
+  async getSalesPlanMonthlyMultiSelect(filters, serviceType = null) {
+    try {
+      const { years = [], months = [], quarters = [] } = filters;
+      
+      console.log('🔧 SalesPlanService: Processing monthly multi-select with filters:', filters);
+      
+      // Build WHERE conditions
+      const conditions = ['1=1'];
+      const params = [];
+      
+      // Years filter
+      if (years.length > 0) {
+        conditions.push(`year IN (${years.map(() => '?').join(',')})`);
+        params.push(...years);
+      }
+      
+      // Months filter
+      if (months.length > 0) {
+        const monthNames = months.map(m => this.getMonthName(m));
+        conditions.push(`month IN (${monthNames.map(() => '?').join(',')})`);
+        params.push(...monthNames);
+      }
+      
+      // Quarters filter
+      if (quarters.length > 0) {
+        const quarterMonths = [];
+        quarters.forEach(q => {
+          const startMonth = (q - 1) * 3 + 1;
+          for (let m = startMonth; m < startMonth + 3; m++) {
+            quarterMonths.push(this.getMonthName(m));
+          }
+        });
+        conditions.push(`month IN (${quarterMonths.map(() => '?').join(',')})`);
+        params.push(...quarterMonths);
+      }
+      
+      // Service type filter
+      if (serviceType && serviceType !== 'all') {
+        conditions.push('service_type = ?');
+        params.push(serviceType);
+      }
+      
+      const whereClause = conditions.join(' AND ');
+      
+      // Get monthly data aggregated across selected periods
+      const sql = `
+        SELECT 
+          month,
+          SUM(baseline_forecast) as baseline_forecast,
+          SUM(opportunity_value) as opportunity_value,
+          SUM(baseline_forecast + opportunity_value) as total
+        FROM sales_plan_data
+        WHERE ${whereClause}
+        GROUP BY month
+        ORDER BY 
+          CASE month
+            WHEN 'Jan' THEN 1 WHEN 'Feb' THEN 2 WHEN 'Mar' THEN 3
+            WHEN 'Apr' THEN 4 WHEN 'May' THEN 5 WHEN 'Jun' THEN 6
+            WHEN 'Jul' THEN 7 WHEN 'Aug' THEN 8 WHEN 'Sep' THEN 9
+            WHEN 'Oct' THEN 10 WHEN 'Nov' THEN 11 WHEN 'Dec' THEN 12
+          END
+      `;
+      
+      console.log('🔧 SQL:', sql);
+      console.log('🔧 Params:', params);
+      
+      const data = await db.all(sql, params);
+      
+      // Format for chart
+      return {
+        chart: data.map(row => ({
+          month: row.month,
+          baseline: row.baseline_forecast || 0,
+          opportunities: row.opportunity_value || 0,
+          total: row.total || 0
+        })),
+        filters,
+        multiSelect: true
+      };
+    } catch (error) {
+      console.error('Error in getSalesPlanMonthlyMultiSelect:', error);
+      throw error;
+    }
+  }
+  
   // Get sales plan by GL account
   async getSalesPlanByGL(year, period = 'YTD', month = null, quarter = null, serviceType = null) {
     try {
