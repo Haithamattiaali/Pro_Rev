@@ -56,7 +56,8 @@ const Overview = () => {
                                      (periodFilter.selectedMonths && periodFilter.selectedMonths.length > 1) ||
                                      (periodFilter.selectedYears && periodFilter.selectedYears.length > 1);
         
-        if (periodFilter.multiSelectMode && (hasQuarters || hasMonths || hasMultipleSelections)) {
+        // Only use multi-select for quarterly/monthly modes, not yearly
+        if (periodFilter.multiSelectMode && periodFilter.viewMode !== 'yearly' && (hasQuarters || hasMonths || hasMultipleSelections)) {
           // Build periods array from selectedQuarters/selectedMonths
           let periods = [];
           if (periodFilter.selectedQuarters && periodFilter.selectedQuarters.length > 0) {
