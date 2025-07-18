@@ -11,7 +11,6 @@ import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
 import { useHierarchicalFilter } from '../contexts/HierarchicalFilterContext'
-import DataCompletenessIndicator from '../components/common/DataCompletenessIndicator'
 import dataService from '../services/dataService'
 
 const Overview = () => {
@@ -169,19 +168,11 @@ const Overview = () => {
         title={`Executive Overview - ${periodFilter.year}`}
         subtitle={`${dataService.getPeriodLabel(periodFilter.period, periodFilter.month, periodFilter.quarter)} performance metrics and key insights`}
       >
-        <div className="flex items-center gap-3">
-          <DataCompletenessIndicator 
-            validation={validationData}
-            year={periodFilter.year}
-            period={periodFilter.period}
-            variant="inline"
-          />
-          <ExportButton 
-            dashboardRef={dashboardRef}
-            variant="glass"
-            size="medium"
-          />
-        </div>
+        <ExportButton 
+          dashboardRef={dashboardRef}
+          variant="glass"
+          size="medium"
+        />
       </ToolbarSection>
 
       {/* Key Metrics Grid */}
