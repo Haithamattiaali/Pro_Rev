@@ -153,46 +153,51 @@ export const HierarchicalFilterProvider = ({ children }) => {
       const period = validPeriods[0];
       
       if (viewMode === 'yearly') {
-        // Check validation data to get actual data range
-        const yearValidation = validationData[year];
-        if (yearValidation && yearValidation.compliantMonths && yearValidation.compliantMonths.length > 0) {
-          // Use actual data range from validation
-          const monthMap = {
-            'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3,
-            'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7,
-            'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
-          };
-          
-          const compliantMonthIndices = yearValidation.compliantMonths
-            .map(m => monthMap[m])
-            .filter(idx => idx !== undefined)
-            .sort((a, b) => a - b);
-          
-          if (compliantMonthIndices.length > 0) {
-            const firstMonth = compliantMonthIndices[0];
-            const lastMonth = compliantMonthIndices[compliantMonthIndices.length - 1];
-            startDate = new Date(year, firstMonth, 1);
-            endDate = new Date(year, lastMonth + 1, 0);
-            
-            const firstMonthName = yearValidation.compliantMonths.find(m => monthMap[m] === firstMonth);
-            const lastMonthName = yearValidation.compliantMonths.find(m => monthMap[m] === lastMonth);
-            
-            if (compliantMonthIndices.length === 12) {
-              displayLabel = `Full Year ${year}`;
-            } else {
-              displayLabel = `${year} (${firstMonthName}-${lastMonthName})`;
-            }
+        // For display purposes, always show calendar year range
+        startDate = new Date(year, 0, 1);
+        
+        // For current year, show YTD up to current month
+        if (year === currentYear) {
+          endDate = new Date(year, currentMonth - 1, new Date(year, currentMonth, 0).getDate());
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          if (currentMonth === 12) {
+            displayLabel = `Full Year ${year}`;
           } else {
-            // No compliant data
-            startDate = new Date(year, 0, 1);
-            endDate = new Date(year, 0, 31);
-            displayLabel = `${year} (No data available)`;
+            displayLabel = `${year} (Jan-${monthNames[currentMonth - 1]})`;
           }
         } else {
-          // No validation data available, use full year
-          startDate = new Date(year, 0, 1);
-          endDate = new Date(year, 11, 31);
-          displayLabel = `Full Year ${year}`;
+          // For past years, check if we have full year data
+          const yearValidation = validationData[year];
+          if (yearValidation && yearValidation.compliantMonths && yearValidation.compliantMonths.length > 0) {
+            const monthMap = {
+              'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3,
+              'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7,
+              'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+            };
+            
+            const compliantMonthIndices = yearValidation.compliantMonths
+              .map(m => monthMap[m])
+              .filter(idx => idx !== undefined)
+              .sort((a, b) => a - b);
+            
+            if (compliantMonthIndices.length === 12) {
+              endDate = new Date(year, 11, 31);
+              displayLabel = `Full Year ${year}`;
+            } else if (compliantMonthIndices.length > 0) {
+              // Show actual calendar range, but note if data is partial
+              const lastCompliantMonth = compliantMonthIndices[compliantMonthIndices.length - 1];
+              endDate = new Date(year, 11, 31);
+              const lastMonthName = yearValidation.compliantMonths.find(m => monthMap[m] === lastCompliantMonth);
+              displayLabel = `Full Year ${year}`;
+              // Data validation warnings will be shown separately
+            } else {
+              endDate = new Date(year, 11, 31);
+              displayLabel = `Full Year ${year}`;
+            }
+          } else {
+            endDate = new Date(year, 11, 31);
+            displayLabel = `Full Year ${year}`;
+          }
         }
         periodType = 'YTD';
       } else if (viewMode === 'quarterly') {
@@ -200,11 +205,20 @@ export const HierarchicalFilterProvider = ({ children }) => {
         const startMonth = (quarter - 1) * 3;
         const endMonth = quarter * 3 - 1;
         startDate = new Date(year, startMonth, 1);
-        endDate = new Date(year, endMonth + 1, 0);
         
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-        const rangeLabel = `${monthNames[startMonth]}-${monthNames[endMonth]}`;
-        displayLabel = `${period} ${year} (${rangeLabel})`;
+        // For current year and current quarter, show up to current date
+        if (year === currentYear && quarter === currentQuarter) {
+          endDate = new Date(year, currentMonth - 1, new Date(year, currentMonth, 0).getDate());
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const actualEndMonth = Math.min(endMonth, currentMonth - 1);
+          const rangeLabel = `${monthNames[startMonth]}-${monthNames[actualEndMonth]}`;
+          displayLabel = `${period} ${year} (${rangeLabel})`;
+        } else {
+          endDate = new Date(year, endMonth + 1, 0);
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const rangeLabel = `${monthNames[startMonth]}-${monthNames[endMonth]}`;
+          displayLabel = `${period} ${year} (${rangeLabel})`;
+        }
         periodType = 'QTD';
       } else if (viewMode === 'monthly') {
         const month = parseInt(period);
@@ -281,51 +295,26 @@ export const HierarchicalFilterProvider = ({ children }) => {
       switch (filterState.quickPreset) {
         case 'YTD':
           startDate = new Date(currentYear, 0, 1);
-          if (yearValidation && yearValidation.compliantMonths && yearValidation.compliantMonths.length > 0) {
-            const lastCompliantMonth = getLastCompliantMonth();
-            endDate = new Date(currentYear, lastCompliantMonth + 1, 0); // Last day of last compliant month
-            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            displayLabel = `${currentYear} (Jan-${monthNames[lastCompliantMonth]})`;
+          endDate = today;
+          const ytdMonthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          if (currentMonth === 12) {
+            displayLabel = `Full Year ${currentYear}`;
           } else {
-            endDate = today;
-            displayLabel = `Year to Date ${currentYear}`;
+            displayLabel = `${currentYear} (Jan-${ytdMonthNames[currentMonth - 1]})`;
           }
           periodType = 'YTD';
-          isPartialPeriod = false; // Not partial if showing only compliant data
+          isPartialPeriod = true; // Always partial for current year YTD
           break;
           
         case 'QTD':
-          // Check if current quarter is fully compliant
-          const currentQuarterCompliant = (() => {
-            const startMonth = (currentQuarter - 1) * 3;
-            const endMonth = currentQuarter * 3 - 1;
-            for (let m = startMonth; m <= endMonth; m++) {
-              if (!isMonthCompliant(m)) return false;
-            }
-            return true;
-          })();
-          
-          if (currentQuarterCompliant) {
-            startDate = new Date(currentYear, (currentQuarter - 1) * 3, 1);
-            endDate = today;
-            displayLabel = `Quarter to Date (Q${currentQuarter} ${currentYear})`;
-            isPartialPeriod = true;
-          } else {
-            // Fall back to last compliant quarter
-            const lastQuarter = getLastCompliantQuarter();
-            if (lastQuarter > 0) {
-              startDate = new Date(currentYear, (lastQuarter - 1) * 3, 1);
-              endDate = new Date(currentYear, lastQuarter * 3, 0);
-              displayLabel = `Q${lastQuarter} ${currentYear}`;
-              isPartialPeriod = false;
-            } else {
-              // No compliant quarter
-              startDate = new Date(currentYear, 0, 1);
-              endDate = new Date(currentYear, 0, 31);
-              displayLabel = `${currentYear} (No complete quarter available)`;
-              isPartialPeriod = false;
-            }
-          }
+          // Always use current quarter for QTD
+          startDate = new Date(currentYear, (currentQuarter - 1) * 3, 1);
+          endDate = today;
+          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+          const qStartMonth = (currentQuarter - 1) * 3;
+          const qEndMonth = Math.min(currentQuarter * 3 - 1, currentMonth - 1);
+          displayLabel = `Q${currentQuarter} ${currentYear} (${monthNames[qStartMonth]}-${monthNames[qEndMonth]})`;
+          isPartialPeriod = true;
           periodType = 'QTD';
           break;
           
