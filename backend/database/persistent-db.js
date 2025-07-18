@@ -100,28 +100,18 @@ class PersistentDatabase {
   
   runMigrations() {
     try {
-      // Check if original_target column exists
+      // No longer adding original_target, original_cost, or analysis_date columns
+      console.log('Running migrations...');
+      
+      // Check if we need to drop the old columns
       const columns = this.db.prepare("PRAGMA table_info(revenue_data)").all();
       const hasOriginalTarget = columns.some(col => col.name === 'original_target');
       const hasAnalysisDate = columns.some(col => col.name === 'analysis_date');
       const hasOriginalCost = columns.some(col => col.name === 'original_cost');
       
-      if (!hasOriginalTarget) {
-        console.log('Adding original_target column...');
-        this.db.prepare('ALTER TABLE revenue_data ADD COLUMN original_target REAL DEFAULT 0').run();
-        this.db.prepare('UPDATE revenue_data SET original_target = target WHERE original_target = 0').run();
-      }
-      
-      if (!hasAnalysisDate) {
-        console.log('Adding analysis_date column...');
-        this.db.prepare('ALTER TABLE revenue_data ADD COLUMN analysis_date DATE').run();
-        this.db.prepare("UPDATE revenue_data SET analysis_date = date('now') WHERE analysis_date IS NULL").run();
-      }
-      
-      if (!hasOriginalCost) {
-        console.log('Adding original_cost column...');
-        this.db.prepare('ALTER TABLE revenue_data ADD COLUMN original_cost REAL DEFAULT 0').run();
-        this.db.prepare('UPDATE revenue_data SET original_cost = cost WHERE original_cost = 0').run();
+      if (hasOriginalTarget || hasAnalysisDate || hasOriginalCost) {
+        console.log('Note: Pro-rating columns still exist in database. They will be ignored.');
+        // SQLite doesn't support dropping columns easily, so we'll just ignore them
       }
       
       console.log('Migrations completed');

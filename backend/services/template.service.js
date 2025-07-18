@@ -91,8 +91,8 @@ class TemplateService {
         service_type,
         year,
         month,
-        COALESCE(original_cost, cost) as cost,
-        COALESCE(original_target, target) as target,
+        cost,
+        target,
         revenue,
         receivables_collected
       FROM revenue_data
@@ -129,7 +129,6 @@ class TemplateService {
 
   /**
    * Format database data for Excel template
-   * Uses original values (not pro-rated) for cost and target
    * @param {Array} data - Raw database data
    * @returns {Array} Formatted data for Excel
    */

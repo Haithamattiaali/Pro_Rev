@@ -71,18 +71,15 @@ class ETLService {
       const stmt = db.db.prepare(`
         INSERT INTO revenue_data (
           customer, service_type, year, month,
-          cost, original_cost, target, original_target, revenue, receivables_collected,
-          analysis_date, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, date('now'), datetime('now'))
+          cost, target, revenue, receivables_collected,
+          updated_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         ON CONFLICT(customer, service_type, year, month)
         DO UPDATE SET
           cost = excluded.cost,
-          original_cost = excluded.original_cost,
           target = excluded.target,
-          original_target = excluded.original_target,
           revenue = excluded.revenue,
           receivables_collected = excluded.receivables_collected,
-          analysis_date = date('now'),
           updated_at = datetime('now')
       `);
       
@@ -102,9 +99,7 @@ class ETLService {
             cleanedData.year,
             cleanedData.month,
             cleanedData.cost,
-            cleanedData.original_cost,
             cleanedData.target,
-            cleanedData.original_target,
             cleanedData.revenue,
             cleanedData.receivables_collected
           );
@@ -146,22 +141,14 @@ class ETLService {
     
     const year = parseInt(row.Year) || new Date().getFullYear();
     const month = String(row.Month).trim();
-    const originalTarget = parseFloat(row.Target) || 0;
-    const originalCost = parseFloat(row.Cost) || 0;
-    
-    // Calculate pro-rated target and cost for current month
-    const proRatedTarget = this.calculateProRatedTarget(originalTarget, year, month);
-    const proRatedCost = this.calculateProRatedTarget(originalCost, year, month); // Same pro-rating logic
     
     return {
       customer: String(row.Customer).trim(),
       service_type: String(row.Service_Type).trim(),
       year: year,
       month: month,
-      cost: proRatedCost,
-      original_cost: originalCost,
-      target: proRatedTarget,
-      original_target: originalTarget,
+      cost: parseFloat(row.Cost) || 0,
+      target: parseFloat(row.Target) || 0,
       revenue: parseFloat(row.Revenue) || 0,
       receivables_collected: parseFloat(row['Receivables Collected']) || 0
     };
@@ -170,37 +157,6 @@ class ETLService {
 
   async getMonthNumber(monthName) {
     return this.monthMap[monthName] || 0;
-  }
-
-  // Calculate pro-rated target based on elapsed days in the month
-  calculateProRatedTarget(originalTarget, year, monthName) {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1;
-    const currentDay = currentDate.getDate();
-    
-    const monthNumber = this.monthMap[monthName] || 0;
-    
-    // If it's not the current month/year, use full target
-    if (year !== currentYear || monthNumber !== currentMonth) {
-      return originalTarget;
-    }
-    
-    // For current month, calculate pro-rated target
-    const daysInMonth = this.getDaysInMonth(year, monthNumber);
-    const elapsedDays = currentDay;
-    
-    // Pro-rate the target based on elapsed days
-    const proRatedTarget = (originalTarget / daysInMonth) * elapsedDays;
-    
-    console.log(`Pro-rating value for ${monthName} ${year}: ${originalTarget} → ${proRatedTarget.toFixed(2)} (${elapsedDays}/${daysInMonth} days)`);
-    
-    return proRatedTarget;
-  }
-  
-  // Get number of days in a specific month
-  getDaysInMonth(year, month) {
-    return new Date(year, month, 0).getDate();
   }
 
   async processSalesPlanData(data) {
