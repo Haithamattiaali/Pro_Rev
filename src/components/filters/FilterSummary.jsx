@@ -25,35 +25,79 @@ const FilterSummary = ({ displayLabel, isPartialPeriod, dateRange, selectedPerio
     return true;
   };
 
+  // Check if quarters are sequential
+  const areQuartersSequential = (periods) => {
+    if (!periods || periods.length <= 1) return true;
+    
+    const quarterNumbers = periods
+      .map(p => parseInt(p.replace('Q', '')))
+      .filter(n => !isNaN(n) && n >= 1 && n <= 4)
+      .sort((a, b) => a - b);
+    
+    if (quarterNumbers.length <= 1) return true;
+    
+    for (let i = 1; i < quarterNumbers.length; i++) {
+      if (quarterNumbers[i] !== quarterNumbers[i - 1] + 1) {
+        return false;
+      }
+    }
+    return true;
+  };
+
   // Format date range based on selection type
   const formatDateRange = () => {
-    // For non-monthly views or when no periods selected, use standard date range
-    if (viewMode !== 'monthly' || !selectedPeriods || selectedPeriods.length === 0) {
+    // For yearly view or when no periods selected, use standard date range
+    if (viewMode === 'yearly' || !selectedPeriods || selectedPeriods.length === 0) {
       if (dateRange && dateRange.start && dateRange.end && formatDate(dateRange.start) && formatDate(dateRange.end)) {
         return `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`;
       }
       return '';
     }
 
-    // For monthly view with selected periods
-    if (selectedPeriods.length === 1 || areMonthsSequential(selectedPeriods)) {
-      // Sequential months or single month - show date range
-      if (dateRange && dateRange.start && dateRange.end && formatDate(dateRange.start) && formatDate(dateRange.end)) {
-        return `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`;
+    // For quarterly view with selected periods
+    if (viewMode === 'quarterly') {
+      if (selectedPeriods.length === 1 || areQuartersSequential(selectedPeriods)) {
+        // Sequential quarters or single quarter - show date range
+        if (dateRange && dateRange.start && dateRange.end && formatDate(dateRange.start) && formatDate(dateRange.end)) {
+          return `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`;
+        }
+      } else {
+        // Non-sequential quarters - show individual quarters
+        const sortedQuarters = selectedPeriods
+          .filter(p => p && p.startsWith('Q'))
+          .sort((a, b) => {
+            const qA = parseInt(a.replace('Q', ''));
+            const qB = parseInt(b.replace('Q', ''));
+            return qA - qB;
+          });
+        
+        if (sortedQuarters.length > 0) {
+          const year = dateRange?.start ? dateRange.start.getFullYear() : new Date().getFullYear();
+          return `${sortedQuarters.join(', ')} ${year}`;
+        }
       }
-    } else {
-      // Non-sequential months - show individual months
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const selectedMonthNames = selectedPeriods
-        .map(p => parseInt(p))
-        .filter(n => !isNaN(n) && n >= 1 && n <= 12)
-        .sort((a, b) => a - b)
-        .map(m => monthNames[m - 1]);
-      
-      if (selectedMonthNames.length > 0) {
-        // Extract year from dateRange or displayLabel
-        const year = dateRange?.start ? dateRange.start.getFullYear() : new Date().getFullYear();
-        return `${selectedMonthNames.join(', ')} ${year}`;
+    }
+    
+    // For monthly view with selected periods
+    if (viewMode === 'monthly') {
+      if (selectedPeriods.length === 1 || areMonthsSequential(selectedPeriods)) {
+        // Sequential months or single month - show date range
+        if (dateRange && dateRange.start && dateRange.end && formatDate(dateRange.start) && formatDate(dateRange.end)) {
+          return `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`;
+        }
+      } else {
+        // Non-sequential months - show individual months (already sorted)
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const selectedMonthNames = selectedPeriods
+          .map(p => parseInt(p))
+          .filter(n => !isNaN(n) && n >= 1 && n <= 12)
+          .sort((a, b) => a - b)  // This ensures chronological order
+          .map(m => monthNames[m - 1]);
+        
+        if (selectedMonthNames.length > 0) {
+          const year = dateRange?.start ? dateRange.start.getFullYear() : new Date().getFullYear();
+          return `${selectedMonthNames.join(', ')} ${year}`;
+        }
       }
     }
     
