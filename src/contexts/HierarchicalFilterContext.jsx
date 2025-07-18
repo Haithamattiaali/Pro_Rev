@@ -149,7 +149,18 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
       if (validYears.length > 1) {
         displayLabel = `${validYears.join(', ')} - ${validPeriods.length} ${viewMode === 'quarterly' ? 'quarters' : 'months'} selected`;
       } else if (validYears.length === 1 && validPeriods.length > 0) {
-        displayLabel = `${validPeriods.join(', ')} ${validYears[0]}`;
+        // Sort periods before displaying
+        let sortedPeriods = [...validPeriods];
+        if (viewMode === 'quarterly') {
+          sortedPeriods.sort((a, b) => {
+            const qA = parseInt(a.replace('Q', ''));
+            const qB = parseInt(b.replace('Q', ''));
+            return qA - qB;
+          });
+        } else if (viewMode === 'monthly') {
+          sortedPeriods.sort((a, b) => parseInt(a) - parseInt(b));
+        }
+        displayLabel = `${sortedPeriods.join(', ')} ${validYears[0]}`;
       } else if (validYears.length === 1) {
         displayLabel = `${validYears[0]}`;
       } else {
