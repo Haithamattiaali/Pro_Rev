@@ -232,45 +232,138 @@ export const HierarchicalFilterProvider = ({ children }) => {
       ((viewMode === 'quarterly' && selectedPeriod === `Q${currentQuarter}`) ||
        (viewMode === 'monthly' && parseInt(selectedPeriod) === currentMonth));
     
-    // Handle quick presets - always use current date
+    // Handle quick presets - respect validation data
     if (filterState.quickPreset) {
       const today = new Date();
+      const yearValidation = validationData[currentYear];
+      
+      // Helper to get last compliant month index
+      const getLastCompliantMonth = () => {
+        if (!yearValidation || !yearValidation.compliantMonths || yearValidation.compliantMonths.length === 0) {
+          return currentMonth - 1; // Default to current month
+        }
+        const monthMap = {
+          'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3,
+          'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7,
+          'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+        };
+        const compliantIndices = yearValidation.compliantMonths
+          .map(m => monthMap[m])
+          .filter(idx => idx !== undefined)
+          .sort((a, b) => a - b);
+        return compliantIndices[compliantIndices.length - 1];
+      };
+      
+      // Helper to check if a month is compliant
+      const isMonthCompliant = (monthIndex) => {
+        if (!yearValidation || !yearValidation.compliantMonths) return true;
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return yearValidation.compliantMonths.includes(monthNames[monthIndex]);
+      };
+      
+      // Helper to get last fully compliant quarter
+      const getLastCompliantQuarter = () => {
+        for (let q = 4; q >= 1; q--) {
+          const startMonth = (q - 1) * 3;
+          const endMonth = q * 3 - 1;
+          let allCompliant = true;
+          for (let m = startMonth; m <= endMonth; m++) {
+            if (!isMonthCompliant(m)) {
+              allCompliant = false;
+              break;
+            }
+          }
+          if (allCompliant) return q;
+        }
+        return 0; // No compliant quarter
+      };
       
       switch (filterState.quickPreset) {
         case 'YTD':
           startDate = new Date(currentYear, 0, 1);
-          endDate = today;
-          displayLabel = `Year to Date ${currentYear}`;
+          if (yearValidation && yearValidation.compliantMonths && yearValidation.compliantMonths.length > 0) {
+            const lastCompliantMonth = getLastCompliantMonth();
+            endDate = new Date(currentYear, lastCompliantMonth + 1, 0); // Last day of last compliant month
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            displayLabel = `${currentYear} (Jan-${monthNames[lastCompliantMonth]})`;
+          } else {
+            endDate = today;
+            displayLabel = `Year to Date ${currentYear}`;
+          }
           periodType = 'YTD';
+          isPartialPeriod = false; // Not partial if showing only compliant data
           break;
+          
         case 'QTD':
-          startDate = new Date(currentYear, (currentQuarter - 1) * 3, 1);
-          endDate = today;
-          displayLabel = `Quarter to Date (Q${currentQuarter} ${currentYear})`;
+          // Check if current quarter is fully compliant
+          const currentQuarterCompliant = (() => {
+            const startMonth = (currentQuarter - 1) * 3;
+            const endMonth = currentQuarter * 3 - 1;
+            for (let m = startMonth; m <= endMonth; m++) {
+              if (!isMonthCompliant(m)) return false;
+            }
+            return true;
+          })();
+          
+          if (currentQuarterCompliant) {
+            startDate = new Date(currentYear, (currentQuarter - 1) * 3, 1);
+            endDate = today;
+            displayLabel = `Quarter to Date (Q${currentQuarter} ${currentYear})`;
+            isPartialPeriod = true;
+          } else {
+            // Fall back to last compliant quarter
+            const lastQuarter = getLastCompliantQuarter();
+            if (lastQuarter > 0) {
+              startDate = new Date(currentYear, (lastQuarter - 1) * 3, 1);
+              endDate = new Date(currentYear, lastQuarter * 3, 0);
+              displayLabel = `Q${lastQuarter} ${currentYear}`;
+              isPartialPeriod = false;
+            } else {
+              // No compliant quarter
+              startDate = new Date(currentYear, 0, 1);
+              endDate = new Date(currentYear, 0, 31);
+              displayLabel = `${currentYear} (No complete quarter available)`;
+              isPartialPeriod = false;
+            }
+          }
           periodType = 'QTD';
           break;
+          
         case 'MTD':
-          startDate = new Date(currentYear, currentMonth - 1, 1);
-          endDate = today;
-          displayLabel = `Month to Date (${today.toLocaleString('en-US', { month: 'long' })} ${currentYear})`;
+          // Check if current month is compliant
+          if (isMonthCompliant(currentMonth - 1)) {
+            startDate = new Date(currentYear, currentMonth - 1, 1);
+            endDate = today;
+            displayLabel = `Month to Date (${today.toLocaleString('en-US', { month: 'long' })} ${currentYear})`;
+            isPartialPeriod = true;
+          } else {
+            // Fall back to last compliant month
+            const lastCompliantMonth = getLastCompliantMonth();
+            startDate = new Date(currentYear, lastCompliantMonth, 1);
+            endDate = new Date(currentYear, lastCompliantMonth + 1, 0);
+            const monthName = new Date(currentYear, lastCompliantMonth, 1).toLocaleString('en-US', { month: 'long' });
+            displayLabel = `${monthName} ${currentYear}`;
+            isPartialPeriod = false;
+          }
           periodType = 'MTD';
           break;
+          
         case 'L4Q':
           endDate = new Date(currentYear, currentMonth - 1, 0);
           startDate = new Date(endDate.getFullYear() - 1, endDate.getMonth() + 1, 1);
           displayLabel = 'Last 4 Quarters';
           periodType = 'YTD';
+          isPartialPeriod = false;
           break;
+          
         case 'L12M':
           endDate = today;
           startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
           displayLabel = 'Last 12 Months';
           periodType = 'YTD';
+          isPartialPeriod = true;
           break;
       }
-      
-      // Quick presets always set to partial period since they go to current date
-      isPartialPeriod = true;
     }
     
     return {
