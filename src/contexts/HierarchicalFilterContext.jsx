@@ -93,26 +93,32 @@ export const HierarchicalFilterProvider = ({ children }) => {
     const years = multiSelectMode ? selectedYears : [selectedYear];
     const periods = multiSelectMode ? selectedPeriods : [selectedPeriod];
     
+    // Filter out undefined/null values
+    const validYears = years.filter(y => y != null);
+    const validPeriods = periods.filter(p => p != null);
+    
     // Calculate date range based on selections
-    let startDate, endDate, displayLabel, periodType;
+    let startDate = new Date(), endDate = new Date(), displayLabel = '', periodType = 'YTD';
     
     // For multi-select, we'll show the range of all selections
-    if (multiSelectMode && (years.length > 1 || periods.length > 1)) {
+    if (multiSelectMode && (validYears.length > 1 || validPeriods.length > 1)) {
       // Find the earliest and latest dates across all selections
       const dates = [];
       
-      years.forEach(year => {
+      validYears.forEach(year => {
         if (viewMode === 'yearly') {
           dates.push(new Date(year, 0, 1), new Date(year, 11, 31));
         } else if (viewMode === 'quarterly') {
-          periods.forEach(period => {
+          validPeriods.forEach(period => {
             const quarter = parseInt(period.replace('Q', ''));
-            const startMonth = (quarter - 1) * 3;
-            const endMonth = quarter * 3 - 1;
-            dates.push(new Date(year, startMonth, 1), new Date(year, endMonth + 1, 0));
+            if (!isNaN(quarter) && quarter >= 1 && quarter <= 4) {
+              const startMonth = (quarter - 1) * 3;
+              const endMonth = quarter * 3 - 1;
+              dates.push(new Date(year, startMonth, 1), new Date(year, endMonth + 1, 0));
+            }
           });
         } else if (viewMode === 'monthly') {
-          periods.forEach(period => {
+          validPeriods.forEach(period => {
             const month = parseInt(period);
             if (!isNaN(month) && month >= 1 && month <= 12) {
               dates.push(new Date(year, month - 1, 1), new Date(year, month, 0));
@@ -131,16 +137,20 @@ export const HierarchicalFilterProvider = ({ children }) => {
       }
       
       // Create display label for multi-select
-      if (years.length > 1) {
-        displayLabel = `${years.join(', ')} - ${periods.length} ${viewMode === 'quarterly' ? 'quarters' : 'months'} selected`;
+      if (validYears.length > 1) {
+        displayLabel = `${validYears.join(', ')} - ${validPeriods.length} ${viewMode === 'quarterly' ? 'quarters' : 'months'} selected`;
+      } else if (validYears.length === 1 && validPeriods.length > 0) {
+        displayLabel = `${validPeriods.join(', ')} ${validYears[0]}`;
+      } else if (validYears.length === 1) {
+        displayLabel = `${validYears[0]}`;
       } else {
-        displayLabel = `${periods.join(', ')} ${years[0]}`;
+        displayLabel = 'No period selected';
       }
       periodType = viewMode === 'yearly' ? 'YTD' : viewMode === 'quarterly' ? 'QTD' : 'MTD';
     } else {
       // Single selection logic (existing)
-      const year = years[0];
-      const period = periods[0];
+      const year = validYears[0] || currentYear;
+      const period = validPeriods[0];
       
       if (viewMode === 'yearly') {
         startDate = new Date(year, 0, 1);
@@ -163,14 +173,18 @@ export const HierarchicalFilterProvider = ({ children }) => {
         if (!isNaN(month) && month >= 1 && month <= 12) {
           startDate = new Date(year, month - 1, 1);
           endDate = new Date(year, month, 0);
+          
+          const monthName = new Date(year, month - 1, 1).toLocaleString('en-US', { month: 'long' });
+          displayLabel = `${monthName} ${year}`;
         } else {
-          // Fallback to January if invalid month
-          startDate = new Date(year, 0, 1);
-          endDate = new Date(year, 0, 31);
+          // Fallback to current month if invalid
+          const fallbackMonth = year === currentYear ? currentMonth : 1;
+          startDate = new Date(year, fallbackMonth - 1, 1);
+          endDate = new Date(year, fallbackMonth, 0);
+          
+          const monthName = new Date(year, fallbackMonth - 1, 1).toLocaleString('en-US', { month: 'long' });
+          displayLabel = `${monthName} ${year}`;
         }
-        
-        const monthName = startDate.toLocaleString('en-US', { month: 'long' });
-        displayLabel = `${monthName} ${year}`;
         periodType = 'MTD';
       }
     }
@@ -339,6 +353,7 @@ export const HierarchicalFilterProvider = ({ children }) => {
         ...prev,
         viewMode: mode,
         selectedPeriod: newPeriod,
+        selectedPeriods: newPeriod ? [newPeriod] : [],
         quickPreset: null // Clear any quick preset
       };
     });
