@@ -18,6 +18,18 @@ const GLChart = ({ data }) => {
   const chartData = useMemo(() => {
     if (!data?.data || data.data.length === 0) return []
     
+    // Helper function to determine service type from GL name
+    const getServiceType = (gl, originalServiceType) => {
+      if (originalServiceType) return originalServiceType
+      
+      // Map GL names to service types based on known patterns
+      const glName = gl.toLowerCase()
+      if (glName.includes('transportation') || glName.includes('delivery')) {
+        return 'Transportation'
+      }
+      return 'Warehousing'
+    }
+    
     // Normalize data to handle both single-select and multi-select structures
     return [...data.data]
       .map(item => ({
@@ -25,7 +37,7 @@ const GLChart = ({ data }) => {
         baseline: item.baseline_forecast || 0,
         opportunities: item.opportunity_value || 0,
         total: item.total || item.total_forecast || 0, // Handle both field names
-        service: item.service_type || 'Warehousing', // Default to 'Warehousing' for multi-select
+        service: getServiceType(item.gl, item.service_type), // Determine service type
         monthCount: item.month_count,
         serviceCount: item.service_count
       }))
