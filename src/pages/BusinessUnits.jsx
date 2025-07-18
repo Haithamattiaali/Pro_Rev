@@ -198,7 +198,7 @@ const BusinessUnits = () => {
       {selectedUnitData && (
         <div className="dashboard-card">
           <h2 className="section-title">{dataService.getPeriodLabel(periodFilter.period)} Performance Summary</h2>
-          <div className={`grid grid-cols-2 ${selectedUnitData.revenue > 0 ? 'md:grid-cols-6' : 'md:grid-cols-4'} gap-4`}>
+          <div className={`grid grid-cols-2 ${selectedUnitData && selectedUnitData.revenue > 0 ? 'md:grid-cols-6' : 'md:grid-cols-4'} gap-4`}>
             <div className="text-center p-4 bg-secondary-pale rounded-lg">
               <p className="metric-label">Target</p>
               <p className="text-xl font-bold text-primary-dark mt-1">{formatCurrency(selectedUnitData.target)}</p>
@@ -221,7 +221,7 @@ const BusinessUnits = () => {
                 {formatPercentage(selectedUnitData.achievement)}
               </p>
             </div>
-            {selectedUnitData.revenue > 0 && (
+            {selectedUnitData && selectedUnitData.revenue > 0 && (
               <>
                 <div className="text-center p-4 bg-secondary-pale rounded-lg">
                   <p className="metric-label">Gross Profit</p>
@@ -265,7 +265,7 @@ const BusinessUnits = () => {
                 Cost: month.cost,
                 'Achievement %': month.achievement
               };
-              if (selectedUnitData.revenue > 0) {
+              if (selectedUnitData && selectedUnitData.revenue > 0) {
                 base['Gross Profit'] = month.grossProfit;
                 base['GP Margin'] = month.grossProfitMargin;
               }
@@ -284,7 +284,7 @@ const BusinessUnits = () => {
               <BaseTable.Head align="right">Revenue</BaseTable.Head>
               <BaseTable.Head align="right">Cost</BaseTable.Head>
               <BaseTable.Head align="center">Achievement %</BaseTable.Head>
-              {selectedUnitData.revenue > 0 && (
+              {selectedUnitData && selectedUnitData.revenue > 0 && (
                 <>
                   <BaseTable.Head align="right">Gross Profit</BaseTable.Head>
                   <BaseTable.Head align="center">GP Margin</BaseTable.Head>
@@ -308,7 +308,7 @@ const BusinessUnits = () => {
                     {formatPercentage(month.achievement)}
                   </span>
                 </BaseTable.Cell>
-                {selectedUnitData.revenue > 0 && (
+                {selectedUnitData && selectedUnitData.revenue > 0 && (
                   <>
                     <BaseTable.Cell align="right" numeric>{formatCurrency(month.grossProfit)}</BaseTable.Cell>
                     <BaseTable.Cell align="center">
@@ -347,18 +347,22 @@ const BusinessUnits = () => {
                     {formatPercentage(selectedUnitData?.achievement || 0)}
                   </span>
                 </BaseTable.Cell>
-                <BaseTable.Cell align="right" numeric className="font-bold">
-                  {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.grossProfit, 0))}
-                </BaseTable.Cell>
-                <BaseTable.Cell align="center">
-                  <span className={`font-semibold ${
-                    getGrossProfitStatus(selectedUnitData?.grossProfitMargin || 0) === 'high' ? 'text-green-600' :
-                    getGrossProfitStatus(selectedUnitData?.grossProfitMargin || 0) === 'medium' ? 'text-yellow-600' :
-                    'text-red-600'
-                  }`}>
-                    {formatPercentage(selectedUnitData?.grossProfitMargin || 0)}
-                  </span>
-                </BaseTable.Cell>
+                {selectedUnitData && selectedUnitData.revenue > 0 && (
+                  <>
+                    <BaseTable.Cell align="right" numeric className="font-bold">
+                      {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.grossProfit, 0))}
+                    </BaseTable.Cell>
+                    <BaseTable.Cell align="center">
+                      <span className={`font-semibold ${
+                        getGrossProfitStatus(selectedUnitData?.grossProfitMargin || 0) === 'high' ? 'text-green-600' :
+                        getGrossProfitStatus(selectedUnitData?.grossProfitMargin || 0) === 'medium' ? 'text-yellow-600' :
+                        'text-red-600'
+                      }`}>
+                        {formatPercentage(selectedUnitData?.grossProfitMargin || 0)}
+                      </span>
+                    </BaseTable.Cell>
+                  </>
+                )}
               </BaseTable.Row>
             </BaseTable.Footer>
           )}
@@ -386,7 +390,7 @@ const BusinessUnits = () => {
                   {selectedUnit}
                 </div>
               </div>
-              <p className="text-3xl font-bold text-neutral-dark mb-4">{selectedUnitData.customerCount || 0}</p>
+              <p className="text-3xl font-bold text-neutral-dark mb-4">{selectedUnitData ? selectedUnitData.customerCount || 0 : 0}</p>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-neutral-mid flex items-center gap-1">
@@ -394,7 +398,7 @@ const BusinessUnits = () => {
                     Revenue Contribution
                   </span>
                   <span className="font-semibold text-neutral-dark">
-                    {formatPercentage((selectedUnitData.revenue / businessUnits.reduce((sum, unit) => sum + unit.revenue, 0)) * 100)}
+                    {formatPercentage(selectedUnitData ? (selectedUnitData.revenue / businessUnits.reduce((sum, unit) => sum + unit.revenue, 0)) * 100 : 0)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
@@ -403,7 +407,7 @@ const BusinessUnits = () => {
                     Avg Order Value
                   </span>
                   <span className="font-semibold text-neutral-dark">
-                    {formatCurrency(selectedUnitData.revenue / (selectedUnitData.customerCount || 1) / 12)}
+                    {formatCurrency(selectedUnitData ? selectedUnitData.revenue / (selectedUnitData.customerCount || 1) / 12 : 0)}
                   </span>
                 </div>
               </div>
@@ -427,7 +431,7 @@ const BusinessUnits = () => {
                 </div>
               </div>
               <p className="text-3xl font-bold text-neutral-dark mb-4">
-                {formatCurrency(selectedUnitData.customerCount > 0 ? selectedUnitData.revenue / selectedUnitData.customerCount : 0)}
+                {formatCurrency(selectedUnitData && selectedUnitData.customerCount > 0 ? selectedUnitData.revenue / selectedUnitData.customerCount : 0)}
               </p>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
@@ -436,13 +440,13 @@ const BusinessUnits = () => {
                     Target per Customer
                   </span>
                   <span className="font-semibold text-neutral-dark">
-                    {formatCurrency(selectedUnitData.target / (selectedUnitData.customerCount || 1))}
+                    {formatCurrency(selectedUnitData ? selectedUnitData.target / (selectedUnitData.customerCount || 1) : 0)}
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
                   <div 
                     className="h-2 bg-gradient-to-r from-accent-blue to-blue-600 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min((selectedUnitData.revenue / selectedUnitData.target) * 100, 100)}%` }}
+                    style={{ width: `${selectedUnitData ? Math.min((selectedUnitData.revenue / selectedUnitData.target) * 100, 100) : 0}%` }}
                   />
                 </div>
                 <div className="flex items-center justify-between text-sm">
@@ -451,9 +455,9 @@ const BusinessUnits = () => {
                     Customer Efficiency
                   </span>
                   <span className={`font-semibold ${
-                    selectedUnitData.achievement >= 100 ? 'text-green-600' : 'text-neutral-dark'
+                    selectedUnitData && selectedUnitData.achievement >= 100 ? 'text-green-600' : 'text-neutral-dark'
                   }`}>
-                    {formatPercentage(selectedUnitData.achievement)}
+                    {formatPercentage(selectedUnitData ? selectedUnitData.achievement : 0)}
                   </span>
                 </div>
               </div>
@@ -472,7 +476,7 @@ const BusinessUnits = () => {
                   </div>
                 </div>
                 <div className={`text-xs font-medium px-2 py-1 rounded-full ${
-                  (selectedUnitData.receivables / selectedUnitData.revenue) > 0.3 
+                  selectedUnitData && (selectedUnitData.receivables / selectedUnitData.revenue) > 0.3 
                     ? 'bg-red-100 text-red-700' 
                     : 'bg-green-100 text-green-700'
                 }`}>
@@ -480,7 +484,7 @@ const BusinessUnits = () => {
                 </div>
               </div>
               <p className="text-3xl font-bold text-neutral-dark mb-4">
-                {formatCurrency(selectedUnitData.receivables)}
+                {formatCurrency(selectedUnitData ? selectedUnitData.receivables : 0)}
               </p>
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
@@ -489,7 +493,7 @@ const BusinessUnits = () => {
                     Days Sales Outstanding
                   </span>
                   <span className="font-semibold text-neutral-dark">
-                    {Math.round((selectedUnitData.receivables / selectedUnitData.revenue) * 365)} days
+                    {selectedUnitData && selectedUnitData.revenue > 0 ? Math.round((selectedUnitData.receivables / selectedUnitData.revenue) * 365) : 0} days
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
@@ -498,11 +502,11 @@ const BusinessUnits = () => {
                     % of Revenue
                   </span>
                   <span className={`font-semibold ${
-                    (selectedUnitData.receivables / selectedUnitData.revenue) > 0.3 
+                    selectedUnitData && (selectedUnitData.receivables / selectedUnitData.revenue) > 0.3 
                       ? 'text-red-600' 
                       : 'text-green-600'
                   }`}>
-                    {formatPercentage((selectedUnitData.receivables / selectedUnitData.revenue) * 100)}
+                    {formatPercentage(selectedUnitData && selectedUnitData.revenue > 0 ? (selectedUnitData.receivables / selectedUnitData.revenue) * 100 : 0)}
                   </span>
                 </div>
               </div>
