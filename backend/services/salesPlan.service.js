@@ -600,7 +600,7 @@ class SalesPlanService {
       `);
       
       if (!tableCheck || tableCheck.count === 0) {
-        console.log('No opportunities data found');
+        // No opportunities data found - return empty structure without logging
         return {
           opportunities: [],
           matrix: {
