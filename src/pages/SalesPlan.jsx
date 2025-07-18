@@ -44,6 +44,8 @@ const SalesPlan = () => {
       try {
         const { year, period, month, quarter } = periodFilter
         
+        console.log('🎯 SalesPlan: Full periodFilter:', periodFilter);
+        
         // Prepare multi-select parameters if in multi-select mode
         let multiSelectParams = null;
         
@@ -63,8 +65,8 @@ const SalesPlan = () => {
           viewMode: periodFilter.viewMode
         });
         
-        // Only use multi-select for quarterly/monthly modes, not yearly
-        if (periodFilter.multiSelectMode && periodFilter.viewMode !== 'yearly') {
+        // Use multi-select if multiSelectMode is true (regardless of selections)
+        if (periodFilter.multiSelectMode === true && periodFilter.viewMode !== 'yearly') {
           // Build periods array from selectedQuarters/selectedMonths
           let periods = [];
           
@@ -85,20 +87,28 @@ const SalesPlan = () => {
             }
           }
           
+          // Always create multiSelectParams when in multi-select mode
           multiSelectParams = {
             years: periodFilter.selectedYears || [periodFilter.year],
             periods: periods,
-            viewMode: periodFilter.viewMode || (periodFilter.selectedQuarters?.length > 0 ? 'quarterly' : 'monthly')
+            viewMode: periodFilter.viewMode || 'quarterly'
           };
           
-          console.log('🔍 SalesPlan: Multi-select params:', {
+          console.log('🔍 SalesPlan: Multi-select params created:', {
             multiSelectParams,
             periodFilter,
             hasQuarters,
             hasMonths,
             hasMultipleSelections,
             periods,
-            viewMode: periodFilter.viewMode
+            viewMode: periodFilter.viewMode,
+            multiSelectModeValue: periodFilter.multiSelectMode
+          });
+        } else {
+          console.log('🔍 SalesPlan: Not using multi-select:', {
+            multiSelectMode: periodFilter.multiSelectMode,
+            viewMode: periodFilter.viewMode,
+            condition: periodFilter.multiSelectMode === true && periodFilter.viewMode !== 'yearly'
           });
         }
         
