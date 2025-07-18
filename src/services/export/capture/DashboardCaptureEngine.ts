@@ -786,17 +786,48 @@ export class DashboardCaptureEngine {
 
   private async captureVisualSnapshot(element: HTMLElement, rootNode: DVDOMNode): Promise<void> {
     try {
+      console.log('📸 Starting visual snapshot capture...', {
+        element: element.tagName,
+        classList: element.classList.toString(),
+        width: element.offsetWidth,
+        height: element.offsetHeight,
+        childrenCount: element.children.length
+      });
+
       // Dynamically import html2canvas
       const html2canvas = (await import('html2canvas')).default;
+      
+      // Wait a bit for any lazy-loaded content to render
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Capture the element as canvas
       const canvas = await html2canvas(element, {
         scale: 2, // High quality
-        logging: false,
+        logging: true, // Enable logging for debugging
         backgroundColor: '#ffffff',
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
+        windowWidth: element.scrollWidth,
+        windowHeight: element.scrollHeight
       });
+
+      // Check if canvas is empty
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const pixels = imageData.data;
+      let isCanvasEmpty = true;
+      
+      // Check if any pixel is not white
+      for (let i = 0; i < pixels.length; i += 4) {
+        if (pixels[i] !== 255 || pixels[i + 1] !== 255 || pixels[i + 2] !== 255) {
+          isCanvasEmpty = false;
+          break;
+        }
+      }
+
+      if (isCanvasEmpty) {
+        console.warn('⚠️ Canvas appears to be empty/white!');
+      }
 
       // Convert to base64
       const base64Data = canvas.toDataURL('image/png');
@@ -820,7 +851,8 @@ export class DashboardCaptureEngine {
       console.log('✅ Visual snapshot captured', {
         width: canvas.width,
         height: canvas.height,
-        size: Math.round(base64Data.length / 1024) + 'KB'
+        size: Math.round(base64Data.length / 1024) + 'KB',
+        isEmpty: isCanvasEmpty
       });
 
     } catch (error) {
