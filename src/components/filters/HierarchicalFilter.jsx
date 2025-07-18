@@ -19,6 +19,8 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true, d
     displayLabel,
     isPartialPeriod,
     dateRange,
+    selectedPeriods,
+    viewMode,
     viewModes,
     quickPresets,
     handleYearChange,
@@ -110,6 +112,8 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true, d
         displayLabel={displayLabel}
         isPartialPeriod={isPartialPeriod}
         dateRange={dateRange}
+        selectedPeriods={selectedPeriods}
+        viewMode={viewMode}
       />
       
       {/* Comparison Mode (Optional) */}

@@ -2,12 +2,62 @@ import React from 'react';
 import { Calendar, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const FilterSummary = ({ displayLabel, isPartialPeriod, dateRange, className = '' }) => {
+const FilterSummary = ({ displayLabel, isPartialPeriod, dateRange, selectedPeriods, viewMode, className = '' }) => {
   const formatDate = (date) => {
     if (!date || !(date instanceof Date) || isNaN(date.getTime())) {
       return null;
     }
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  // Check if months are sequential
+  const areMonthsSequential = (periods) => {
+    if (!periods || periods.length <= 1) return true;
+    
+    const monthNumbers = periods.map(p => parseInt(p)).filter(n => !isNaN(n)).sort((a, b) => a - b);
+    if (monthNumbers.length <= 1) return true;
+    
+    for (let i = 1; i < monthNumbers.length; i++) {
+      if (monthNumbers[i] !== monthNumbers[i - 1] + 1) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Format date range based on selection type
+  const formatDateRange = () => {
+    // For non-monthly views or when no periods selected, use standard date range
+    if (viewMode !== 'monthly' || !selectedPeriods || selectedPeriods.length === 0) {
+      if (dateRange && dateRange.start && dateRange.end && formatDate(dateRange.start) && formatDate(dateRange.end)) {
+        return `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`;
+      }
+      return '';
+    }
+
+    // For monthly view with selected periods
+    if (selectedPeriods.length === 1 || areMonthsSequential(selectedPeriods)) {
+      // Sequential months or single month - show date range
+      if (dateRange && dateRange.start && dateRange.end && formatDate(dateRange.start) && formatDate(dateRange.end)) {
+        return `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`;
+      }
+    } else {
+      // Non-sequential months - show individual months
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const selectedMonthNames = selectedPeriods
+        .map(p => parseInt(p))
+        .filter(n => !isNaN(n) && n >= 1 && n <= 12)
+        .sort((a, b) => a - b)
+        .map(m => monthNames[m - 1]);
+      
+      if (selectedMonthNames.length > 0) {
+        // Extract year from dateRange or displayLabel
+        const year = dateRange?.start ? dateRange.start.getFullYear() : new Date().getFullYear();
+        return `${selectedMonthNames.join(', ')} ${year}`;
+      }
+    }
+    
+    return '';
   };
 
   return (
@@ -25,10 +75,7 @@ const FilterSummary = ({ displayLabel, isPartialPeriod, dateRange, className = '
           <h3 className="text-xs font-medium text-neutral-mid uppercase tracking-wide">Currently Showing</h3>
           <p className="text-base font-semibold text-primary mt-0.5">{displayLabel}</p>
           <p className="text-xs text-neutral-mid mt-1">
-            {dateRange && dateRange.start && dateRange.end && formatDate(dateRange.start) && formatDate(dateRange.end)
-              ? `${formatDate(dateRange.start)} - ${formatDate(dateRange.end)}`
-              : ''
-            }
+            {formatDateRange()}
           </p>
         </div>
         {isPartialPeriod && (

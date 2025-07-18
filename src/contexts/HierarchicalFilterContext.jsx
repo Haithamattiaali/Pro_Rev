@@ -395,6 +395,9 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
       displayLabel,
       isPartialPeriod,
       periodType,
+      // Pass selected periods for better display
+      selectedPeriods: filterState.multiSelectMode ? filterState.selectedPeriods : [],
+      viewMode: filterState.viewMode,
       // Legacy values for backward compatibility
       legacyPeriod: periodType,
       legacyYear: selectedYear,
