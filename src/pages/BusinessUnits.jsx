@@ -74,6 +74,20 @@ const BusinessUnits = () => {
         
         setBusinessUnits(unitsData)
         setMonthlyTrends(trendsData)
+        
+        // Preserve selected unit or set first unit if not selected
+        if (unitsData.length > 0) {
+          if (selectedUnit) {
+            // Check if currently selected unit still exists in new data
+            const unitStillExists = unitsData.some(u => u.businessUnit === selectedUnit)
+            if (!unitStillExists) {
+              setSelectedUnit(unitsData[0].businessUnit)
+            }
+          } else {
+            // No unit selected yet, select first one
+            setSelectedUnit(unitsData[0].businessUnit)
+          }
+        }
       } catch (err) {
         console.error('Error fetching business unit data:', err)
         setError('Failed to load business unit data. Please try again.')

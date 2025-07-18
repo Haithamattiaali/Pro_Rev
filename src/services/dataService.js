@@ -256,7 +256,11 @@ class DataService {
   }
 
   // Sales Plan methods
-  async getSalesPlanOverview(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null) {
+  async getSalesPlanOverview(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
+    if (multiSelectParams && multiSelectParams.periods?.length > 0) {
+      const key = this.getCacheKey('salesPlanOverviewMulti', JSON.stringify(multiSelectParams), serviceType);
+      return this.getCachedData(key, () => apiService.getSalesPlanOverview(year, period, month, quarter, serviceType, multiSelectParams));
+    }
     const key = this.getCacheKey('salesPlanOverview', year, period, month, quarter, serviceType);
     return this.getCachedData(key, () => apiService.getSalesPlanOverview(year, period, month, quarter, serviceType));
   }
@@ -266,7 +270,11 @@ class DataService {
     return this.getCachedData(key, () => apiService.getSalesPlanMonthly(year, serviceType));
   }
 
-  async getSalesPlanByGL(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null) {
+  async getSalesPlanByGL(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
+    if (multiSelectParams && multiSelectParams.periods?.length > 0) {
+      const key = this.getCacheKey('salesPlanByGLMulti', JSON.stringify(multiSelectParams), serviceType);
+      return this.getCachedData(key, () => apiService.getSalesPlanByGL(year, period, month, quarter, serviceType, multiSelectParams));
+    }
     const key = this.getCacheKey('salesPlanByGL', year, period, month, quarter, serviceType);
     return this.getCachedData(key, () => apiService.getSalesPlanByGL(year, period, month, quarter, serviceType));
   }

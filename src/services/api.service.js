@@ -325,12 +325,37 @@ class ApiService {
   }
 
   // Sales Plan API methods
-  async getSalesPlanOverview(year, period = 'YTD', month = null, quarter = null, serviceType = null) {
+  async getSalesPlanOverview(year, period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
+    // If multiSelectParams provided, use multi-select endpoint
+    if (multiSelectParams && multiSelectParams.periods && multiSelectParams.periods.length > 0) {
+      console.log('🌐 API: Using multi-select sales plan overview endpoint');
+      return this.getSalesPlanOverviewMultiSelect(multiSelectParams, serviceType);
+    }
+    
     let url = `/sales-plan/overview?year=${year}&period=${period}`;
     if (month !== null) url += `&month=${month}`;
     if (quarter !== null) url += `&quarter=${quarter}`;
     if (serviceType !== null && serviceType !== 'all') url += `&serviceType=${serviceType}`;
     return this.request(url);
+  }
+  
+  // Multi-select sales plan overview
+  async getSalesPlanOverviewMultiSelect(params, serviceType = null) {
+    const { years = [], periods = [], viewMode = 'quarterly' } = params;
+    console.log('🌐 API: Requesting multi-select sales plan overview:', params);
+    
+    const body = { years, periods, viewMode };
+    if (serviceType !== null && serviceType !== 'all') {
+      body.serviceType = serviceType;
+    }
+    
+    return this.request('/sales-plan/overview/multi-select', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
   }
 
   async getSalesPlanMonthly(year, serviceType = null) {
@@ -339,12 +364,37 @@ class ApiService {
     return this.request(url);
   }
 
-  async getSalesPlanByGL(year, period = 'YTD', month = null, quarter = null, serviceType = null) {
+  async getSalesPlanByGL(year, period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
+    // If multiSelectParams provided, use multi-select endpoint
+    if (multiSelectParams && multiSelectParams.periods && multiSelectParams.periods.length > 0) {
+      console.log('🌐 API: Using multi-select sales plan by GL endpoint');
+      return this.getSalesPlanByGLMultiSelect(multiSelectParams, serviceType);
+    }
+    
     let url = `/sales-plan/by-gl?year=${year}&period=${period}`;
     if (month !== null) url += `&month=${month}`;
     if (quarter !== null) url += `&quarter=${quarter}`;
     if (serviceType !== null && serviceType !== 'all') url += `&serviceType=${serviceType}`;
     return this.request(url);
+  }
+  
+  // Multi-select sales plan by GL
+  async getSalesPlanByGLMultiSelect(params, serviceType = null) {
+    const { years = [], periods = [], viewMode = 'quarterly' } = params;
+    console.log('🌐 API: Requesting multi-select sales plan by GL:', params);
+    
+    const body = { years, periods, viewMode };
+    if (serviceType !== null && serviceType !== 'all') {
+      body.serviceType = serviceType;
+    }
+    
+    return this.request('/sales-plan/by-gl/multi-select', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
   }
 
   // Opportunities API methods
