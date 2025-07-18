@@ -114,8 +114,8 @@ const SalesPlan = () => {
         
         // Fetch all data in parallel
         const [overview, byGL, byBU, monthly, opportunities] = await Promise.all([
-          dataService.getSalesPlanOverview(year, period, month, quarter, multiSelectParams),
-          dataService.getSalesPlanByGL(year, period, month, quarter, multiSelectParams),
+          dataService.getSalesPlanOverview(year, period, month, quarter, null, multiSelectParams),
+          dataService.getSalesPlanByGL(year, period, month, quarter, null, multiSelectParams),
           fetch(`${import.meta.env.VITE_API_URL}/sales-plan/by-business-unit?year=${year}&period=${period}${month ? `&month=${month}` : ''}${quarter ? `&quarter=${quarter}` : ''}`).then(r => r.json()),
           dataService.getSalesPlanMonthly(year),
           dataService.getOpportunities()
