@@ -13,7 +13,7 @@ export const useHierarchicalFilter = () => {
 
 export default HierarchicalFilterContext;
 
-export const HierarchicalFilterProvider = ({ children }) => {
+export const HierarchicalFilterProvider = ({ children, isForecastData = false }) => {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
   const currentMonth = currentDate.getMonth() + 1;

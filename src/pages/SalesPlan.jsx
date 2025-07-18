@@ -2,10 +2,11 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useFilter } from '../contexts/FilterContext'
 import dataService from '../services/dataService'
 import MetricCard from '../components/cards/MetricCard'
-import { TrendingUp, FileSpreadsheet, Target, Calendar } from 'lucide-react'
+import { TrendingUp, FileSpreadsheet, Target } from 'lucide-react'
 import { ExportButton } from '../components/export'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import ToolbarSection from '../components/layout/ToolbarSection'
+import SalesPlanFilterSummary from '../components/salesplan/SalesPlanFilterSummary'
 
 // Import chart components
 import GLChart from '../components/salesplan/charts/GLChart'
@@ -151,6 +152,9 @@ const SalesPlan = () => {
     <div className="p-6 bg-neutral-light min-h-screen" ref={dashboardRef} data-dashboard="true">
       {/* Period Filter */}
       <StickyPeriodFilter useHierarchical={true} disableValidation={true} />
+      
+      {/* Custom Summary for Sales Plan */}
+      <SalesPlanFilterSummary />
 
       {/* Toolbar */}
       <ToolbarSection
