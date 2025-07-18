@@ -26,7 +26,7 @@ const StickyPeriodFilter = ({ useModular = true, useNewFilterBar = true, useHier
   // Choose filter component based on props
   const getFilterComponent = () => {
     if (useHierarchical) {
-      return <FilterSystemWrapper useNewSystem={true} />;
+      return <FilterSystemWrapper useNewSystem={true} disableValidation={disableValidation} />;
     }
     return useNewFilterBar ? <FilterBar disableValidation={disableValidation} /> : <ModularPeriodFilter disableValidation={disableValidation} />;
   };

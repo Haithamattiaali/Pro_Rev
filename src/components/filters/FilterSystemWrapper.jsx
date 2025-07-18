@@ -8,7 +8,7 @@ import { debounce } from 'lodash';
  * Wrapper component that bridges the new hierarchical filter system
  * with the existing FilterContext for backward compatibility
  */
-const FilterSystemWrapper = ({ useNewSystem = true, ...props }) => {
+const FilterSystemWrapper = ({ useNewSystem = true, disableValidation = false, ...props }) => {
   const hierarchicalFilter = useNewSystem ? useHierarchicalFilter() : null;
   const { handlePeriodChange } = useFilter();
   const lastUpdateRef = useRef(null);
@@ -90,7 +90,7 @@ const FilterSystemWrapper = ({ useNewSystem = true, ...props }) => {
     return null; // The existing StickyPeriodFilter will be used
   }
 
-  return <HierarchicalFilter {...props} />;
+  return <HierarchicalFilter {...props} disableValidation={disableValidation} />;
 };
 
 export default FilterSystemWrapper;

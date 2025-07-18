@@ -10,7 +10,7 @@ import ComparisonMode from './ComparisonMode';
 import MultiSelectToggle from './MultiSelectToggle';
 import companyLogo from '../../assets/logo.png';
 
-const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true }) => {
+const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true, disableValidation = false }) => {
   const {
     filterState,
     availableYears,
@@ -28,6 +28,18 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true })
     handleComparisonModeChange,
     toggleMultiSelectMode
   } = useHierarchicalFilter();
+
+  // Override available periods when validation is disabled
+  const effectiveAvailablePeriods = React.useMemo(() => {
+    if (disableValidation) {
+      if (filterState.viewMode === 'quarterly') {
+        return ['Q1', 'Q2', 'Q3', 'Q4'];
+      } else if (filterState.viewMode === 'monthly') {
+        return Array.from({ length: 12 }, (_, i) => String(i + 1));
+      }
+    }
+    return availablePeriods;
+  }, [disableValidation, filterState.viewMode, availablePeriods]);
 
   return (
     <div className="space-y-3">
@@ -53,11 +65,12 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true })
               viewMode={filterState.viewMode}
               value={filterState.selectedPeriod}
               onChange={handlePeriodChange}
-              availablePeriods={availablePeriods}
+              availablePeriods={effectiveAvailablePeriods}
               multiSelect={filterState.multiSelectMode}
               selectedPeriods={filterState.selectedPeriods}
               selectedYear={filterState.selectedYear}
               validationData={validationData}
+              disableValidation={disableValidation}
               className="flex-1"
             />
             

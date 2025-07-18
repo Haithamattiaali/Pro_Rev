@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { AlertCircle } from 'lucide-react';
 
-const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, multiSelect = false, selectedPeriods = [], selectedYear, validationData, className = '' }) => {
+const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, multiSelect = false, selectedPeriods = [], selectedYear, validationData, disableValidation = false, className = '' }) => {
   // Don't render if in yearly mode
   if (viewMode === 'yearly') return null;
 
@@ -17,6 +17,7 @@ const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, multiSele
 
   // Check if a month is compliant based on validation data
   const isMonthCompliant = (monthNum) => {
+    if (disableValidation) return true;
     if (!validationData || !validationData[selectedYear]) return true;
     const monthName = getMonthName(parseInt(monthNum));
     return validationData[selectedYear].compliantMonths?.includes(monthName) ?? true;
@@ -24,6 +25,7 @@ const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, multiSele
 
   // Check if a quarter is compliant (all months in quarter must be compliant)
   const isQuarterCompliant = (quarter) => {
+    if (disableValidation) return true;
     if (!validationData || !validationData[selectedYear]) return true;
     const quarterNum = parseInt(quarter.replace('Q', ''));
     const startMonth = (quarterNum - 1) * 3 + 1;
