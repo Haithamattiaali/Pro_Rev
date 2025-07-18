@@ -326,25 +326,11 @@ class ApiService {
 
   // Sales Plan API methods
   async getSalesPlanOverview(year, period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
-    console.log('🌐 API getSalesPlanOverview called with:', {
-      year,
-      period,
-      month,
-      quarter,
-      serviceType,
-      multiSelectParams,
-      hasMultiSelectParams: !!multiSelectParams,
-      hasPeriods: !!(multiSelectParams?.periods),
-      periodsLength: multiSelectParams?.periods?.length
-    });
-    
     // If multiSelectParams provided, use multi-select endpoint
     if (multiSelectParams && multiSelectParams.periods && multiSelectParams.periods.length > 0) {
-      console.log('🌐 API: Using multi-select sales plan overview endpoint');
       return this.getSalesPlanOverviewMultiSelect(multiSelectParams, serviceType);
     }
     
-    console.log('🌐 API: Using regular sales plan overview endpoint');
     let url = `/sales-plan/overview?year=${year}&period=${period}`;
     if (month !== null) url += `&month=${month}`;
     if (quarter !== null) url += `&quarter=${quarter}`;
@@ -355,23 +341,19 @@ class ApiService {
   // Multi-select sales plan overview
   async getSalesPlanOverviewMultiSelect(params, serviceType = null) {
     const { years = [], periods = [], viewMode = 'quarterly' } = params;
-    console.log('🌐 API: Requesting multi-select sales plan overview:', params);
     
     const body = { years, periods, viewMode };
     if (serviceType !== null && serviceType !== 'all') {
       body.serviceType = serviceType;
     }
     
-    const result = await this.request('/sales-plan/overview/multi-select', {
+    return this.request('/sales-plan/overview/multi-select', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(body)
     });
-    
-    console.log('🌐 API: Multi-select sales plan overview response:', result);
-    return result;
   }
 
   async getSalesPlanMonthly(year, serviceType = null) {
@@ -381,25 +363,11 @@ class ApiService {
   }
 
   async getSalesPlanByGL(year, period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
-    console.log('🌐 API getSalesPlanByGL called with:', {
-      year,
-      period,
-      month,
-      quarter,
-      serviceType,
-      multiSelectParams,
-      hasMultiSelectParams: !!multiSelectParams,
-      hasPeriods: !!(multiSelectParams?.periods),
-      periodsLength: multiSelectParams?.periods?.length
-    });
-    
     // If multiSelectParams provided, use multi-select endpoint
     if (multiSelectParams && multiSelectParams.periods && multiSelectParams.periods.length > 0) {
-      console.log('🌐 API: Using multi-select sales plan by GL endpoint');
       return this.getSalesPlanByGLMultiSelect(multiSelectParams, serviceType);
     }
     
-    console.log('🌐 API: Using regular sales plan by GL endpoint');
     let url = `/sales-plan/by-gl?year=${year}&period=${period}`;
     if (month !== null) url += `&month=${month}`;
     if (quarter !== null) url += `&quarter=${quarter}`;
