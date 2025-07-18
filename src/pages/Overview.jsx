@@ -10,10 +10,13 @@ import ToolbarSection from '../components/layout/ToolbarSection'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
+import { useHierarchicalFilter } from '../contexts/HierarchicalFilterContext'
+import DataCompletenessIndicator from '../components/common/DataCompletenessIndicator'
 import dataService from '../services/dataService'
 
 const Overview = () => {
   const { periodFilter } = useFilter();
+  const { validationData } = useHierarchicalFilter();
   const { refreshTrigger, triggerRefresh } = useDataRefresh();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -166,11 +169,19 @@ const Overview = () => {
         title={`Executive Overview - ${periodFilter.year}`}
         subtitle={`${dataService.getPeriodLabel(periodFilter.period, periodFilter.month, periodFilter.quarter)} performance metrics and key insights`}
       >
-        <ExportButton 
-          dashboardRef={dashboardRef}
-          variant="glass"
-          size="medium"
-        />
+        <div className="flex items-center gap-3">
+          <DataCompletenessIndicator 
+            validation={validationData}
+            year={periodFilter.year}
+            period={periodFilter.period}
+            variant="inline"
+          />
+          <ExportButton 
+            dashboardRef={dashboardRef}
+            variant="glass"
+            size="medium"
+          />
+        </div>
       </ToolbarSection>
 
       {/* Key Metrics Grid */}
@@ -189,19 +200,23 @@ const Overview = () => {
           icon={Target}
           iconColor="blue"
         />
-        <MetricCard
-          title="Gross Profit"
-          value={overview.profit}
-          icon={TrendingUp}
-          iconColor="primary"
-        />
-        <MetricCard
-          title="Gross Profit Margin"
-          value={overview.profitMargin}
-          format="percentage"
-          icon={Percent}
-          iconColor="coral"
-        />
+        {overview.revenue > 0 && (
+          <MetricCard
+            title="Gross Profit"
+            value={overview.profit}
+            icon={TrendingUp}
+            iconColor="primary"
+          />
+        )}
+        {overview.revenue > 0 && (
+          <MetricCard
+            title="Gross Profit Margin"
+            value={overview.profitMargin}
+            format="percentage"
+            icon={Percent}
+            iconColor="coral"
+          />
+        )}
       </div>
 
       {/* Achievement Gauge */}

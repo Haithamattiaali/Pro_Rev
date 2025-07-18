@@ -377,7 +377,7 @@ const Customers = () => {
           </h2>
           
           {/* Key Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
+          <div className={`grid grid-cols-2 ${selectedCustomerData.revenue > 0 ? 'md:grid-cols-6' : 'md:grid-cols-4'} gap-4 mb-6`}>
             <div className="text-center p-4 bg-secondary-pale rounded-lg">
               <p className="metric-label">Revenue</p>
               <p className="text-xl font-bold text-primary mt-1">
@@ -406,18 +406,22 @@ const Customers = () => {
                 {formatCurrency(selectedCustomerData.cost)}
               </p>
             </div>
-            <div className="text-center p-4 bg-secondary-pale rounded-lg">
-              <p className="metric-label">Profit</p>
-              <p className="text-xl font-bold text-accent-blue mt-1">
-                {formatCurrency(selectedCustomerData.profit)}
-              </p>
-            </div>
-            <div className="text-center p-4 bg-secondary-pale rounded-lg">
-              <p className="metric-label">Profit Margin</p>
-              <p className="text-xl font-bold text-accent-blue mt-1">
-                {formatPercentage(selectedCustomerData.profitMargin)}
-              </p>
-            </div>
+            {selectedCustomerData.revenue > 0 && (
+              <>
+                <div className="text-center p-4 bg-secondary-pale rounded-lg">
+                  <p className="metric-label">Profit</p>
+                  <p className="text-xl font-bold text-accent-blue mt-1">
+                    {formatCurrency(selectedCustomerData.profit)}
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-secondary-pale rounded-lg">
+                  <p className="metric-label">Profit Margin</p>
+                  <p className="text-xl font-bold text-accent-blue mt-1">
+                    {formatPercentage(selectedCustomerData.profitMargin)}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Service Breakdown */}

@@ -15,6 +15,7 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true })
     filterState,
     availableYears,
     availablePeriods,
+    validationData,
     displayLabel,
     isPartialPeriod,
     dateRange,
@@ -55,6 +56,8 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true })
               availablePeriods={availablePeriods}
               multiSelect={filterState.multiSelectMode}
               selectedPeriods={filterState.selectedPeriods}
+              selectedYear={filterState.selectedYear}
+              validationData={validationData}
               className="flex-1"
             />
             

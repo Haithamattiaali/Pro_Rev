@@ -440,6 +440,11 @@ class ApiService {
   async getOpportunitiesMatrix() {
     return this.request('/opportunities/matrix');
   }
+
+  // Get analysis period validation for a specific year
+  async getAnalysisPeriodValidation(year) {
+    return this.request(`/analysis-validation/${year}`);
+  }
 }
 
 export default new ApiService();

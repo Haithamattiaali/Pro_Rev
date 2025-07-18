@@ -198,7 +198,7 @@ const BusinessUnits = () => {
       {selectedUnitData && (
         <div className="dashboard-card">
           <h2 className="section-title">{dataService.getPeriodLabel(periodFilter.period)} Performance Summary</h2>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          <div className={`grid grid-cols-2 ${selectedUnitData.revenue > 0 ? 'md:grid-cols-6' : 'md:grid-cols-4'} gap-4`}>
             <div className="text-center p-4 bg-secondary-pale rounded-lg">
               <p className="metric-label">Target</p>
               <p className="text-xl font-bold text-primary-dark mt-1">{formatCurrency(selectedUnitData.target)}</p>
@@ -221,20 +221,24 @@ const BusinessUnits = () => {
                 {formatPercentage(selectedUnitData.achievement)}
               </p>
             </div>
-            <div className="text-center p-4 bg-secondary-pale rounded-lg">
-              <p className="metric-label">Gross Profit</p>
-              <p className="text-xl font-bold text-accent-blue mt-1">{formatCurrency(selectedUnitData.profit)}</p>
-            </div>
-            <div className="text-center p-4 bg-secondary-pale rounded-lg">
-              <p className="metric-label">GP Margin</p>
-              <p className={`text-xl font-bold mt-1 ${
-                getGrossProfitStatus(selectedUnitData.profitMargin) === 'high' ? 'text-green-600' :
-                getGrossProfitStatus(selectedUnitData.profitMargin) === 'medium' ? 'text-yellow-600' :
-                'text-red-600'
-              }`}>
-                {formatPercentage(selectedUnitData.profitMargin)}
-              </p>
-            </div>
+            {selectedUnitData.revenue > 0 && (
+              <>
+                <div className="text-center p-4 bg-secondary-pale rounded-lg">
+                  <p className="metric-label">Gross Profit</p>
+                  <p className="text-xl font-bold text-accent-blue mt-1">{formatCurrency(selectedUnitData.profit)}</p>
+                </div>
+                <div className="text-center p-4 bg-secondary-pale rounded-lg">
+                  <p className="metric-label">GP Margin</p>
+                  <p className={`text-xl font-bold mt-1 ${
+                    getGrossProfitStatus(selectedUnitData.profitMargin) === 'high' ? 'text-green-600' :
+                    getGrossProfitStatus(selectedUnitData.profitMargin) === 'medium' ? 'text-yellow-600' :
+                    'text-red-600'
+                  }`}>
+                    {formatPercentage(selectedUnitData.profitMargin)}
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -253,15 +257,20 @@ const BusinessUnits = () => {
         <div className="flex justify-between items-center mb-6">
           <h2 className="section-title mb-0">Monthly Breakdown</h2>
           <TableExportButton
-            data={unitMonthlyData.map(month => ({
-              Month: month.month,
-              Target: month.target,
-              Revenue: month.revenue,
-              Cost: month.cost,
-              'Achievement %': month.achievement,
-              'Gross Profit': month.grossProfit,
-              'GP Margin': month.grossProfitMargin
-            }))}
+            data={unitMonthlyData.map(month => {
+              const base = {
+                Month: month.month,
+                Target: month.target,
+                Revenue: month.revenue,
+                Cost: month.cost,
+                'Achievement %': month.achievement
+              };
+              if (selectedUnitData.revenue > 0) {
+                base['Gross Profit'] = month.grossProfit;
+                base['GP Margin'] = month.grossProfitMargin;
+              }
+              return base;
+            })}
             filename={`${selectedUnit}_monthly_breakdown_${periodFilter.year}`}
             variant="inline"
             size="small"
@@ -275,8 +284,12 @@ const BusinessUnits = () => {
               <BaseTable.Head align="right">Revenue</BaseTable.Head>
               <BaseTable.Head align="right">Cost</BaseTable.Head>
               <BaseTable.Head align="center">Achievement %</BaseTable.Head>
-              <BaseTable.Head align="right">Gross Profit</BaseTable.Head>
-              <BaseTable.Head align="center">GP Margin</BaseTable.Head>
+              {selectedUnitData.revenue > 0 && (
+                <>
+                  <BaseTable.Head align="right">Gross Profit</BaseTable.Head>
+                  <BaseTable.Head align="center">GP Margin</BaseTable.Head>
+                </>
+              )}
             </BaseTable.Row>
           </BaseTable.Header>
           <BaseTable.Body striped hoverable>
@@ -295,8 +308,10 @@ const BusinessUnits = () => {
                     {formatPercentage(month.achievement)}
                   </span>
                 </BaseTable.Cell>
-                <BaseTable.Cell align="right" numeric>{formatCurrency(month.grossProfit)}</BaseTable.Cell>
-                <BaseTable.Cell align="center">
+                {selectedUnitData.revenue > 0 && (
+                  <>
+                    <BaseTable.Cell align="right" numeric>{formatCurrency(month.grossProfit)}</BaseTable.Cell>
+                    <BaseTable.Cell align="center">
                   <span className={`font-semibold ${
                     getGrossProfitStatus(month.grossProfitMargin) === 'high' ? 'text-green-600' :
                     getGrossProfitStatus(month.grossProfitMargin) === 'medium' ? 'text-yellow-600' :
@@ -304,7 +319,9 @@ const BusinessUnits = () => {
                   }`}>
                     {formatPercentage(month.grossProfitMargin)}
                   </span>
-                </BaseTable.Cell>
+                    </BaseTable.Cell>
+                  </>
+                )}
               </BaseTable.Row>
             ))}
           </BaseTable.Body>

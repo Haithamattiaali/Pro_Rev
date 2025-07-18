@@ -43,6 +43,9 @@ export const HierarchicalFilterProvider = ({ children }) => {
   // Get available years from data
   const [availableYears, setAvailableYears] = useState([currentYear, currentYear - 1, currentYear - 2]);
   
+  // Validation data for each year
+  const [validationData, setValidationData] = useState({});
+  
   useEffect(() => {
     const fetchYears = async () => {
       try {
@@ -56,6 +59,31 @@ export const HierarchicalFilterProvider = ({ children }) => {
     };
     fetchYears();
   }, []);
+
+  // Fetch validation data for selected years
+  useEffect(() => {
+    const fetchValidation = async () => {
+      const yearsToValidate = filterState.multiSelectMode 
+        ? filterState.selectedYears 
+        : [filterState.selectedYear];
+      
+      for (const year of yearsToValidate) {
+        if (!validationData[year]) {
+          try {
+            const validation = await dataService.getAnalysisPeriodValidation(year);
+            setValidationData(prev => ({
+              ...prev,
+              [year]: validation
+            }));
+          } catch (error) {
+            console.error(`Failed to fetch validation for year ${year}:`, error);
+          }
+        }
+      }
+    };
+    
+    fetchValidation();
+  }, [filterState.selectedYear, filterState.selectedYears, filterState.multiSelectMode, validationData]);
 
   // Compute derived values
   const derivedValues = useMemo(() => {
@@ -434,6 +462,7 @@ export const HierarchicalFilterProvider = ({ children }) => {
     filterState,
     availableYears,
     availablePeriods: getAvailablePeriods(),
+    validationData, // Add validation data
     
     // Derived values
     ...derivedValues,

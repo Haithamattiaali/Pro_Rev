@@ -323,6 +323,12 @@ class DataService {
     const key = this.getCacheKey('opportunitiesMatrix');
     return this.getCachedData(key, () => apiService.getOpportunitiesMatrix());
   }
+
+  // Get analysis period validation for a specific year
+  async getAnalysisPeriodValidation(year) {
+    const key = this.getCacheKey('validation', year);
+    return this.getCachedData(key, () => apiService.getAnalysisPeriodValidation(year));
+  }
 }
 
 export default new DataService();
