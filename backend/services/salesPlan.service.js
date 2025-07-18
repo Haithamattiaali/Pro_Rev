@@ -916,6 +916,7 @@ class SalesPlanService {
       console.log('🔍 SQL Params:', params);
       
       const totals = await db.get(totalsSql, params);
+      console.log('🔍 SQL Result (totals):', totals);
       
       // Get monthly breakdown
       const monthlySql = `

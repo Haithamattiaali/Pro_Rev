@@ -35,6 +35,12 @@ const SalesPlan = () => {
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true)
+      
+      // Clear cache when switching modes to ensure fresh data
+      if (periodFilter.multiSelectMode) {
+        dataService.clearCache();
+      }
+      
       try {
         const { year, period, month, quarter } = periodFilter
         
@@ -90,7 +96,9 @@ const SalesPlan = () => {
             periodFilter,
             hasQuarters,
             hasMonths,
-            hasMultipleSelections
+            hasMultipleSelections,
+            periods,
+            viewMode: periodFilter.viewMode
           });
         }
         
@@ -102,6 +110,16 @@ const SalesPlan = () => {
           dataService.getSalesPlanMonthly(year),
           dataService.getOpportunities()
         ])
+        
+        console.log('📊 SalesPlan: Data received:', {
+          overview,
+          overviewTotals: overview?.totals,
+          byGL,
+          byGLTotals: byGL?.totals,
+          multiSelectParams,
+          isMultiSelect: !!multiSelectParams,
+          hasData: !!(overview?.totals?.total_baseline_forecast)
+        });
         
         setOverviewData(overview)
         setGlData(byGL)

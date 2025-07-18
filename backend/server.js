@@ -948,7 +948,14 @@ app.post('/api/sales-plan/overview/multi-select', async (req, res) => {
   try {
     const { years = [], periods = [], viewMode = 'quarterly', serviceType = null } = req.body;
     
-    console.log('🌐 API /sales-plan/overview/multi-select received:', { years, periods, viewMode, serviceType });
+    console.log('🌐 API /sales-plan/overview/multi-select received:', { 
+      years, 
+      periods, 
+      viewMode, 
+      serviceType,
+      yearsType: Array.isArray(years) ? years.map(y => typeof y) : typeof years,
+      periodsLength: periods.length 
+    });
     
     // Convert periods to months/quarters based on viewMode
     const filters = {
