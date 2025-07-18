@@ -854,6 +854,213 @@ class SalesPlanService {
     
     return { condition, params };
   }
+
+  // Multi-select sales plan overview
+  async getSalesPlanOverviewMultiSelect(filters, serviceType = null) {
+    try {
+      const { years = [], months = [], quarters = [] } = filters;
+      
+      console.log('🔧 SalesPlanService: Processing multi-select with filters:', filters);
+      
+      // Build WHERE conditions
+      const conditions = ['1=1'];
+      const params = [];
+      
+      // Years filter
+      if (years.length > 0) {
+        conditions.push(`year IN (${years.map(() => '?').join(',')})`);
+        params.push(...years);
+      }
+      
+      // Months filter
+      if (months.length > 0) {
+        const monthNames = months.map(m => this.getMonthName(m));
+        conditions.push(`month IN (${monthNames.map(() => '?').join(',')})`);
+        params.push(...monthNames);
+      }
+      
+      // Quarters filter
+      if (quarters.length > 0) {
+        const quarterMonths = [];
+        quarters.forEach(q => {
+          const startMonth = (q - 1) * 3 + 1;
+          for (let m = startMonth; m < startMonth + 3; m++) {
+            quarterMonths.push(this.getMonthName(m));
+          }
+        });
+        conditions.push(`month IN (${quarterMonths.map(() => '?').join(',')})`);
+        params.push(...quarterMonths);
+      }
+      
+      // Service type filter
+      if (serviceType && serviceType !== 'all') {
+        conditions.push('service_type = ?');
+        params.push(serviceType);
+      }
+      
+      const whereClause = conditions.join(' AND ');
+      
+      // Get aggregated totals
+      const totalsSql = `
+        SELECT 
+          SUM(baseline_forecast) as total_baseline_forecast,
+          SUM(opportunity_value) as total_opportunity_value,
+          SUM(baseline_forecast + opportunity_value) as total_forecast,
+          COUNT(DISTINCT gl) as gl_count,
+          COUNT(DISTINCT service_type) as service_count
+        FROM sales_plan_data
+        WHERE ${whereClause}
+      `;
+      
+      const totals = await db.get(totalsSql, params);
+      
+      // Get monthly breakdown
+      const monthlySql = `
+        SELECT 
+          month,
+          year,
+          SUM(baseline_forecast) as baseline_forecast,
+          SUM(opportunity_value) as opportunity_value,
+          SUM(baseline_forecast + opportunity_value) as total
+        FROM sales_plan_data
+        WHERE ${whereClause}
+        GROUP BY year, month
+        ORDER BY year,
+          CASE month
+            WHEN 'Jan' THEN 1 WHEN 'Feb' THEN 2 WHEN 'Mar' THEN 3
+            WHEN 'Apr' THEN 4 WHEN 'May' THEN 5 WHEN 'Jun' THEN 6
+            WHEN 'Jul' THEN 7 WHEN 'Aug' THEN 8 WHEN 'Sep' THEN 9
+            WHEN 'Oct' THEN 10 WHEN 'Nov' THEN 11 WHEN 'Dec' THEN 12
+          END
+      `;
+      
+      const monthlyData = await db.all(monthlySql, params);
+      
+      // Get service type breakdown
+      const serviceTypeSql = `
+        SELECT 
+          service_type,
+          SUM(baseline_forecast) as baseline_forecast,
+          SUM(opportunity_value) as opportunity_value,
+          SUM(baseline_forecast + opportunity_value) as total
+        FROM sales_plan_data
+        WHERE ${whereClause}
+        GROUP BY service_type
+        ORDER BY total DESC
+      `;
+      
+      const serviceTypeData = await db.all(serviceTypeSql, params);
+      
+      return {
+        totals: totals || { 
+          total_baseline_forecast: 0, 
+          total_opportunity_value: 0, 
+          total_forecast: 0,
+          gl_count: 0,
+          service_count: 0
+        },
+        monthlyData: monthlyData || [],
+        serviceTypeData: serviceTypeData || []
+      };
+    } catch (error) {
+      console.error('Error in getSalesPlanOverviewMultiSelect:', error);
+      throw error;
+    }
+  }
+
+  // Multi-select sales plan by GL
+  async getSalesPlanByGLMultiSelect(filters, serviceType = null) {
+    try {
+      const { years = [], months = [], quarters = [] } = filters;
+      
+      console.log('🔧 SalesPlanService: Processing GL multi-select with filters:', filters);
+      
+      // Build WHERE conditions
+      const conditions = ['1=1'];
+      const params = [];
+      
+      // Years filter
+      if (years.length > 0) {
+        conditions.push(`year IN (${years.map(() => '?').join(',')})`);
+        params.push(...years);
+      }
+      
+      // Months filter
+      if (months.length > 0) {
+        const monthNames = months.map(m => this.getMonthName(m));
+        conditions.push(`month IN (${monthNames.map(() => '?').join(',')})`);
+        params.push(...monthNames);
+      }
+      
+      // Quarters filter
+      if (quarters.length > 0) {
+        const quarterMonths = [];
+        quarters.forEach(q => {
+          const startMonth = (q - 1) * 3 + 1;
+          for (let m = startMonth; m < startMonth + 3; m++) {
+            quarterMonths.push(this.getMonthName(m));
+          }
+        });
+        conditions.push(`month IN (${quarterMonths.map(() => '?').join(',')})`);
+        params.push(...quarterMonths);
+      }
+      
+      // Service type filter
+      if (serviceType && serviceType !== 'all') {
+        conditions.push('service_type = ?');
+        params.push(serviceType);
+      }
+      
+      const whereClause = conditions.join(' AND ');
+      
+      // Get GL breakdown
+      const glSql = `
+        SELECT 
+          gl,
+          SUM(baseline_forecast) as baseline_forecast,
+          SUM(opportunity_value) as opportunity_value,
+          SUM(baseline_forecast + opportunity_value) as total_forecast,
+          COUNT(DISTINCT month) as month_count,
+          COUNT(DISTINCT service_type) as service_count
+        FROM sales_plan_data
+        WHERE ${whereClause}
+        GROUP BY gl
+        ORDER BY total_forecast DESC
+      `;
+      
+      const glData = await db.all(glSql, params);
+      
+      // Get totals
+      const totalsSql = `
+        SELECT 
+          SUM(baseline_forecast) as total_baseline_forecast,
+          SUM(opportunity_value) as total_opportunity_value,
+          SUM(baseline_forecast + opportunity_value) as total_forecast
+        FROM sales_plan_data
+        WHERE ${whereClause}
+      `;
+      
+      const totals = await db.get(totalsSql, params);
+      
+      return {
+        data: glData || [],
+        totals: totals || {
+          total_baseline_forecast: 0,
+          total_opportunity_value: 0,
+          total_forecast: 0
+        }
+      };
+    } catch (error) {
+      console.error('Error in getSalesPlanByGLMultiSelect:', error);
+      throw error;
+    }
+  }
+
+  // Helper method to get month name
+  getMonthName(monthNum) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[monthNum - 1] || '';
+  }
 }
 
 module.exports = new SalesPlanService();

@@ -938,6 +938,62 @@ app.get('/api/sales-plan/by-business-unit', async (req, res) => {
   }
 });
 
+// Multi-select sales plan overview
+app.post('/api/sales-plan/overview/multi-select', async (req, res) => {
+  try {
+    const { years = [], periods = [], viewMode = 'quarterly', serviceType = null } = req.body;
+    
+    console.log('🌐 API /sales-plan/overview/multi-select received:', { years, periods, viewMode, serviceType });
+    
+    // Convert periods to months/quarters based on viewMode
+    const filters = {
+      years: years.map(y => parseInt(y)),
+      months: [],
+      quarters: []
+    };
+    
+    if (viewMode === 'monthly') {
+      filters.months = periods.map(p => parseInt(p));
+    } else if (viewMode === 'quarterly') {
+      filters.quarters = periods.map(p => parseInt(p.replace('Q', '')));
+    }
+    
+    const data = await salesPlanService.getSalesPlanOverviewMultiSelect(filters, serviceType);
+    res.json(data);
+  } catch (error) {
+    console.error('Sales plan overview multi-select error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Multi-select sales plan by GL
+app.post('/api/sales-plan/by-gl/multi-select', async (req, res) => {
+  try {
+    const { years = [], periods = [], viewMode = 'quarterly', serviceType = null } = req.body;
+    
+    console.log('🌐 API /sales-plan/by-gl/multi-select received:', { years, periods, viewMode, serviceType });
+    
+    // Convert periods to months/quarters based on viewMode
+    const filters = {
+      years: years.map(y => parseInt(y)),
+      months: [],
+      quarters: []
+    };
+    
+    if (viewMode === 'monthly') {
+      filters.months = periods.map(p => parseInt(p));
+    } else if (viewMode === 'quarterly') {
+      filters.quarters = periods.map(p => parseInt(p.replace('Q', '')));
+    }
+    
+    const data = await salesPlanService.getSalesPlanByGLMultiSelect(filters, serviceType);
+    res.json(data);
+  } catch (error) {
+    console.error('Sales plan by GL multi-select error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get opportunities
 app.get('/api/opportunities', async (req, res) => {
   try {
