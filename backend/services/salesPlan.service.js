@@ -115,21 +115,8 @@ class SalesPlanService {
         monthFilter = ` AND month IN (${quarterMonths.map(() => '?').join(',')})`;
         monthParams.push(...quarterMonths);
       } else if (period === 'YTD') {
-        // For YTD, show all months up to current month for current year
-        const currentDate = new Date();
-        const currentYear = currentDate.getFullYear();
-        const currentMonth = currentDate.getMonth() + 1;
-        
-        if (year === currentYear) {
-          // For current year, only show months up to current month
-          const ytdMonths = [];
-          for (let m = 1; m <= currentMonth; m++) {
-            ytdMonths.push(this.getMonthName(m));
-          }
-          monthFilter = ` AND month IN (${ytdMonths.map(() => '?').join(',')})`;
-          monthParams.push(...ytdMonths);
-        }
-        // For past years, show all 12 months (no filter needed)
+        // For sales plan data, YTD should show full year forecast
+        // No month filtering needed - show all 12 months for both current and past years
       }
       
       const sql = `
@@ -959,18 +946,8 @@ class SalesPlanService {
       condition = ` AND month IN (${monthNames.map(() => '?').join(',')})`;
       params = monthNames;
     } else if (period === 'YTD') {
-      // For YTD in current year, limit to current month
-      const currentDate = new Date();
-      const currentYear = currentDate.getFullYear();
-      const currentMonth = currentDate.getMonth() + 1;
-      
-      if (year === currentYear) {
-        const monthNames = Object.keys(monthMap).filter(
-          name => monthMap[name] <= currentMonth
-        );
-        condition = ` AND month IN (${monthNames.map(() => '?').join(',')})`;
-        params = monthNames;
-      }
+      // For sales plan data, YTD should show full year forecast
+      // No month filtering needed - show all 12 months
     }
     
     return { condition, params };
