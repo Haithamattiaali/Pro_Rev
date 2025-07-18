@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, Calendar, CalendarClock, History } from 'lucide-react';
+import { Calendar, CalendarClock } from 'lucide-react';
 
 const QuickRangePresets = ({ value, onChange, presets, className = '' }) => {
   const getIcon = (preset) => {
@@ -11,10 +11,6 @@ const QuickRangePresets = ({ value, onChange, presets, className = '' }) => {
         return CalendarClock;
       case 'MTD':
         return CalendarClock;
-      case 'L4Q':
-        return TrendingUp;
-      case 'L12M':
-        return History;
       default:
         return Calendar;
     }

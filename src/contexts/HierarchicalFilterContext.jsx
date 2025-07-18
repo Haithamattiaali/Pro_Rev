@@ -347,22 +347,6 @@ export const HierarchicalFilterProvider = ({ children }) => {
           }
           periodType = 'MTD';
           break;
-          
-        case 'L4Q':
-          endDate = new Date(currentYear, currentMonth - 1, 0);
-          startDate = new Date(endDate.getFullYear() - 1, endDate.getMonth() + 1, 1);
-          displayLabel = 'Last 4 Quarters';
-          periodType = 'YTD';
-          isPartialPeriod = false;
-          break;
-          
-        case 'L12M':
-          endDate = today;
-          startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
-          displayLabel = 'Last 12 Months';
-          periodType = 'YTD';
-          isPartialPeriod = true;
-          break;
       }
     }
     
@@ -555,9 +539,6 @@ export const HierarchicalFilterProvider = ({ children }) => {
           updates.selectedPeriod = String(currentMonth);
           updates.selectedPeriods = [String(currentMonth)];
           break;
-        default:
-          // For L4Q and L12M, keep existing viewMode
-          break;
       }
       
       return updates;
@@ -648,9 +629,7 @@ export const HierarchicalFilterProvider = ({ children }) => {
     quickPresets: [
       { value: 'YTD', label: 'YTD' },
       { value: 'QTD', label: 'QTD' },
-      { value: 'MTD', label: 'MTD' },
-      { value: 'L4Q', label: 'Last 4Q' },
-      { value: 'L12M', label: 'Last 12M' }
+      { value: 'MTD', label: 'MTD' }
     ]
   };
 
