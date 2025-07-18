@@ -9,6 +9,34 @@ class DataService {
     };
   }
 
+  // Helper function to get calendar days in a month
+  getCalendarDaysInMonth(year, monthName) {
+    const monthIndex = this.monthMap[monthName] - 1; // JavaScript months are 0-based
+    if (monthIndex === undefined || monthIndex < 0) return 30; // Default fallback
+    
+    // Get the last day of the month by going to next month's day 0
+    const date = new Date(year, monthIndex + 1, 0);
+    return date.getDate();
+  }
+
+  // SQL CASE statement for calendar days calculation
+  getCalendarDaysSQL() {
+    return `CASE month
+      WHEN 'Jan' THEN 31
+      WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
+      WHEN 'Mar' THEN 31
+      WHEN 'Apr' THEN 30
+      WHEN 'May' THEN 31
+      WHEN 'Jun' THEN 30
+      WHEN 'Jul' THEN 31
+      WHEN 'Aug' THEN 31
+      WHEN 'Sep' THEN 30
+      WHEN 'Oct' THEN 31
+      WHEN 'Nov' THEN 30
+      WHEN 'Dec' THEN 31
+    END`;
+  }
+
   // New method to handle multi-select filters
   getMultiSelectMonths(filters) {
     const { months = [], quarters = [], years = [] } = filters;
@@ -182,7 +210,21 @@ class DataService {
         COUNT(DISTINCT customer) as customer_count,
         COUNT(DISTINCT service_type) as service_count,
         CASE 
-          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          WHEN SUM(target) > 0 THEN 
+            (SUM(revenue) / SUM(target / CASE month
+              WHEN 'Jan' THEN 31
+              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
+              WHEN 'Mar' THEN 31
+              WHEN 'Apr' THEN 30
+              WHEN 'May' THEN 31
+              WHEN 'Jun' THEN 30
+              WHEN 'Jul' THEN 31
+              WHEN 'Aug' THEN 31
+              WHEN 'Sep' THEN 30
+              WHEN 'Oct' THEN 31
+              WHEN 'Nov' THEN 30
+              WHEN 'Dec' THEN 31
+            END * days)) * 100 
           ELSE 0 
         END as achievement_percentage
       FROM revenue_data
@@ -201,7 +243,21 @@ class DataService {
         SUM(target) as target,
         SUM(cost) as cost,
         CASE 
-          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          WHEN SUM(target) > 0 THEN 
+            (SUM(revenue) / SUM(target / CASE month
+              WHEN 'Jan' THEN 31
+              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
+              WHEN 'Mar' THEN 31
+              WHEN 'Apr' THEN 30
+              WHEN 'May' THEN 31
+              WHEN 'Jun' THEN 30
+              WHEN 'Jul' THEN 31
+              WHEN 'Aug' THEN 31
+              WHEN 'Sep' THEN 30
+              WHEN 'Oct' THEN 31
+              WHEN 'Nov' THEN 30
+              WHEN 'Dec' THEN 31
+            END * days)) * 100 
           ELSE 0 
         END as achievement_percentage
       FROM revenue_data
@@ -291,7 +347,21 @@ class DataService {
         COUNT(DISTINCT customer) as customer_count,
         COUNT(DISTINCT service_type) as service_count,
         CASE 
-          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          WHEN SUM(target) > 0 THEN 
+            (SUM(revenue) / SUM(target / CASE month
+              WHEN 'Jan' THEN 31
+              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
+              WHEN 'Mar' THEN 31
+              WHEN 'Apr' THEN 30
+              WHEN 'May' THEN 31
+              WHEN 'Jun' THEN 30
+              WHEN 'Jul' THEN 31
+              WHEN 'Aug' THEN 31
+              WHEN 'Sep' THEN 30
+              WHEN 'Oct' THEN 31
+              WHEN 'Nov' THEN 30
+              WHEN 'Dec' THEN 31
+            END * days)) * 100 
           ELSE 0 
         END as achievement_percentage
       FROM revenue_data
@@ -309,7 +379,21 @@ class DataService {
         SUM(target) as target,
         SUM(cost) as cost,
         CASE 
-          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          WHEN SUM(target) > 0 THEN 
+            (SUM(revenue) / SUM(target / CASE month
+              WHEN 'Jan' THEN 31
+              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
+              WHEN 'Mar' THEN 31
+              WHEN 'Apr' THEN 30
+              WHEN 'May' THEN 31
+              WHEN 'Jun' THEN 30
+              WHEN 'Jul' THEN 31
+              WHEN 'Aug' THEN 31
+              WHEN 'Sep' THEN 30
+              WHEN 'Oct' THEN 31
+              WHEN 'Nov' THEN 30
+              WHEN 'Dec' THEN 31
+            END * days)) * 100 
           ELSE 0 
         END as achievement_percentage
       FROM revenue_data
@@ -368,7 +452,21 @@ class DataService {
         SUM(receivables_collected) as receivables,
         COUNT(DISTINCT customer) as customerCount,
         CASE 
-          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          WHEN SUM(target) > 0 THEN 
+            (SUM(revenue) / SUM(target / CASE month
+              WHEN 'Jan' THEN 31
+              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
+              WHEN 'Mar' THEN 31
+              WHEN 'Apr' THEN 30
+              WHEN 'May' THEN 31
+              WHEN 'Jun' THEN 30
+              WHEN 'Jul' THEN 31
+              WHEN 'Aug' THEN 31
+              WHEN 'Sep' THEN 30
+              WHEN 'Oct' THEN 31
+              WHEN 'Nov' THEN 30
+              WHEN 'Dec' THEN 31
+            END * days)) * 100 
           ELSE 0 
         END as achievement
       FROM revenue_data
@@ -412,7 +510,21 @@ class DataService {
         GROUP_CONCAT(DISTINCT service_type) as services,
         COUNT(DISTINCT service_type) as serviceCount,
         CASE 
-          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          WHEN SUM(target) > 0 THEN 
+            (SUM(revenue) / SUM(target / CASE month
+              WHEN 'Jan' THEN 31
+              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
+              WHEN 'Mar' THEN 31
+              WHEN 'Apr' THEN 30
+              WHEN 'May' THEN 31
+              WHEN 'Jun' THEN 30
+              WHEN 'Jul' THEN 31
+              WHEN 'Aug' THEN 31
+              WHEN 'Sep' THEN 30
+              WHEN 'Oct' THEN 31
+              WHEN 'Nov' THEN 30
+              WHEN 'Dec' THEN 31
+            END * days)) * 100 
           ELSE 0 
         END as achievement
       FROM revenue_data
@@ -458,7 +570,21 @@ class DataService {
         SUM(receivables_collected) as receivables,
         COUNT(DISTINCT customer) as customerCount,
         CASE 
-          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          WHEN SUM(target) > 0 THEN 
+            (SUM(revenue) / SUM(target / CASE month
+              WHEN 'Jan' THEN 31
+              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
+              WHEN 'Mar' THEN 31
+              WHEN 'Apr' THEN 30
+              WHEN 'May' THEN 31
+              WHEN 'Jun' THEN 30
+              WHEN 'Jul' THEN 31
+              WHEN 'Aug' THEN 31
+              WHEN 'Sep' THEN 30
+              WHEN 'Oct' THEN 31
+              WHEN 'Nov' THEN 30
+              WHEN 'Dec' THEN 31
+            END * days)) * 100 
           ELSE 0 
         END as achievement
       FROM revenue_data
@@ -506,7 +632,21 @@ class DataService {
         GROUP_CONCAT(DISTINCT service_type) as services,
         COUNT(DISTINCT service_type) as serviceCount,
         CASE 
-          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          WHEN SUM(target) > 0 THEN 
+            (SUM(revenue) / SUM(target / CASE month
+              WHEN 'Jan' THEN 31
+              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
+              WHEN 'Mar' THEN 31
+              WHEN 'Apr' THEN 30
+              WHEN 'May' THEN 31
+              WHEN 'Jun' THEN 30
+              WHEN 'Jul' THEN 31
+              WHEN 'Aug' THEN 31
+              WHEN 'Sep' THEN 30
+              WHEN 'Oct' THEN 31
+              WHEN 'Nov' THEN 30
+              WHEN 'Dec' THEN 31
+            END * days)) * 100 
           ELSE 0 
         END as achievement
       FROM revenue_data
@@ -598,7 +738,21 @@ class DataService {
         SUM(revenue) as revenue,
         SUM(target) as target,
         CASE 
-          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          WHEN SUM(target) > 0 THEN 
+            (SUM(revenue) / SUM(target / CASE month
+              WHEN 'Jan' THEN 31
+              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
+              WHEN 'Mar' THEN 31
+              WHEN 'Apr' THEN 30
+              WHEN 'May' THEN 31
+              WHEN 'Jun' THEN 30
+              WHEN 'Jul' THEN 31
+              WHEN 'Aug' THEN 31
+              WHEN 'Sep' THEN 30
+              WHEN 'Oct' THEN 31
+              WHEN 'Nov' THEN 30
+              WHEN 'Dec' THEN 31
+            END * days)) * 100 
           ELSE 0 
         END as achievement
       FROM revenue_data
@@ -721,7 +875,21 @@ class DataService {
         SUM(COALESCE(cost, 0)) as total_cost,
         SUM(COALESCE(target, 0)) as total_target,
         CASE 
-          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          WHEN SUM(target) > 0 THEN 
+            (SUM(revenue) / SUM(target / CASE month
+              WHEN 'Jan' THEN 31
+              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
+              WHEN 'Mar' THEN 31
+              WHEN 'Apr' THEN 30
+              WHEN 'May' THEN 31
+              WHEN 'Jun' THEN 30
+              WHEN 'Jul' THEN 31
+              WHEN 'Aug' THEN 31
+              WHEN 'Sep' THEN 30
+              WHEN 'Oct' THEN 31
+              WHEN 'Nov' THEN 30
+              WHEN 'Dec' THEN 31
+            END * days)) * 100 
           ELSE 0 
         END as achievement_percentage
       FROM revenue_data
@@ -744,7 +912,21 @@ class DataService {
           ELSE 0 
         END as profit_margin,
         CASE 
-          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
+          WHEN SUM(target) > 0 THEN 
+            (SUM(revenue) / SUM(target / CASE month
+              WHEN 'Jan' THEN 31
+              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
+              WHEN 'Mar' THEN 31
+              WHEN 'Apr' THEN 30
+              WHEN 'May' THEN 31
+              WHEN 'Jun' THEN 30
+              WHEN 'Jul' THEN 31
+              WHEN 'Aug' THEN 31
+              WHEN 'Sep' THEN 30
+              WHEN 'Oct' THEN 31
+              WHEN 'Nov' THEN 30
+              WHEN 'Dec' THEN 31
+            END * days)) * 100 
           ELSE 0 
         END as achievement
       FROM revenue_data
