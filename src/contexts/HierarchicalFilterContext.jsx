@@ -153,9 +153,47 @@ export const HierarchicalFilterProvider = ({ children }) => {
       const period = validPeriods[0];
       
       if (viewMode === 'yearly') {
-        startDate = new Date(year, 0, 1);
-        endDate = new Date(year, 11, 31);
-        displayLabel = `Full Year ${year}`;
+        // Check validation data to get actual data range
+        const yearValidation = validationData[year];
+        if (yearValidation && yearValidation.compliantMonths && yearValidation.compliantMonths.length > 0) {
+          // Use actual data range from validation
+          const monthMap = {
+            'Jan': 0, 'Feb': 1, 'Mar': 2, 'Apr': 3,
+            'May': 4, 'Jun': 5, 'Jul': 6, 'Aug': 7,
+            'Sep': 8, 'Oct': 9, 'Nov': 10, 'Dec': 11
+          };
+          
+          const compliantMonthIndices = yearValidation.compliantMonths
+            .map(m => monthMap[m])
+            .filter(idx => idx !== undefined)
+            .sort((a, b) => a - b);
+          
+          if (compliantMonthIndices.length > 0) {
+            const firstMonth = compliantMonthIndices[0];
+            const lastMonth = compliantMonthIndices[compliantMonthIndices.length - 1];
+            startDate = new Date(year, firstMonth, 1);
+            endDate = new Date(year, lastMonth + 1, 0);
+            
+            const firstMonthName = yearValidation.compliantMonths.find(m => monthMap[m] === firstMonth);
+            const lastMonthName = yearValidation.compliantMonths.find(m => monthMap[m] === lastMonth);
+            
+            if (compliantMonthIndices.length === 12) {
+              displayLabel = `Full Year ${year}`;
+            } else {
+              displayLabel = `${year} (${firstMonthName}-${lastMonthName})`;
+            }
+          } else {
+            // No compliant data
+            startDate = new Date(year, 0, 1);
+            endDate = new Date(year, 0, 31);
+            displayLabel = `${year} (No data available)`;
+          }
+        } else {
+          // No validation data available, use full year
+          startDate = new Date(year, 0, 1);
+          endDate = new Date(year, 11, 31);
+          displayLabel = `Full Year ${year}`;
+        }
         periodType = 'YTD';
       } else if (viewMode === 'quarterly') {
         const quarter = parseInt(period.replace('Q', ''));
@@ -246,7 +284,7 @@ export const HierarchicalFilterProvider = ({ children }) => {
       legacyMonth: viewMode === 'monthly' ? parseInt(selectedPeriod) : null,
       legacyQuarter: viewMode === 'quarterly' ? parseInt(selectedPeriod.replace('Q', '')) : null
     };
-  }, [filterState, currentYear, currentMonth, currentQuarter]);
+  }, [filterState, currentYear, currentMonth, currentQuarter, validationData]);
 
   // Get available periods based on view mode and year
   const getAvailablePeriods = useCallback(() => {
