@@ -131,7 +131,7 @@ const MonthlyChart = ({ data }) => {
       <ResponsiveContainer width="100%" height={400}>
         <AreaChart 
           data={chartData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          margin={{ top: 20, right: 30, left: 50, bottom: 40 }}
         >
           <defs>
             <linearGradient id="baselineGradient" x1="0" y1="0" x2="0" y2="1">
@@ -150,6 +150,9 @@ const MonthlyChart = ({ data }) => {
             dataKey="month" 
             tick={{ fill: '#6b7280', fontSize: 12 }}
             axisLine={{ stroke: '#e5e7eb' }}
+            angle={0}
+            textAnchor="middle"
+            height={60}
           />
           
           <YAxis 
@@ -208,7 +211,7 @@ const MonthlyChart = ({ data }) => {
       
       {/* Enhanced Summary Stats with Breakdown */}
       {stats && (
-        <div className="grid grid-cols-4 gap-4 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
           <div className="relative overflow-hidden rounded-xl bg-white shadow-md">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-700 opacity-5"></div>
             <div className="relative p-4">

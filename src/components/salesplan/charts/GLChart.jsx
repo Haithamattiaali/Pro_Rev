@@ -25,7 +25,7 @@ const GLChart = ({ data }) => {
         baseline: item.baseline_forecast || 0,
         opportunities: item.opportunity_value || 0,
         total: item.total || item.total_forecast || 0, // Handle both field names
-        service: item.service_type || 'Mixed', // Default to 'Mixed' for multi-select
+        service: item.service_type || 'Warehousing', // Default to 'Warehousing' for multi-select
         monthCount: item.month_count,
         serviceCount: item.service_count
       }))
@@ -70,8 +70,7 @@ const GLChart = ({ data }) => {
               <div className="flex items-center justify-between gap-4 text-xs">
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 rounded" style={{ 
-                    backgroundColor: data.service === 'Transportation' ? '#005b8c' : 
-                                   data.service === 'Warehousing' ? '#e05e3d' : '#9e1f63',
+                    backgroundColor: data.service === 'Transportation' ? '#005b8c' : '#e05e3d',
                     opacity: 1
                   }}></div>
                   <span className="text-gray-600">Baseline:</span>
@@ -81,8 +80,7 @@ const GLChart = ({ data }) => {
               <div className="flex items-center justify-between gap-4 text-xs mt-1">
                 <div className="flex items-center gap-1">
                   <div className="w-3 h-3 rounded" style={{ 
-                    backgroundColor: data.service === 'Transportation' ? '#005b8c' : 
-                                   data.service === 'Warehousing' ? '#e05e3d' : '#9e1f63',
+                    backgroundColor: data.service === 'Transportation' ? '#005b8c' : '#e05e3d',
                     opacity: 0.5
                   }}></div>
                   <span className="text-gray-600">Opportunities:</span>
@@ -201,9 +199,7 @@ const GLChart = ({ data }) => {
                   {chartData.map((entry, index) => (
                     <Cell 
                       key={`baseline-${index}`} 
-                      fill={entry.service === 'Transportation' ? 'url(#transportGradient)' : 
-                            entry.service === 'Warehousing' ? 'url(#warehouseGradient)' :
-                            '#9e1f63'} 
+                      fill={entry.service === 'Transportation' ? 'url(#transportGradient)' : 'url(#warehouseGradient)'} 
                     />
                   ))}
                 </Bar>
@@ -223,9 +219,7 @@ const GLChart = ({ data }) => {
                   {chartData.map((entry, index) => (
                     <Cell 
                       key={`opportunities-${index}`} 
-                      fill={entry.service === 'Transportation' ? 'url(#transportGradientLight)' : 
-                            entry.service === 'Warehousing' ? 'url(#warehouseGradientLight)' :
-                            '#cb5b96'} 
+                      fill={entry.service === 'Transportation' ? 'url(#transportGradientLight)' : 'url(#warehouseGradientLight)'} 
                     />
                   ))}
                 </Bar>
@@ -234,42 +228,26 @@ const GLChart = ({ data }) => {
             
             {/* Legend below chart */}
             <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t border-gray-100">
-              {/* Check if we have mixed service types */}
-              {chartData.some(d => d.service === 'Mixed') ? (
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded" style={{ backgroundColor: '#9e1f63' }}></div>
-                    <span className="text-xs font-medium text-gray-700">Baseline Forecast</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded" style={{ backgroundColor: '#cb5b96' }}></div>
-                    <span className="text-xs font-medium text-gray-700">Opportunities</span>
-                  </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: '#005b8c' }}></div>
+                  <span className="text-xs font-medium text-gray-700">Transportation - Baseline</span>
                 </div>
-              ) : (
-                <>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded" style={{ backgroundColor: '#005b8c' }}></div>
-                      <span className="text-xs font-medium text-gray-700">Transportation - Baseline</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded" style={{ backgroundColor: '#005b8c', opacity: 0.5 }}></div>
-                      <span className="text-xs font-medium text-gray-700">Transportation - Opportunities</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded" style={{ backgroundColor: '#e05e3d' }}></div>
-                      <span className="text-xs font-medium text-gray-700">Warehousing - Baseline</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded" style={{ backgroundColor: '#e05e3d', opacity: 0.5 }}></div>
-                      <span className="text-xs font-medium text-gray-700">Warehousing - Opportunities</span>
-                    </div>
-                  </div>
-                </>
-              )}
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: '#005b8c', opacity: 0.5 }}></div>
+                  <span className="text-xs font-medium text-gray-700">Transportation - Opportunities</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: '#e05e3d' }}></div>
+                  <span className="text-xs font-medium text-gray-700">Warehousing - Baseline</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded" style={{ backgroundColor: '#e05e3d', opacity: 0.5 }}></div>
+                  <span className="text-xs font-medium text-gray-700">Warehousing - Opportunities</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -285,53 +263,30 @@ const GLChart = ({ data }) => {
 
 // Enhanced Summary Cards Component with Breakdown
 const SummaryCards = ({ data }) => {
-  // Check if we have mixed service types (multi-select mode)
-  const isMixedMode = data.some(item => item.service === 'Mixed')
-  
   // Calculate totals with breakdown
-  const transportationBaseline = isMixedMode ? 0 : data
+  const transportationBaseline = data
     .filter(item => item.service === 'Transportation')
     .reduce((sum, item) => sum + item.baseline, 0)
     
-  const transportationOpportunities = isMixedMode ? 0 : data
+  const transportationOpportunities = data
     .filter(item => item.service === 'Transportation')
     .reduce((sum, item) => sum + item.opportunities, 0)
     
-  const warehousingBaseline = isMixedMode ? 0 : data
+  const warehousingBaseline = data
     .filter(item => item.service === 'Warehousing')
     .reduce((sum, item) => sum + item.baseline, 0)
     
-  const warehousingOpportunities = isMixedMode ? 0 : data
+  const warehousingOpportunities = data
     .filter(item => item.service === 'Warehousing')
     .reduce((sum, item) => sum + item.opportunities, 0)
     
   const transportationTotal = transportationBaseline + transportationOpportunities
   const warehousingTotal = warehousingBaseline + warehousingOpportunities
-  const grandTotal = isMixedMode ? 
-    data.reduce((sum, item) => sum + item.total, 0) : 
-    transportationTotal + warehousingTotal
-  const totalBaseline = isMixedMode ?
-    data.reduce((sum, item) => sum + item.baseline, 0) :
-    transportationBaseline + warehousingBaseline
-  const totalOpportunities = isMixedMode ?
-    data.reduce((sum, item) => sum + item.opportunities, 0) :
-    transportationOpportunities + warehousingOpportunities
+  const grandTotal = transportationTotal + warehousingTotal
+  const totalBaseline = transportationBaseline + warehousingBaseline
+  const totalOpportunities = transportationOpportunities + warehousingOpportunities
   
-  const summaryData = isMixedMode ? [
-    {
-      title: 'Total Revenue',
-      total: grandTotal,
-      baseline: totalBaseline,
-      opportunities: totalOpportunities,
-      color: '#9e1f63',
-      gradient: 'from-pink-600 to-purple-700',
-      icon: (
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-        </svg>
-      )
-    }
-  ] : [
+  const summaryData = [
     {
       title: 'Transportation',
       total: transportationTotal,
