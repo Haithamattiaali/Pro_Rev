@@ -11,11 +11,16 @@ const GLTable = ({ data }) => {
   const tableData = useMemo(() => {
     if (!data?.data || data.data.length === 0) return []
     
-    const processedData = data.data.map(item => ({
-      ...item,
-      baselinePercent: item.total > 0 ? ((item.baseline_forecast / item.total) * 100).toFixed(1) : '0.0',
-      opportunitiesPercent: item.total > 0 ? ((item.opportunity_value / item.total) * 100).toFixed(1) : '0.0'
-    }))
+    const processedData = data.data.map(item => {
+      // Handle both 'total' and 'total_forecast' field names
+      const total = item.total || item.total_forecast || 0
+      return {
+        ...item,
+        total, // Normalize to 'total' field
+        baselinePercent: total > 0 ? ((item.baseline_forecast / total) * 100).toFixed(1) : '0.0',
+        opportunitiesPercent: total > 0 ? ((item.opportunity_value / total) * 100).toFixed(1) : '0.0'
+      }
+    })
     
     const sorted = [...processedData].sort((a, b) => {
       const aValue = a[sortField] || 0
@@ -67,6 +72,9 @@ const GLTable = ({ data }) => {
       <ChevronDown className="w-4 h-4" />
   }
   
+  // Check if we have service type data (single-select mode)
+  const hasServiceType = tableData.some(row => row.service_type !== undefined)
+  
   if (!tableData || tableData.length === 0) {
     return (
       <div className="bg-gray-50 rounded-lg p-8 text-center">
@@ -81,7 +89,10 @@ const GLTable = ({ data }) => {
         <h4 className="font-semibold text-gray-900">GL Account Details</h4>
         <TableExportButton
           data={tableData}
-          headers={['GL Account', 'Service Type', 'Baseline Forecast', 'Baseline %', 'Opportunities', 'Opportunities %', 'Total']}
+          headers={hasServiceType ? 
+            ['GL Account', 'Service Type', 'Baseline Forecast', 'Baseline %', 'Opportunities', 'Opportunities %', 'Total'] :
+            ['GL Account', 'Baseline Forecast', 'Baseline %', 'Opportunities', 'Opportunities %', 'Total']
+          }
           filename="sales-plan-by-gl-breakdown"
           title="Sales Plan by GL with Breakdown"
         />
@@ -97,11 +108,13 @@ const GLTable = ({ data }) => {
                   GL Account
                 </span>
               </th>
-              <th className="px-6 py-3 text-left" rowSpan="2">
-                <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
-                  Service Type
-                </span>
-              </th>
+              {hasServiceType && (
+                <th className="px-6 py-3 text-left" rowSpan="2">
+                  <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Service Type
+                  </span>
+                </th>
+              )}
               <th className="px-6 py-2 text-center border-l border-gray-100" colSpan="2">
                 <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
                   Baseline Forecast
@@ -155,16 +168,20 @@ const GLTable = ({ data }) => {
               <tr key={index} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
-                    <div className="w-2 h-8 rounded mr-3" style={{
-                      backgroundColor: row.service_type === 'Transportation' ? '#005b8c' : 
-                                     row.service_type === 'Warehousing' ? '#e05e3d' : '#9e1f63'
-                    }}></div>
+                    {hasServiceType && (
+                      <div className="w-2 h-8 rounded mr-3" style={{
+                        backgroundColor: row.service_type === 'Transportation' ? '#005b8c' : 
+                                       row.service_type === 'Warehousing' ? '#e05e3d' : '#9e1f63'
+                      }}></div>
+                    )}
                     <span className="text-sm font-medium text-gray-900">{row.gl}</span>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {row.service_type}
-                </td>
+                {hasServiceType && (
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    {row.service_type}
+                  </td>
+                )}
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
                   {formatCurrency(row.baseline_forecast)}
                 </td>
@@ -186,7 +203,7 @@ const GLTable = ({ data }) => {
           {totals && (
             <tfoot className="bg-gray-100 border-t-2 border-gray-300">
               <tr>
-                <td colSpan="2" className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                <td colSpan={hasServiceType ? "2" : "1"} className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
                   Total
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">

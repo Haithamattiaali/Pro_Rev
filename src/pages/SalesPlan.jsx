@@ -81,7 +81,10 @@ const SalesPlan = () => {
         const [overview, byGL, byBU, monthly, opportunities] = await Promise.all([
           dataService.getSalesPlanOverview(year, period, month, quarter, null, multiSelectParams),
           dataService.getSalesPlanByGL(year, period, month, quarter, null, multiSelectParams),
-          fetch(`${import.meta.env.VITE_API_URL}/sales-plan/by-business-unit?year=${year}&period=${period}${month ? `&month=${month}` : ''}${quarter ? `&quarter=${quarter}` : ''}`).then(r => r.json()),
+          // Business unit doesn't support multi-select yet, use regular endpoint
+          multiSelectParams ? 
+            { data: [], message: 'Multi-select not supported for Business Units yet' } :
+            fetch(`${import.meta.env.VITE_API_URL}/sales-plan/by-business-unit?year=${year}&period=${period}${month ? `&month=${month}` : ''}${quarter ? `&quarter=${quarter}` : ''}`).then(r => r.json()),
           dataService.getSalesPlanMonthly(year),
           dataService.getOpportunities()
         ])
