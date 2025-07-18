@@ -129,20 +129,27 @@ class DataService {
   async getOverviewDataMultiSelect(filters) {
     const { years = [new Date().getFullYear()], months = [], quarters = [] } = filters;
     
-    console.log('📊 getOverviewDataMultiSelect called with:', {
+    console.log('📊 Backend getOverviewDataMultiSelect called with:', {
       filters,
       years,
       months,
       quarters,
       hasYears: years.length > 0,
       hasMonths: months.length > 0,
-      hasQuarters: quarters.length > 0
+      hasQuarters: quarters.length > 0,
+      rawFilters: JSON.stringify(filters)
     });
     
     // Get all applicable months
     const selectedMonths = this.getMultiSelectMonths({ years, months, quarters });
     
-    console.log('📊 Selected months after conversion:', selectedMonths);
+    console.log('📊 Backend selected months after conversion:', selectedMonths);
+    console.log('📊 Backend will query with:', {
+      yearCount: years.length,
+      monthCount: selectedMonths.length,
+      years: years,
+      months: selectedMonths
+    });
     
     if (selectedMonths.length === 0 || years.length === 0) {
       return {

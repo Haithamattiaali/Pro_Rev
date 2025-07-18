@@ -16,16 +16,8 @@ const FilterSystemWrapper = ({ useNewSystem = true, ...props }) => {
   // Create a debounced update function to prevent rapid sync updates
   const debouncedSync = useCallback(
     debounce((params) => {
-      handlePeriodChange({
-        period: params.period,
-        year: params.year,
-        month: params.month,
-        quarter: params.quarter,
-        // Also pass the new multi-select format for components that support it
-        selectedYears: params.year ? [params.year] : [],
-        selectedMonths: params.month ? [params.month] : [],
-        selectedQuarters: params.quarter ? [params.quarter] : []
-      });
+      console.log('🔄 FilterSystemWrapper: debouncedSync called with:', params);
+      handlePeriodChange(params);
     }, 100), // 100ms debounce to prevent flashing
     [handlePeriodChange]
   );

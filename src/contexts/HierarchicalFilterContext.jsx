@@ -304,10 +304,13 @@ export const HierarchicalFilterProvider = ({ children }) => {
 
   // Handle period change (supports both single and multi-select)
   const handlePeriodChange = useCallback((periodOrPeriods) => {
+    console.log('🎯 HierarchicalFilterContext: handlePeriodChange called with:', periodOrPeriods);
+    
     setFilterState(prev => {
+      let newState;
       if (prev.multiSelectMode && Array.isArray(periodOrPeriods)) {
         // Multi-select mode
-        return {
+        newState = {
           ...prev,
           selectedPeriods: periodOrPeriods,
           selectedPeriod: periodOrPeriods[0] || prev.selectedPeriod, // Keep first for legacy
@@ -316,13 +319,22 @@ export const HierarchicalFilterProvider = ({ children }) => {
       } else {
         // Single select mode
         const period = Array.isArray(periodOrPeriods) ? periodOrPeriods[0] : periodOrPeriods;
-        return {
+        newState = {
           ...prev,
           selectedPeriod: period,
           selectedPeriods: [period],
           quickPreset: null
         };
       }
+      
+      console.log('🎯 HierarchicalFilterContext: New filter state:', {
+        multiSelectMode: newState.multiSelectMode,
+        selectedPeriods: newState.selectedPeriods,
+        selectedPeriod: newState.selectedPeriod,
+        viewMode: newState.viewMode
+      });
+      
+      return newState;
     });
     
     // Cache clearing is handled by FilterContext to prevent multiple clears

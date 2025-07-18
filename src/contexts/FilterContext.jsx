@@ -214,6 +214,7 @@ export const FilterProvider = ({ children }) => {
         ...filterConfig
       };
       
+      console.log('📊 FilterContext: handlePeriodChange received:', filterConfig);
       console.log('📊 Filter change (multi-select):', {
         period: newFilter.period,
         year: newFilter.year,

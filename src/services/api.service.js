@@ -48,6 +48,7 @@ class ApiService {
   async getOverviewDataMultiSelect(params) {
     const { years = [], periods = [], viewMode = 'quarterly' } = params;
     console.log('🌐 API: Requesting multi-select overview data:', params);
+    console.log('🌐 API: POST body:', JSON.stringify({ years, periods, viewMode }));
     
     const response = await this.request('/overview/multi-select', {
       method: 'POST',
