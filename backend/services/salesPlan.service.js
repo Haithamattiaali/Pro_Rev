@@ -860,7 +860,7 @@ class SalesPlanService {
     try {
       const { years = [], months = [], quarters = [] } = filters;
       
-      console.log('🔧 SalesPlanService: Processing multi-select with filters:', filters);
+      console.log('🔧 SalesPlanService: Processing multi-select with filters:', JSON.stringify(filters, null, 2));
       
       // Build WHERE conditions
       const conditions = ['1=1'];
@@ -911,6 +911,9 @@ class SalesPlanService {
         FROM sales_plan_data
         WHERE ${whereClause}
       `;
+      
+      console.log('🔍 SQL Query:', totalsSql);
+      console.log('🔍 SQL Params:', params);
       
       const totals = await db.get(totalsSql, params);
       

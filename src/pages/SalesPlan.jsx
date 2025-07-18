@@ -48,14 +48,35 @@ const SalesPlan = () => {
                                      (periodFilter.selectedMonths && periodFilter.selectedMonths.length > 1) ||
                                      (periodFilter.selectedYears && periodFilter.selectedYears.length > 1);
         
+        console.log('🔍 SalesPlan: Period filter check:', {
+          selectedQuarters: periodFilter.selectedQuarters,
+          selectedMonths: periodFilter.selectedMonths,
+          hasQuarters,
+          hasMonths,
+          multiSelectMode: periodFilter.multiSelectMode,
+          viewMode: periodFilter.viewMode
+        });
+        
         // Only use multi-select for quarterly/monthly modes, not yearly
-        if (periodFilter.multiSelectMode && periodFilter.viewMode !== 'yearly' && (hasQuarters || hasMonths || hasMultipleSelections)) {
+        if (periodFilter.multiSelectMode && periodFilter.viewMode !== 'yearly') {
           // Build periods array from selectedQuarters/selectedMonths
           let periods = [];
-          if (periodFilter.selectedQuarters && periodFilter.selectedQuarters.length > 0) {
-            periods = periodFilter.selectedQuarters.map(q => `Q${q}`);
-          } else if (periodFilter.selectedMonths && periodFilter.selectedMonths.length > 0) {
-            periods = periodFilter.selectedMonths.map(m => String(m));
+          
+          // For quarterly view mode, if no specific quarters selected, assume all quarters
+          if (periodFilter.viewMode === 'quarterly') {
+            if (periodFilter.selectedQuarters && periodFilter.selectedQuarters.length > 0) {
+              periods = periodFilter.selectedQuarters.map(q => `Q${q}`);
+            } else {
+              // Default to all quarters if none selected
+              periods = ['Q1', 'Q2', 'Q3', 'Q4'];
+            }
+          } else if (periodFilter.viewMode === 'monthly') {
+            if (periodFilter.selectedMonths && periodFilter.selectedMonths.length > 0) {
+              periods = periodFilter.selectedMonths.map(m => String(m));
+            } else {
+              // Default to all months if none selected
+              periods = Array.from({ length: 12 }, (_, i) => String(i + 1));
+            }
           }
           
           multiSelectParams = {
@@ -63,6 +84,14 @@ const SalesPlan = () => {
             periods: periods,
             viewMode: periodFilter.viewMode || (periodFilter.selectedQuarters?.length > 0 ? 'quarterly' : 'monthly')
           };
+          
+          console.log('🔍 SalesPlan: Multi-select params:', {
+            multiSelectParams,
+            periodFilter,
+            hasQuarters,
+            hasMonths,
+            hasMultipleSelections
+          });
         }
         
         // Fetch all data in parallel

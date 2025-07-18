@@ -21,17 +21,22 @@ const corsOptions = process.env.NODE_ENV === 'production'
       credentials: true,
       optionsSuccessStatus: 200,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Authorization']
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
+      exposedHeaders: ['Content-Length', 'Content-Type']
     }
   : {
       origin: [
         'http://localhost:5173',
         'http://localhost:5174',
         'http://localhost:3000',
-        'http://127.0.0.1:5173'
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:5174'
       ],
       credentials: true,
-      optionsSuccessStatus: 200
+      optionsSuccessStatus: 200,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
+      exposedHeaders: ['Content-Length', 'Content-Type']
     };
 
 // Middleware
