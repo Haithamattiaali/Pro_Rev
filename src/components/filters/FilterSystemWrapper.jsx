@@ -35,9 +35,12 @@ const FilterSystemWrapper = ({ useNewSystem = true, ...props }) => {
     if (!useNewSystem || !hierarchicalFilter) return;
 
     const params = hierarchicalFilter.getApiParameters();
+    const { filterState } = hierarchicalFilter;
     
     // Create a stable key for comparison to prevent infinite loops
-    const updateKey = `${params.year}-${params.period}-${params.month}-${params.quarter}`;
+    const updateKey = filterState.multiSelectMode 
+      ? `${filterState.selectedYears.join(',')}-${filterState.selectedPeriods.join(',')}-${filterState.viewMode}`
+      : `${params.year}-${params.period}-${params.month}-${params.quarter}`;
     
     // Only update if the key has changed
     if (lastUpdateRef.current === updateKey) {
@@ -47,13 +50,23 @@ const FilterSystemWrapper = ({ useNewSystem = true, ...props }) => {
     lastUpdateRef.current = updateKey;
     
     // Use debounced sync to prevent rapid updates
-    debouncedSync(params);
+    debouncedSync({
+      ...params,
+      // Pass multi-select arrays when in multi-select mode
+      selectedYears: filterState.multiSelectMode ? filterState.selectedYears : [params.year],
+      selectedPeriods: filterState.multiSelectMode ? filterState.selectedPeriods : [],
+      multiSelectMode: filterState.multiSelectMode,
+      viewMode: filterState.viewMode
+    });
   }, [
     useNewSystem,
     hierarchicalFilter?.filterState.selectedYear,
+    hierarchicalFilter?.filterState.selectedYears,
     hierarchicalFilter?.filterState.viewMode,
     hierarchicalFilter?.filterState.selectedPeriod,
+    hierarchicalFilter?.filterState.selectedPeriods,
     hierarchicalFilter?.filterState.quickPreset,
+    hierarchicalFilter?.filterState.multiSelectMode,
     debouncedSync
   ]);
 

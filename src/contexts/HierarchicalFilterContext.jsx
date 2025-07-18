@@ -21,15 +21,20 @@ export const HierarchicalFilterProvider = ({ children }) => {
 
   // Core filter state
   const [filterState, setFilterState] = useState({
-    // Primary selections
-    selectedYear: currentYear,
+    // Primary selections - now support arrays for multi-select
+    selectedYears: [currentYear], // Array of selected years
     viewMode: 'quarterly', // 'yearly' | 'quarterly' | 'monthly'
-    selectedPeriod: `Q${currentQuarter}`, // 'Q1-Q4' for quarterly, '1-12' for monthly
+    selectedPeriods: [`Q${currentQuarter}`], // Array of selected periods
+    multiSelectMode: false, // Toggle for multi-select mode
+    
+    // Legacy single selection (for backward compatibility)
+    selectedYear: currentYear,
+    selectedPeriod: `Q${currentQuarter}`,
     
     // Advanced features
     comparisonMode: null, // null | 'previous' | 'yearOverYear' | 'custom'
     comparisonPeriod: null,
-    quickPreset: null, // 'YTD' | 'QTD' | 'L4Q' | 'L12M' | null
+    quickPreset: null, // 'YTD' | 'QTD' | 'MTD' | 'L4Q' | 'L12M' | null
     
     // UI state
     isFilterOpen: false
@@ -54,66 +59,124 @@ export const HierarchicalFilterProvider = ({ children }) => {
 
   // Compute derived values
   const derivedValues = useMemo(() => {
-    const { selectedYear, viewMode, selectedPeriod } = filterState;
+    const { selectedYear, selectedYears, viewMode, selectedPeriod, selectedPeriods, multiSelectMode } = filterState;
+    
+    // Use arrays if in multi-select mode, otherwise use single values
+    const years = multiSelectMode ? selectedYears : [selectedYear];
+    const periods = multiSelectMode ? selectedPeriods : [selectedPeriod];
     
     // Calculate date range based on selections
     let startDate, endDate, displayLabel, periodType;
     
-    if (viewMode === 'yearly') {
-      startDate = new Date(selectedYear, 0, 1);
-      endDate = new Date(selectedYear, 11, 31);
-      displayLabel = `Full Year ${selectedYear}`;
-      periodType = 'YTD';
-    } else if (viewMode === 'quarterly') {
-      const quarter = parseInt(selectedPeriod.replace('Q', ''));
-      const startMonth = (quarter - 1) * 3;
-      const endMonth = quarter * 3 - 1;
-      startDate = new Date(selectedYear, startMonth, 1);
-      endDate = new Date(selectedYear, endMonth + 1, 0);
+    // For multi-select, we'll show the range of all selections
+    if (multiSelectMode && (years.length > 1 || periods.length > 1)) {
+      // Find the earliest and latest dates across all selections
+      const dates = [];
       
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const rangeLabel = `${monthNames[startMonth]}-${monthNames[endMonth]}`;
-      displayLabel = `${selectedPeriod} ${selectedYear} (${rangeLabel})`;
-      periodType = 'QTD';
-    } else if (viewMode === 'monthly') {
-      const month = parseInt(selectedPeriod);
-      startDate = new Date(selectedYear, month - 1, 1);
-      endDate = new Date(selectedYear, month, 0);
+      years.forEach(year => {
+        if (viewMode === 'yearly') {
+          dates.push(new Date(year, 0, 1), new Date(year, 11, 31));
+        } else if (viewMode === 'quarterly') {
+          periods.forEach(period => {
+            const quarter = parseInt(period.replace('Q', ''));
+            const startMonth = (quarter - 1) * 3;
+            const endMonth = quarter * 3 - 1;
+            dates.push(new Date(year, startMonth, 1), new Date(year, endMonth + 1, 0));
+          });
+        } else if (viewMode === 'monthly') {
+          periods.forEach(period => {
+            const month = parseInt(period);
+            dates.push(new Date(year, month - 1, 1), new Date(year, month, 0));
+          });
+        }
+      });
       
-      const monthName = startDate.toLocaleString('en-US', { month: 'long' });
-      displayLabel = `${monthName} ${selectedYear}`;
-      periodType = 'MTD';
+      startDate = new Date(Math.min(...dates));
+      endDate = new Date(Math.max(...dates));
+      
+      // Create display label for multi-select
+      if (years.length > 1) {
+        displayLabel = `${years.join(', ')} - ${periods.length} ${viewMode === 'quarterly' ? 'quarters' : 'months'} selected`;
+      } else {
+        displayLabel = `${periods.join(', ')} ${years[0]}`;
+      }
+      periodType = viewMode === 'yearly' ? 'YTD' : viewMode === 'quarterly' ? 'QTD' : 'MTD';
+    } else {
+      // Single selection logic (existing)
+      const year = years[0];
+      const period = periods[0];
+      
+      if (viewMode === 'yearly') {
+        startDate = new Date(year, 0, 1);
+        endDate = new Date(year, 11, 31);
+        displayLabel = `Full Year ${year}`;
+        periodType = 'YTD';
+      } else if (viewMode === 'quarterly') {
+        const quarter = parseInt(period.replace('Q', ''));
+        const startMonth = (quarter - 1) * 3;
+        const endMonth = quarter * 3 - 1;
+        startDate = new Date(year, startMonth, 1);
+        endDate = new Date(year, endMonth + 1, 0);
+        
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const rangeLabel = `${monthNames[startMonth]}-${monthNames[endMonth]}`;
+        displayLabel = `${period} ${year} (${rangeLabel})`;
+        periodType = 'QTD';
+      } else if (viewMode === 'monthly') {
+        const month = parseInt(period);
+        startDate = new Date(year, month - 1, 1);
+        endDate = new Date(year, month, 0);
+        
+        const monthName = startDate.toLocaleString('en-US', { month: 'long' });
+        displayLabel = `${monthName} ${year}`;
+        periodType = 'MTD';
+      }
     }
     
     // Check if this is a partial period (current period not yet complete)
-    const isPartialPeriod = selectedYear === currentYear && 
+    let isPartialPeriod = selectedYear === currentYear && 
       ((viewMode === 'quarterly' && selectedPeriod === `Q${currentQuarter}`) ||
        (viewMode === 'monthly' && parseInt(selectedPeriod) === currentMonth));
     
-    // Handle quick presets
+    // Handle quick presets - always use current date
     if (filterState.quickPreset) {
+      const today = new Date();
+      
       switch (filterState.quickPreset) {
         case 'YTD':
           startDate = new Date(currentYear, 0, 1);
-          endDate = new Date();
+          endDate = today;
           displayLabel = `Year to Date ${currentYear}`;
+          periodType = 'YTD';
           break;
         case 'QTD':
           startDate = new Date(currentYear, (currentQuarter - 1) * 3, 1);
-          endDate = new Date();
+          endDate = today;
           displayLabel = `Quarter to Date (Q${currentQuarter} ${currentYear})`;
+          periodType = 'QTD';
+          break;
+        case 'MTD':
+          startDate = new Date(currentYear, currentMonth - 1, 1);
+          endDate = today;
+          displayLabel = `Month to Date (${today.toLocaleString('en-US', { month: 'long' })} ${currentYear})`;
+          periodType = 'MTD';
           break;
         case 'L4Q':
           endDate = new Date(currentYear, currentMonth - 1, 0);
           startDate = new Date(endDate.getFullYear() - 1, endDate.getMonth() + 1, 1);
           displayLabel = 'Last 4 Quarters';
+          periodType = 'YTD';
           break;
         case 'L12M':
-          endDate = new Date();
-          startDate = new Date(endDate.getFullYear() - 1, endDate.getMonth(), endDate.getDate());
+          endDate = today;
+          startDate = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
           displayLabel = 'Last 12 Months';
+          periodType = 'YTD';
           break;
       }
+      
+      // Quick presets always set to partial period since they go to current date
+      isPartialPeriod = true;
     }
     
     return {
@@ -152,34 +215,53 @@ export const HierarchicalFilterProvider = ({ children }) => {
     return [];
   }, [filterState.selectedYear, filterState.viewMode, currentYear, currentQuarter, currentMonth]);
 
-  // Handle year change
-  const handleYearChange = useCallback((year) => {
+  // Handle year change (supports both single and multi-select)
+  const handleYearChange = useCallback((yearOrYears) => {
     setFilterState(prev => {
-      const isCurrentYear = year === currentYear;
-      let newPeriod = prev.selectedPeriod;
-      
-      // Smart default: if switching to current year, default to current period
-      if (isCurrentYear) {
-        if (prev.viewMode === 'quarterly') {
-          newPeriod = `Q${currentQuarter}`;
-        } else if (prev.viewMode === 'monthly') {
-          newPeriod = String(currentMonth);
-        }
+      if (prev.multiSelectMode && Array.isArray(yearOrYears)) {
+        // Multi-select mode
+        return {
+          ...prev,
+          selectedYears: yearOrYears,
+          selectedYear: yearOrYears[0] || currentYear, // Keep first for legacy
+          quickPreset: null
+        };
       } else {
-        // For past years, default to Q1 or January
-        if (prev.viewMode === 'quarterly') {
-          newPeriod = 'Q1';
-        } else if (prev.viewMode === 'monthly') {
-          newPeriod = '1';
+        // Single select mode
+        const year = Array.isArray(yearOrYears) ? yearOrYears[0] : yearOrYears;
+        const isCurrentYear = year === currentYear;
+        let newPeriod = prev.selectedPeriod;
+        let newPeriods = prev.selectedPeriods;
+        
+        // Smart default: if switching to current year, default to current period
+        if (isCurrentYear) {
+          if (prev.viewMode === 'quarterly') {
+            newPeriod = `Q${currentQuarter}`;
+            newPeriods = [`Q${currentQuarter}`];
+          } else if (prev.viewMode === 'monthly') {
+            newPeriod = String(currentMonth);
+            newPeriods = [String(currentMonth)];
+          }
+        } else {
+          // For past years, default to Q1 or January
+          if (prev.viewMode === 'quarterly') {
+            newPeriod = 'Q1';
+            newPeriods = ['Q1'];
+          } else if (prev.viewMode === 'monthly') {
+            newPeriod = '1';
+            newPeriods = ['1'];
+          }
         }
+        
+        return {
+          ...prev,
+          selectedYear: year,
+          selectedYears: [year],
+          selectedPeriod: newPeriod,
+          selectedPeriods: newPeriods,
+          quickPreset: null
+        };
       }
-      
-      return {
-        ...prev,
-        selectedYear: year,
-        selectedPeriod: newPeriod,
-        quickPreset: null // Clear any quick preset
-      };
     });
   }, [currentYear, currentQuarter, currentMonth]);
 
@@ -220,29 +302,69 @@ export const HierarchicalFilterProvider = ({ children }) => {
     });
   }, [currentYear, currentQuarter, currentMonth]);
 
-  // Handle period change
-  const handlePeriodChange = useCallback((period) => {
-    setFilterState(prev => ({
-      ...prev,
-      selectedPeriod: period,
-      quickPreset: null // Clear any quick preset
-    }));
+  // Handle period change (supports both single and multi-select)
+  const handlePeriodChange = useCallback((periodOrPeriods) => {
+    setFilterState(prev => {
+      if (prev.multiSelectMode && Array.isArray(periodOrPeriods)) {
+        // Multi-select mode
+        return {
+          ...prev,
+          selectedPeriods: periodOrPeriods,
+          selectedPeriod: periodOrPeriods[0] || prev.selectedPeriod, // Keep first for legacy
+          quickPreset: null
+        };
+      } else {
+        // Single select mode
+        const period = Array.isArray(periodOrPeriods) ? periodOrPeriods[0] : periodOrPeriods;
+        return {
+          ...prev,
+          selectedPeriod: period,
+          selectedPeriods: [period],
+          quickPreset: null
+        };
+      }
+    });
     
     // Cache clearing is handled by FilterContext to prevent multiple clears
   }, []);
 
   // Handle quick preset selection
   const handleQuickPresetChange = useCallback((preset) => {
-    setFilterState(prev => ({
-      ...prev,
-      quickPreset: preset,
-      // Reset to current year when using presets
-      selectedYear: currentYear,
-      viewMode: preset === 'YTD' ? 'yearly' : prev.viewMode
-    }));
+    setFilterState(prev => {
+      const updates = {
+        ...prev,
+        quickPreset: preset,
+        // Reset to current year when using presets
+        selectedYear: currentYear,
+        selectedYears: [currentYear]
+      };
+      
+      switch (preset) {
+        case 'YTD':
+          updates.viewMode = 'yearly';
+          updates.selectedPeriod = null;
+          updates.selectedPeriods = [];
+          break;
+        case 'QTD':
+          updates.viewMode = 'quarterly';
+          updates.selectedPeriod = `Q${currentQuarter}`;
+          updates.selectedPeriods = [`Q${currentQuarter}`];
+          break;
+        case 'MTD':
+          updates.viewMode = 'monthly';
+          updates.selectedPeriod = String(currentMonth);
+          updates.selectedPeriods = [String(currentMonth)];
+          break;
+        default:
+          // For L4Q and L12M, keep existing viewMode
+          break;
+      }
+      
+      return updates;
+    });
     
     // Cache clearing is handled by FilterContext to prevent multiple clears
-  }, [currentYear]);
+  }, [currentYear, currentQuarter, currentMonth]);
 
   // Handle comparison mode
   const handleComparisonModeChange = useCallback((mode, period = null) => {
@@ -251,6 +373,34 @@ export const HierarchicalFilterProvider = ({ children }) => {
       comparisonMode: mode,
       comparisonPeriod: period
     }));
+  }, []);
+
+  // Toggle multi-select mode
+  const toggleMultiSelectMode = useCallback(() => {
+    setFilterState(prev => {
+      const newMultiSelectMode = !prev.multiSelectMode;
+      
+      // When switching modes, ensure arrays are properly set
+      if (newMultiSelectMode) {
+        // Switching to multi-select: ensure arrays contain current single values
+        return {
+          ...prev,
+          multiSelectMode: true,
+          selectedYears: prev.selectedYears.length ? prev.selectedYears : [prev.selectedYear],
+          selectedPeriods: prev.selectedPeriods.length ? prev.selectedPeriods : [prev.selectedPeriod]
+        };
+      } else {
+        // Switching to single-select: take first value from arrays
+        return {
+          ...prev,
+          multiSelectMode: false,
+          selectedYear: prev.selectedYears[0] || prev.selectedYear,
+          selectedPeriod: prev.selectedPeriods[0] || prev.selectedPeriod,
+          selectedYears: [prev.selectedYears[0] || prev.selectedYear],
+          selectedPeriods: [prev.selectedPeriods[0] || prev.selectedPeriod]
+        };
+      }
+    });
   }, []);
 
   // Get API-compatible filter parameters
@@ -282,6 +432,7 @@ export const HierarchicalFilterProvider = ({ children }) => {
     handlePeriodChange,
     handleQuickPresetChange,
     handleComparisonModeChange,
+    toggleMultiSelectMode,
     setFilterOpen: (isOpen) => setFilterState(prev => ({ ...prev, isFilterOpen: isOpen })),
     
     // API compatibility
@@ -296,6 +447,7 @@ export const HierarchicalFilterProvider = ({ children }) => {
     quickPresets: [
       { value: 'YTD', label: 'YTD' },
       { value: 'QTD', label: 'QTD' },
+      { value: 'MTD', label: 'MTD' },
       { value: 'L4Q', label: 'Last 4Q' },
       { value: 'L12M', label: 'Last 12M' }
     ]

@@ -35,12 +35,20 @@ const BusinessUnits = () => {
       setError(null)
       
       try {
+        // Prepare multi-select parameters if in multi-select mode
+        const multiSelectParams = periodFilter.multiSelectMode ? {
+          years: periodFilter.selectedYears || [periodFilter.year],
+          periods: periodFilter.selectedPeriods || [],
+          viewMode: periodFilter.viewMode || 'quarterly'
+        } : null;
+        
         const [unitsData, trendsData] = await Promise.all([
           dataService.getBusinessUnitData(
             periodFilter.year, 
             periodFilter.period,
             periodFilter.month,
-            periodFilter.quarter
+            periodFilter.quarter,
+            multiSelectParams
           ),
           dataService.getMonthlyTrends(periodFilter.year, selectedUnit)
         ])

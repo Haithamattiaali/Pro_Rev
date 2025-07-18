@@ -12,7 +12,14 @@ class DataService {
   }
 
   getCacheKey(method, ...args) {
-    return `${method}_${args.join('_')}`;
+    // Handle arrays in cache keys
+    const processedArgs = args.map(arg => {
+      if (Array.isArray(arg)) {
+        return arg.sort().join(',');
+      }
+      return arg;
+    });
+    return `${method}_${processedArgs.join('_')}`;
   }
 
   async getCachedData(key, fetcher) {
@@ -26,19 +33,25 @@ class DataService {
     return data;
   }
 
-  async getOverviewData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
-    const key = this.getCacheKey('overview', year, period, month, quarter);
-    return this.getCachedData(key, () => apiService.getOverviewData(year, period, month, quarter));
+  async getOverviewData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
+    const key = multiSelectParams 
+      ? this.getCacheKey('overview', multiSelectParams.years, multiSelectParams.periods, multiSelectParams.viewMode)
+      : this.getCacheKey('overview', year, period, month, quarter);
+    return this.getCachedData(key, () => apiService.getOverviewData(year, period, month, quarter, multiSelectParams));
   }
 
-  async getBusinessUnitData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
-    const key = this.getCacheKey('businessUnits', year, period, month, quarter);
-    return this.getCachedData(key, () => apiService.getBusinessUnitData(year, period, month, quarter));
+  async getBusinessUnitData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
+    const key = multiSelectParams 
+      ? this.getCacheKey('businessUnits', multiSelectParams.years, multiSelectParams.periods, multiSelectParams.viewMode)
+      : this.getCacheKey('businessUnits', year, period, month, quarter);
+    return this.getCachedData(key, () => apiService.getBusinessUnitData(year, period, month, quarter, multiSelectParams));
   }
 
-  async getCustomerData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
-    const key = this.getCacheKey('customers', year, period, month, quarter);
-    return this.getCachedData(key, () => apiService.getCustomerData(year, period, month, quarter));
+  async getCustomerData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
+    const key = multiSelectParams 
+      ? this.getCacheKey('customers', multiSelectParams.years, multiSelectParams.periods, multiSelectParams.viewMode)
+      : this.getCacheKey('customers', year, period, month, quarter);
+    return this.getCachedData(key, () => apiService.getCustomerData(year, period, month, quarter, multiSelectParams));
   }
 
   async getMonthlyTrends(year = new Date().getFullYear(), serviceType = null) {

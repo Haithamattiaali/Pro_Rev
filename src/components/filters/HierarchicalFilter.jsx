@@ -7,6 +7,7 @@ import PeriodSelector from './PeriodSelector';
 import QuickRangePresets from './QuickRangePresets';
 import FilterSummary from './FilterSummary';
 import ComparisonMode from './ComparisonMode';
+import MultiSelectToggle from './MultiSelectToggle';
 import companyLogo from '../../assets/logo.png';
 
 const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true }) => {
@@ -23,7 +24,8 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true })
     handleViewModeChange,
     handlePeriodChange,
     handleQuickPresetChange,
-    handleComparisonModeChange
+    handleComparisonModeChange,
+    toggleMultiSelectMode
   } = useHierarchicalFilter();
 
   return (
@@ -37,6 +39,8 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true })
               value={filterState.selectedYear}
               onChange={handleYearChange}
               availableYears={availableYears}
+              multiSelect={filterState.multiSelectMode}
+              selectedYears={filterState.selectedYears}
             />
             
             <ViewModeToggle
@@ -49,7 +53,14 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true })
               value={filterState.selectedPeriod}
               onChange={handlePeriodChange}
               availablePeriods={availablePeriods}
+              multiSelect={filterState.multiSelectMode}
+              selectedPeriods={filterState.selectedPeriods}
               className="flex-1"
+            />
+            
+            <MultiSelectToggle
+              enabled={filterState.multiSelectMode}
+              onChange={toggleMultiSelectMode}
             />
           </div>
           

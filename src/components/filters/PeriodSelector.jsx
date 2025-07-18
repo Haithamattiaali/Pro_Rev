@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, className = '' }) => {
+const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, multiSelect = false, selectedPeriods = [], className = '' }) => {
   // Don't render if in yearly mode
   if (viewMode === 'yearly') return null;
 
@@ -14,8 +14,27 @@ const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, className
     return date.toLocaleString('en-US', { month: 'short' });
   };
 
+  const handlePeriodClick = (period) => {
+    if (multiSelect) {
+      // In multi-select mode, toggle the period in the array
+      const newSelection = selectedPeriods.includes(period)
+        ? selectedPeriods.filter(p => p !== period)
+        : [...selectedPeriods, period].sort();
+      
+      // Don't allow empty selection
+      if (newSelection.length > 0) {
+        onChange(newSelection);
+      }
+    } else {
+      // Single select mode
+      onChange(period);
+    }
+  };
+
   const renderQuarterButton = (quarter) => {
-    const isSelected = value === quarter;
+    const isSelected = multiSelect 
+      ? selectedPeriods.includes(quarter)
+      : value === quarter;
     const isCurrent = quarter === `Q${currentQuarter}`;
     const quarterNum = parseInt(quarter.replace('Q', ''));
     const startMonth = (quarterNum - 1) * 3 + 1;
@@ -25,7 +44,7 @@ const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, className
     return (
       <motion.button
         key={quarter}
-        onClick={() => onChange(quarter)}
+        onClick={() => handlePeriodClick(quarter)}
         className={`
           relative px-3 py-2 rounded-lg border transition-all flex-1
           ${isSelected
@@ -46,14 +65,16 @@ const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, className
   };
 
   const renderMonthButton = (monthNum) => {
-    const isSelected = value === monthNum;
+    const isSelected = multiSelect 
+      ? selectedPeriods.includes(monthNum)
+      : value === monthNum;
     const isCurrent = parseInt(monthNum) === currentMonth;
     const monthName = getMonthName(parseInt(monthNum));
 
     return (
       <motion.button
         key={monthNum}
-        onClick={() => onChange(monthNum)}
+        onClick={() => handlePeriodClick(monthNum)}
         className={`
           relative px-2 py-1.5 rounded-md border transition-all
           ${isSelected

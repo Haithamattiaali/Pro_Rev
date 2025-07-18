@@ -24,6 +24,11 @@ export const FilterProvider = ({ children }) => {
     selectedYears: [currentYear], // Default to current year
     activeMode: 'Y', // Start with year mode
     
+    // Multi-select fields
+    multiSelectMode: false,
+    selectedPeriods: [], // This will hold the selected periods (Q1, Q2, etc.)
+    viewMode: 'yearly',
+    
     // Legacy single values (for backward compatibility)
     period: 'YTD',
     year: currentYear,
@@ -202,7 +207,7 @@ export const FilterProvider = ({ children }) => {
     }
     
     // Handle both new multi-select format and legacy format
-    if ('selectedMonths' in filterConfig || 'selectedQuarters' in filterConfig || 'selectedYears' in filterConfig) {
+    if ('selectedMonths' in filterConfig || 'selectedQuarters' in filterConfig || 'selectedYears' in filterConfig || 'selectedPeriods' in filterConfig) {
       // New format - directly use provided values including computed period
       const newFilter = {
         ...periodFilter,
@@ -213,6 +218,9 @@ export const FilterProvider = ({ children }) => {
         period: newFilter.period,
         year: newFilter.year,
         month: newFilter.month,
+        multiSelectMode: newFilter.multiSelectMode,
+        selectedPeriods: newFilter.selectedPeriods,
+        viewMode: newFilter.viewMode,
         selections: { 
           months: newFilter.selectedMonths, 
           quarters: newFilter.selectedQuarters, 

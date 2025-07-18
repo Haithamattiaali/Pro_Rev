@@ -39,15 +39,33 @@ const Overview = () => {
         quarter: periodFilter.quarter,
         selectedMonths: periodFilter.selectedMonths,
         selectedYears: periodFilter.selectedYears,
+        selectedPeriods: periodFilter.selectedPeriods,
+        multiSelectMode: periodFilter.multiSelectMode,
+        viewMode: periodFilter.viewMode,
         rawFilter: periodFilter
       });
       
       try {
+        // Prepare multi-select parameters if in multi-select mode
+        const multiSelectParams = periodFilter.multiSelectMode ? {
+          years: periodFilter.selectedYears || [periodFilter.year],
+          periods: periodFilter.selectedPeriods || [],
+          viewMode: periodFilter.viewMode || 'quarterly'
+        } : null;
+        
+        console.log('📊 Overview: Calling API with:', {
+          multiSelectMode: periodFilter.multiSelectMode,
+          multiSelectParams,
+          selectedPeriods: periodFilter.selectedPeriods,
+          viewMode: periodFilter.viewMode
+        });
+        
         const data = await dataService.getOverviewData(
           periodFilter.year, 
           periodFilter.period,
           periodFilter.month,
-          periodFilter.quarter
+          periodFilter.quarter,
+          multiSelectParams
         );
         console.log('📊 Overview: Received data:', {
           revenue: data.overview?.revenue,

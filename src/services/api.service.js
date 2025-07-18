@@ -20,28 +20,109 @@ class ApiService {
   }
 
   // Overview data
-  async getOverviewData(year, period = 'YTD', month = null, quarter = null) {
+  async getOverviewData(year, period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
+    // If multiSelectParams provided, use multi-select endpoint
+    console.log('🌐 API: getOverviewData called with:', {
+      year,
+      period,
+      month,
+      quarter,
+      multiSelectParams,
+      hasMultiSelect: !!multiSelectParams,
+      periodsLength: multiSelectParams?.periods?.length
+    });
+    
+    if (multiSelectParams && multiSelectParams.periods?.length > 0) {
+      console.log('🌐 API: Using multi-select endpoint');
+      return this.getOverviewDataMultiSelect(multiSelectParams);
+    }
+    
     let url = `/overview?year=${year}&period=${period}`;
     if (month !== null) url += `&month=${month}`;
     if (quarter !== null) url += `&quarter=${quarter}`;
     console.log('🌐 API: Requesting overview data:', url);
     return this.request(url);
   }
+  
+  // Multi-select overview data
+  async getOverviewDataMultiSelect(params) {
+    const { years = [], periods = [], viewMode = 'quarterly' } = params;
+    console.log('🌐 API: Requesting multi-select overview data:', params);
+    
+    const response = await this.request('/overview/multi-select', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ years, periods, viewMode })
+    });
+    
+    // Ensure response format matches expected format
+    if (response.filters) {
+      return {
+        ...response,
+        period: 'MULTI',
+        year: years[0],
+        month: null,
+        quarter: null
+      };
+    }
+    
+    return response;
+  }
 
   // Business unit data
-  async getBusinessUnitData(year, period = 'YTD', month = null, quarter = null) {
+  async getBusinessUnitData(year, period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
+    // If multiSelectParams provided, use multi-select endpoint
+    if (multiSelectParams && multiSelectParams.periods?.length > 0) {
+      return this.getBusinessUnitDataMultiSelect(multiSelectParams);
+    }
+    
     let url = `/business-units?year=${year}&period=${period}`;
     if (month !== null) url += `&month=${month}`;
     if (quarter !== null) url += `&quarter=${quarter}`;
     return this.request(url);
   }
+  
+  // Multi-select business unit data
+  async getBusinessUnitDataMultiSelect(params) {
+    const { years = [], periods = [], viewMode = 'quarterly' } = params;
+    console.log('🌐 API: Requesting multi-select business unit data:', params);
+    
+    return this.request('/business-units/multi-select', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ years, periods, viewMode })
+    });
+  }
 
   // Customer data
-  async getCustomerData(year, period = 'YTD', month = null, quarter = null) {
+  async getCustomerData(year, period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
+    // If multiSelectParams provided, use multi-select endpoint
+    if (multiSelectParams && multiSelectParams.periods?.length > 0) {
+      return this.getCustomerDataMultiSelect(multiSelectParams);
+    }
+    
     let url = `/customers?year=${year}&period=${period}`;
     if (month !== null) url += `&month=${month}`;
     if (quarter !== null) url += `&quarter=${quarter}`;
     return this.request(url);
+  }
+  
+  // Multi-select customer data
+  async getCustomerDataMultiSelect(params) {
+    const { years = [], periods = [], viewMode = 'quarterly' } = params;
+    console.log('🌐 API: Requesting multi-select customer data:', params);
+    
+    return this.request('/customers/multi-select', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ years, periods, viewMode })
+    });
   }
 
   // Monthly trends

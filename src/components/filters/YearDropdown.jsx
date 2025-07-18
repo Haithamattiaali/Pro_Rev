@@ -2,10 +2,19 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Check } from 'lucide-react';
 
-const YearDropdown = ({ value, onChange, availableYears, className = '' }) => {
+const YearDropdown = ({ value, onChange, availableYears, multiSelect = false, selectedYears = [], className = '' }) => {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const currentYear = new Date().getFullYear();
+  
+  // In multi-select mode, use selectedYears array; otherwise use single value
+  const displayValue = multiSelect 
+    ? selectedYears.length === 0 
+      ? 'Select Years' 
+      : selectedYears.length === 1 
+        ? selectedYears[0] 
+        : `${selectedYears.length} Years`
+    : value;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -22,8 +31,21 @@ const YearDropdown = ({ value, onChange, availableYears, className = '' }) => {
   }, [isOpen]);
 
   const handleSelect = (year) => {
-    onChange(year);
-    setIsOpen(false);
+    if (multiSelect) {
+      // In multi-select mode, toggle the year in the array
+      const newSelection = selectedYears.includes(year)
+        ? selectedYears.filter(y => y !== year)
+        : [...selectedYears, year].sort((a, b) => b - a);
+      
+      // Don't allow empty selection
+      if (newSelection.length > 0) {
+        onChange(newSelection);
+      }
+    } else {
+      // Single select mode
+      onChange(year);
+      setIsOpen(false);
+    }
   };
 
   return (
@@ -39,8 +61,11 @@ const YearDropdown = ({ value, onChange, availableYears, className = '' }) => {
           }
         `}
       >
-        <span className="text-sm font-medium text-neutral-dark">{value}</span>
-        {value === currentYear && (
+        <span className="text-sm font-medium text-neutral-dark">{displayValue}</span>
+        {!multiSelect && value === currentYear && (
+          <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded">Current</span>
+        )}
+        {multiSelect && selectedYears.includes(currentYear) && (
           <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded">Current</span>
         )}
         <motion.div
@@ -63,7 +88,9 @@ const YearDropdown = ({ value, onChange, availableYears, className = '' }) => {
           >
             <div className="max-h-[200px] overflow-y-auto py-1">
               {availableYears.map((year) => {
-                const isSelected = year === value;
+                const isSelected = multiSelect 
+                  ? selectedYears.includes(year)
+                  : year === value;
                 const isCurrent = year === currentYear;
                 
                 return (

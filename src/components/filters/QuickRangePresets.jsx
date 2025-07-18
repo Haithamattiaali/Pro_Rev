@@ -9,6 +9,8 @@ const QuickRangePresets = ({ value, onChange, presets, className = '' }) => {
         return Calendar;
       case 'QTD':
         return CalendarClock;
+      case 'MTD':
+        return CalendarClock;
       case 'L4Q':
         return TrendingUp;
       case 'L12M':
