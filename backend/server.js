@@ -1152,6 +1152,56 @@ app.get('/api/opportunities/matrix', async (req, res) => {
   }
 });
 
+// Distribute opportunities to sales plan
+app.post('/api/opportunities/distribute', async (req, res) => {
+  try {
+    const { year = 2025 } = req.body;
+    const opportunityDistribution = require('./services/opportunityDistribution.service');
+    
+    // Get current distribution before update
+    const before = await opportunityDistribution.getCurrentDistribution(year);
+    
+    // Distribute opportunities
+    const result = await opportunityDistribution.updateSalesPlanOpportunities(year);
+    
+    // Get distribution after update
+    const after = await opportunityDistribution.getCurrentDistribution(year);
+    
+    res.json({
+      success: true,
+      message: 'Opportunities distributed successfully',
+      before: before.summary,
+      after: after.summary,
+      verification: result.verification,
+      details: result.distributions
+    });
+  } catch (error) {
+    console.error('Opportunity distribution error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get opportunity distribution analysis
+app.get('/api/opportunities/distribution-analysis', async (req, res) => {
+  try {
+    const { year = 2025 } = req.query;
+    const opportunityDistribution = require('./services/opportunityDistribution.service');
+    
+    const categorized = await opportunityDistribution.getOpportunitiesByServiceType();
+    const current = await opportunityDistribution.getCurrentDistribution(year);
+    const verification = await opportunityDistribution.verifyOpportunityDistribution(year);
+    
+    res.json({
+      opportunity_totals: categorized,
+      current_distribution: current,
+      verification
+    });
+  } catch (error) {
+    console.error('Distribution analysis error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Error handling middleware
 app.use(errorRecovery);
 app.use((err, req, res, next) => {
