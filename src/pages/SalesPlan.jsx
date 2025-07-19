@@ -7,6 +7,7 @@ import { TrendingUp, FileSpreadsheet, Target } from 'lucide-react'
 import { ExportButton } from '../components/export'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import ToolbarSection from '../components/layout/ToolbarSection'
+import RevenueTypeIndicator from '../components/indicators/RevenueTypeIndicator'
 // Import chart components
 import GLChart from '../components/salesplan/charts/GLChart'
 import BusinessUnitChart from '../components/salesplan/charts/BusinessUnitChart'
@@ -297,14 +298,13 @@ const SalesPlanContent = () => {
         {activeTab === 'opportunities' && (
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div>
+              <div className="flex items-start justify-between gap-6 mb-6">
+                <div className="flex-1">
                   <h3 className="text-lg font-semibold text-gray-900">Opportunities Analysis</h3>
-                  <p className="text-sm text-gray-600 mt-1">All values shown are monthly revenue figures</p>
+                  <p className="text-sm text-gray-600 mt-1">Pipeline valuation and performance metrics</p>
                 </div>
-                <div className="bg-blue-50 px-3 py-2 rounded-lg">
-                  <p className="text-xs font-medium text-blue-800">💡 Revenue Type: Monthly</p>
-                  <p className="text-xs text-blue-600">Annual = Monthly × 12</p>
+                <div className="w-80">
+                  <RevenueTypeIndicator />
                 </div>
               </div>
               <OpportunitiesChart data={opportunitiesData} />

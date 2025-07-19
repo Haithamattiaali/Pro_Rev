@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { ChevronRight, AlertCircle, CheckCircle, Clock, Building2, Package, MapPin, TrendingUp, PlayCircle, FileText, PenTool, XCircle } from 'lucide-react'
 import { formatCurrency } from '../../../utils/formatters'
+import MonthlyBadge from '../../indicators/MonthlyBadge'
 
 const OpportunityPipelineFlow = ({ pipeline }) => {
   const [selectedStage, setSelectedStage] = useState(null)
@@ -166,18 +167,23 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
         <div className="relative z-10">
           <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6 mb-8">
             <div className="flex-1">
-              <h3 className="text-3xl font-bold text-secondary mb-3">Opportunity Pipeline Status Flow</h3>
+              <div className="flex items-center gap-3 mb-3">
+                <h3 className="text-3xl font-bold text-secondary">Opportunity Pipeline Status Flow</h3>
+                <MonthlyBadge size="small" />
+              </div>
               <p className="text-base text-neutral-mid">Track opportunities through each stage of the pipeline</p>
             </div>
             
             {/* Pipeline Metrics Summary */}
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
-                <p className="text-xs text-neutral-mid font-medium">Total Monthly Pipeline</p>
+                <p className="text-xs text-neutral-mid font-medium">Total Pipeline</p>
                 <p className="text-lg font-bold text-primary">
                   {formatCurrency(sortedPipeline.reduce((sum, stage) => sum + (stage.total_revenue || 0), 0))}
                 </p>
-                <p className="text-xs text-neutral-mid">per month</p>
+                <div className="mt-1">
+                  <MonthlyBadge size="mini" showIcon={false} />
+                </div>
               </div>
               <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
                 <p className="text-xs text-neutral-mid font-medium">Opportunities</p>
@@ -186,14 +192,16 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                 </p>
               </div>
               <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
-                <p className="text-xs text-neutral-mid font-medium">Avg Monthly Deal</p>
+                <p className="text-xs text-neutral-mid font-medium">Avg Deal Size</p>
                 <p className="text-lg font-bold text-accent-blue">
                   {formatCurrency(
                     sortedPipeline.reduce((sum, stage) => sum + (stage.total_revenue || 0), 0) / 
                     Math.max(sortedPipeline.reduce((sum, stage) => sum + (stage.count || 0), 0), 1)
                   )}
                 </p>
-                <p className="text-xs text-neutral-mid">per month</p>
+                <div className="mt-1">
+                  <MonthlyBadge size="mini" showIcon={false} />
+                </div>
               </div>
             </div>
           </div>
