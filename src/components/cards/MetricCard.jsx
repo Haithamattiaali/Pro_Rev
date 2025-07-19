@@ -1,7 +1,7 @@
 import React from 'react'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { formatCurrency, formatPercentage } from '../../utils/formatters'
-import BaseCard from './BaseCard'
+import BaseCard from '../common/BaseCard'
 
 const MetricCard = ({ title, subtitle, value, format = 'currency', trend, trendValue, icon: Icon, iconColor = 'primary' }) => {
   const formatValue = (val) => {

@@ -1,7 +1,7 @@
 import React from 'react'
 import { TrendingUp, TrendingDown, Calendar, AlertCircle, CheckCircle, Clock, ArrowRight, Info } from 'lucide-react'
 import { formatCurrency, formatPercentage } from '../../utils/formatters'
-import BaseCard from './BaseCard'
+import BaseCard from '../common/BaseCard'
 
 const EnhancedMetricCard = ({ 
   title, 

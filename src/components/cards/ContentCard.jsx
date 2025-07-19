@@ -1,5 +1,5 @@
 import React from 'react'
-import BaseCard from './BaseCard'
+import BaseCard from '../common/BaseCard'
 import { cn } from '../../utils/cn'
 
 const ContentCard = ({ 
