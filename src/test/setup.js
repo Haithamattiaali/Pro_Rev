@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom'
 import { cleanup } from '@testing-library/react'
-import { afterEach, vi } from 'vitest'
+import { afterEach, beforeEach, vi } from 'vitest'
 
 // Cleanup after each test
 afterEach(() => {
@@ -55,3 +55,6 @@ beforeEach(() => {
   vi.clearAllMocks()
   localStorageMock.getItem.mockReturnValue(null)
 })
+
+// Mock static assets
+vi.mock('/logo.png', () => ({ default: 'mock-logo-path' }))
