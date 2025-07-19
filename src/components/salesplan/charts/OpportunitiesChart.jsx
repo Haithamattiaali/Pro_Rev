@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import dataService from '../../../services/dataService'
+import { useDataRefresh } from '../../../contexts/DataRefreshContext'
 import OpportunityInsights from '../components/OpportunityInsights'
 import OpportunityPipeline from '../components/OpportunityPipeline'
 import OpportunityPipelineFlow from '../components/OpportunityPipelineFlow'
@@ -7,6 +8,7 @@ import ServicePortfolioInsight from '../components/ServicePortfolioInsight'
 import { Loader2 } from 'lucide-react'
 
 const OpportunitiesChart = ({ data }) => {
+  const { refreshTrigger } = useDataRefresh()
   const [loading, setLoading] = useState(true)
   const [insights, setInsights] = useState(null)
   const [pipeline, setPipeline] = useState(null)
@@ -42,7 +44,7 @@ const OpportunitiesChart = ({ data }) => {
     }
 
     fetchData()
-  }, [])
+  }, [refreshTrigger])
 
   if (loading) {
     return (
