@@ -632,7 +632,7 @@ class SalesPlanService {
             SELECT DISTINCT project, est_monthly_revenue as revenue, est_gp_percent as gp
             FROM opportunities_data
             WHERE ${stage.key === 'No Status' 
-              ? "(status IS NULL OR status = '' OR TRIM(status) = '')" 
+              ? "(status IS NULL OR status = '' OR TRIM(status) = '' OR LOWER(TRIM(status)) = 'no status')" 
               : 'LOWER(TRIM(status)) = LOWER(?)'}
           )
         `, stage.key === 'No Status' ? [] : [stage.key]);
