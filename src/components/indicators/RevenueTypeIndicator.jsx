@@ -20,51 +20,28 @@ const RevenueTypeIndicator = ({ variant = 'default' }) => {
     );
   }
 
-  // Default executive variant
+  // Default executive variant - MUI + Ant + Apple mix
   return (
-    <div className="relative overflow-hidden">
-      {/* Gradient background with subtle animation */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent-blue/5 animate-gradient-shift"></div>
-      
-      {/* Glass morphism container */}
-      <div className="relative bg-white/80 backdrop-blur-xl rounded-2xl border border-primary/10 shadow-lg p-4">
-        {/* Header with icon */}
-        <div className="flex items-start gap-3 mb-3">
-          <div className="p-2 bg-gradient-to-br from-primary to-primary-dark rounded-xl shadow-md">
-            <TrendingUp className="w-5 h-5 text-white" strokeWidth={2.5} />
+    <div className="bg-white rounded-lg border border-secondary-pale/30 p-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+      <div className="flex items-center justify-between gap-4">
+        {/* Left side - icon and text */}
+        <div className="flex items-center gap-2.5">
+          <div className="p-1.5 bg-primary/10 rounded-md">
+            <TrendingUp className="w-4 h-4 text-primary" strokeWidth={2} />
           </div>
-          <div className="flex-1">
-            <h4 className="text-sm font-bold text-secondary uppercase tracking-wider">Revenue Periodicity</h4>
-            <p className="text-xs text-neutral-mid mt-0.5">Opportunity valuation framework</p>
+          <div>
+            <p className="text-xs font-semibold text-secondary">Revenue Basis</p>
+            <p className="text-xs text-neutral-mid">Monthly recurring</p>
           </div>
         </div>
-
-        {/* Visual formula */}
-        <div className="bg-gradient-to-r from-secondary-pale to-neutral-light/50 rounded-xl p-3 mb-3">
-          <div className="flex items-center justify-center gap-3">
-            <div className="text-center">
-              <p className="text-xs text-neutral-mid font-medium mb-1">Monthly Value</p>
-              <p className="text-lg font-bold text-primary">1×</p>
-            </div>
-            <div className="text-2xl text-primary/40">×</div>
-            <div className="text-center">
-              <p className="text-xs text-neutral-mid font-medium mb-1">Annual Cycle</p>
-              <p className="text-lg font-bold text-accent-blue">12</p>
-            </div>
-            <div className="text-2xl text-primary/40">=</div>
-            <div className="text-center">
-              <p className="text-xs text-neutral-mid font-medium mb-1">Annual Revenue</p>
-              <p className="text-lg font-bold text-secondary">12×</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Key insight */}
-        <div className="flex items-center gap-2 px-3 py-2 bg-primary/5 rounded-lg">
-          <div className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse"></div>
-          <p className="text-xs font-medium text-primary">
-            All pipeline values represent recurring monthly revenue potential
-          </p>
+        
+        {/* Right side - formula */}
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary-pale/20 rounded-md">
+          <span className="text-xs font-medium text-neutral-mid">Monthly</span>
+          <span className="text-xs text-neutral-mid/60">×</span>
+          <span className="text-xs font-semibold text-primary">12</span>
+          <span className="text-xs text-neutral-mid/60">=</span>
+          <span className="text-xs font-medium text-secondary">Annual</span>
         </div>
       </div>
     </div>

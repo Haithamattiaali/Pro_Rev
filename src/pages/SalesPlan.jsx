@@ -303,9 +303,7 @@ const SalesPlanContent = () => {
                   <h3 className="text-lg font-semibold text-gray-900">Opportunities Analysis</h3>
                   <p className="text-sm text-gray-600 mt-1">Pipeline valuation and performance metrics</p>
                 </div>
-                <div className="w-80">
-                  <RevenueTypeIndicator />
-                </div>
+                <RevenueTypeIndicator />
               </div>
               <OpportunitiesChart data={opportunitiesData} />
             </div>

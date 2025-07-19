@@ -13,23 +13,6 @@
 }
 
 @layer components {
-  /* Gradient animation for executive indicators */
-  @keyframes gradient-shift {
-    0% {
-      background-position: 0% 50%;
-    }
-    50% {
-      background-position: 100% 50%;
-    }
-    100% {
-      background-position: 0% 50%;
-    }
-  }
-  
-  .animate-gradient-shift {
-    background-size: 200% 200%;
-    animation: gradient-shift 8s ease infinite;
-  }
   /* Enhanced Card Styles with Material + Apple Design */
   .dashboard-card {
     @apply bg-white rounded-xl p-6 transition-all duration-300 ease-out transform-gpu;
