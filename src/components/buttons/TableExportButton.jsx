@@ -1,5 +1,6 @@
 import React from 'react';
 import ExportButton from './ExportButton';
+import exportService from '../../services/exportService';
 
 const TableExportButton = ({ 
   data, 
@@ -15,35 +16,13 @@ const TableExportButton = ({
     
     if (useBackend) {
       // Use backend endpoint for proper Excel formatting
-      const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
-      
       try {
-        const response = await fetch(`${baseURL}/export/table`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            data,
-            headers: tableHeaders,
-            title: title || filename,
-            filename
-          })
+        await exportService.exportTable({
+          data,
+          headers: tableHeaders,
+          title: title || filename,
+          filename
         });
-
-        if (!response.ok) {
-          throw new Error('Export failed');
-        }
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${filename}-${new Date().toISOString().split('T')[0]}.xlsx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
       } catch (error) {
         console.error('Backend export failed, falling back to CSV:', error);
         exportAsCSV(data, tableHeaders, filename);

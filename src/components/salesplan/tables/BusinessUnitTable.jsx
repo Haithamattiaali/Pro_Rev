@@ -2,8 +2,8 @@ import React, { useMemo } from 'react'
 import { TrendingUp, Package, Truck } from 'lucide-react'
 import { formatCurrency } from '../../../utils/formatters'
 import TableExportButton from '../../buttons/TableExportButton'
-import BaseCard from '../../cards/BaseCard'
-import BaseTable from '../../tables/BaseTable'
+import BaseCard from '../../common/BaseCard'
+import BaseTable from '../../common/BaseTable'
 
 const BusinessUnitTable = ({ data }) => {
   // Process data with percentage calculations

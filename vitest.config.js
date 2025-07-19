@@ -22,12 +22,13 @@ export default defineConfig({
       ],
       thresholds: {
         global: {
-          branches: 70,
-          functions: 70,
-          lines: 70,
-          statements: 70
+          branches: 100,
+          functions: 100,
+          lines: 100,
+          statements: 100
         }
-      }
+      },
+      all: true, // Include all files, even if not imported in tests
     },
     include: ['src/**/*.{test,spec}.{js,jsx}'],
     exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],

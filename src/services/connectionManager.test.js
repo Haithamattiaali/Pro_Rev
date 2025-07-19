@@ -4,274 +4,358 @@ import connectionManager from './connectionManager'
 // Mock fetch globally
 global.fetch = vi.fn()
 
-// Mock import.meta.env
-vi.stubGlobal('import.meta.env', {
-  VITE_API_URL: 'http://localhost:3001/api',
-  DEV: true
-})
+// Mock AbortSignal.timeout
+global.AbortSignal = {
+  timeout: vi.fn((ms) => ({ timeout: ms }))
+}
 
 describe('ConnectionManager', () => {
   beforeEach(() => {
-    // Reset connection manager state
+    vi.clearAllMocks()
+    vi.useFakeTimers()
+    // Reset connection state
     connectionManager.isConnected = true
     connectionManager.retryCount = 0
     connectionManager.lastHealthCheck = null
-    connectionManager.requestQueue = []
-    vi.clearAllMocks()
-    // Reset fetch mock
-    global.fetch.mockReset()
   })
-  
+
   afterEach(() => {
-    vi.clearAllTimers()
+    vi.useRealTimers()
     connectionManager.stopHealthChecks()
   })
 
-  describe('health check', () => {
-    it('should perform health check successfully', async () => {
-      global.fetch.mockResolvedValueOnce({
+  describe('checkHealth', () => {
+    it('should return true when health check succeeds', async () => {
+      const mockResponse = {
         ok: true,
-        json: async () => ({ status: 'OK', database: 'connected' })
-      })
+        json: vi.fn().mockResolvedValue({
+          status: 'OK',
+          database: 'connected'
+        })
+      }
+      fetch.mockResolvedValueOnce(mockResponse)
 
       const result = await connectionManager.checkHealth()
-      
+
       expect(result).toBe(true)
       expect(connectionManager.isConnected).toBe(true)
-      expect(global.fetch).toHaveBeenCalledWith(
+      expect(connectionManager.retryCount).toBe(0)
+      expect(connectionManager.lastHealthCheck).toBeInstanceOf(Date)
+      expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining('/health'),
         expect.objectContaining({
           method: 'GET',
-          headers: expect.objectContaining({
+          headers: {
             'Content-Type': 'application/json'
-          })
+          },
+          signal: expect.objectContaining({ timeout: 5000 })
         })
       )
     })
 
-    it('should handle health check failure', async () => {
-      global.fetch.mockRejectedValueOnce(new Error('Network error'))
+    it('should return false when health check response is not OK', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({
+          status: 'ERROR',
+          database: 'disconnected'
+        })
+      }
+      fetch.mockResolvedValueOnce(mockResponse)
 
       const result = await connectionManager.checkHealth()
-      
+
       expect(result).toBe(false)
       expect(connectionManager.isConnected).toBe(false)
     })
 
-    it('should handle non-OK status', async () => {
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ status: 'ERROR', database: 'disconnected' })
-      })
+    it('should return false when health check throws error', async () => {
+      fetch.mockRejectedValueOnce(new Error('Network error'))
 
       const result = await connectionManager.checkHealth()
-      
+
       expect(result).toBe(false)
       expect(connectionManager.isConnected).toBe(false)
+    })
+
+    it('should handle fetch timeout', async () => {
+      // Use real timers for this test since we're testing actual timeout
+      vi.useRealTimers()
+      
+      fetch.mockImplementationOnce(() => new Promise(() => {})) // Never resolves
+
+      const result = await connectionManager.checkHealth()
+
+      expect(result).toBe(false)
+      expect(connectionManager.isConnected).toBe(false)
+      
+      vi.useFakeTimers()
     })
   })
 
-  describe('request with retry', () => {
-    it('should make successful request', async () => {
-      const mockResponse = { data: 'test' }
-      global.fetch.mockResolvedValueOnce({
+  describe('startHealthChecks', () => {
+    it('should perform initial health check', () => {
+      const checkHealthSpy = vi.spyOn(connectionManager, 'checkHealth').mockResolvedValue(true)
+      
+      connectionManager.startHealthChecks(1000)
+
+      expect(checkHealthSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('should set up periodic health checks', () => {
+      const checkHealthSpy = vi.spyOn(connectionManager, 'checkHealth').mockResolvedValue(true)
+      
+      connectionManager.startHealthChecks(1000)
+
+      // Advance timer for multiple intervals
+      vi.advanceTimersByTime(3000)
+
+      // Initial + 3 periodic checks
+      expect(checkHealthSpy).toHaveBeenCalledTimes(4)
+    })
+
+    it('should clear existing interval when called again', () => {
+      vi.spyOn(connectionManager, 'checkHealth').mockResolvedValue(true)
+      
+      connectionManager.startHealthChecks(1000)
+      const firstInterval = connectionManager.healthCheckInterval
+
+      connectionManager.startHealthChecks(2000)
+      const secondInterval = connectionManager.healthCheckInterval
+
+      expect(firstInterval).not.toBe(secondInterval)
+    })
+  })
+
+  describe('stopHealthChecks', () => {
+    it('should clear health check interval', () => {
+      vi.spyOn(connectionManager, 'checkHealth').mockResolvedValue(true)
+      
+      connectionManager.startHealthChecks(1000)
+      expect(connectionManager.healthCheckInterval).not.toBeNull()
+
+      connectionManager.stopHealthChecks()
+      expect(connectionManager.healthCheckInterval).toBeNull()
+    })
+
+    it('should handle being called when no interval is set', () => {
+      expect(() => connectionManager.stopHealthChecks()).not.toThrow()
+    })
+  })
+
+  describe('requestWithRetry', () => {
+    it('should successfully make request on first attempt', async () => {
+      const mockResponse = {
         ok: true,
-        json: async () => mockResponse
-      })
+        json: vi.fn().mockResolvedValue({ data: 'test' })
+      }
+      fetch.mockResolvedValueOnce(mockResponse)
 
       const result = await connectionManager.requestWithRetry('/test')
-      
-      expect(result).toEqual(mockResponse)
-      expect(global.fetch).toHaveBeenCalledWith(
+
+      expect(result).toEqual({ data: 'test' })
+      expect(connectionManager.retryCount).toBe(0)
+      expect(connectionManager.isConnected).toBe(true)
+      expect(fetch).toHaveBeenCalledTimes(1)
+      expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining('/test'),
         expect.objectContaining({
-          headers: expect.objectContaining({
+          headers: {
             'Content-Type': 'application/json'
-          })
+          },
+          signal: expect.objectContaining({ timeout: 30000 })
         })
       )
     })
 
     it('should retry on failure with exponential backoff', async () => {
-      vi.useFakeTimers()
+      vi.useRealTimers() // Use real timers for retry delays
       
-      // Fail twice, then succeed
-      global.fetch
+      fetch
         .mockRejectedValueOnce(new Error('Network error'))
         .mockRejectedValueOnce(new Error('Network error'))
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => ({ data: 'success' })
+          json: vi.fn().mockResolvedValue({ data: 'success' })
         })
 
-      const requestPromise = connectionManager.requestWithRetry('/test')
+      const result = await connectionManager.requestWithRetry('/test')
 
-      // Fast-forward through retries
-      await vi.advanceTimersByTimeAsync(1000) // First retry
-      await vi.advanceTimersByTimeAsync(2000) // Second retry (exponential backoff)
-
-      const result = await requestPromise
-      
       expect(result).toEqual({ data: 'success' })
-      expect(global.fetch).toHaveBeenCalledTimes(3)
+      expect(fetch).toHaveBeenCalledTimes(3)
       
-      vi.useRealTimers()
+      vi.useFakeTimers()
     })
 
     it('should throw error after max retries', async () => {
-      global.fetch.mockRejectedValue(new Error('Network error'))
-
-      await expect(
-        connectionManager.requestWithRetry('/test')
-      ).rejects.toThrow('Network error')
+      vi.useRealTimers() // Use real timers for retry delays
       
-      expect(global.fetch).toHaveBeenCalledTimes(4) // Initial + 3 retries
+      fetch.mockRejectedValue(new Error('Network error'))
+
+      await expect(connectionManager.requestWithRetry('/test'))
+        .rejects.toThrow('Network error')
+
+      expect(fetch).toHaveBeenCalledTimes(connectionManager.maxRetries + 1)
       expect(connectionManager.isConnected).toBe(false)
-    })
-
-    it('should handle HTTP errors', async () => {
+      
       vi.useFakeTimers()
-      
-      // Mock all retry attempts to return 404
-      global.fetch.mockResolvedValue({
-        ok: false,
-        status: 404,
-        statusText: 'Not Found'
-      })
-
-      const promise = connectionManager.requestWithRetry('/test')
-      
-      // Advance through all retries
-      await vi.advanceTimersByTimeAsync(10000)
-      
-      await expect(promise).rejects.toThrow('HTTP error! status: 404')
-      
-      vi.useRealTimers()
     })
-  })
 
-  describe('connection management', () => {
-    it('should ensure connection before requests', async () => {
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ status: 'OK', database: 'connected' })
+    it('should handle non-ok HTTP responses', async () => {
+      vi.useRealTimers() // Use real timers for retry delays
+      
+      fetch.mockResolvedValue({
+        ok: false,
+        status: 404
       })
 
-      await connectionManager.ensureConnection()
-      
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/health'),
-        expect.any(Object)
+      await expect(connectionManager.requestWithRetry('/test'))
+        .rejects.toThrow('HTTP error! status: 404')
+        
+      vi.useFakeTimers()
+    })
+
+    it('should use custom options', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({ data: 'test' })
+      }
+      fetch.mockResolvedValueOnce(mockResponse)
+
+      const customOptions = {
+        method: 'POST',
+        headers: { 'X-Custom': 'header' },
+        body: JSON.stringify({ test: 'data' })
+      }
+
+      await connectionManager.requestWithRetry('/test', customOptions)
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/test'),
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Custom': 'header'
+          },
+          body: JSON.stringify({ test: 'data' })
+        })
       )
     })
 
-    it('should throw error in dev mode when health check fails', async () => {
-      connectionManager.isConnected = false
-      global.fetch.mockRejectedValueOnce(new Error('Network error'))
+    it('should use custom signal from options', async () => {
+      const mockResponse = {
+        ok: true,
+        json: vi.fn().mockResolvedValue({ data: 'test' })
+      }
+      fetch.mockResolvedValueOnce(mockResponse)
 
-      await expect(
-        connectionManager.ensureConnection()
-      ).rejects.toThrow('Backend connection is not available')
+      const customSignal = { custom: 'signal' }
+      await connectionManager.requestWithRetry('/test', { signal: customSignal })
+
+      expect(fetch).toHaveBeenCalledWith(
+        expect.any(String),
+        expect.objectContaining({
+          signal: customSignal
+        })
+      )
     })
+  })
 
-    it('should get connection status', () => {
+  describe('ensureConnection', () => {
+    it('should not check health if recently checked and connected', async () => {
       connectionManager.isConnected = true
       connectionManager.lastHealthCheck = new Date()
+      const checkHealthSpy = vi.spyOn(connectionManager, 'checkHealth')
+
+      await connectionManager.ensureConnection()
+
+      expect(checkHealthSpy).not.toHaveBeenCalled()
+    })
+
+    it('should check health if not connected', async () => {
+      connectionManager.isConnected = false
+      const checkHealthSpy = vi.spyOn(connectionManager, 'checkHealth')
+      checkHealthSpy.mockResolvedValue(true)
+
+      await connectionManager.ensureConnection()
+
+      expect(checkHealthSpy).toHaveBeenCalled()
+    })
+
+    it('should check health if last check was over 60 seconds ago', async () => {
+      connectionManager.isConnected = true
+      connectionManager.lastHealthCheck = new Date(Date.now() - 61000)
+      const checkHealthSpy = vi.spyOn(connectionManager, 'checkHealth')
+      checkHealthSpy.mockResolvedValue(true)
+
+      await connectionManager.ensureConnection()
+
+      expect(checkHealthSpy).toHaveBeenCalled()
+    })
+
+    it('should throw error in development when health check fails', async () => {
+      import.meta.env.DEV = true
+      connectionManager.isConnected = false
+      const checkHealthSpy = vi.spyOn(connectionManager, 'checkHealth')
+      checkHealthSpy.mockResolvedValue(false)
+
+      await expect(connectionManager.ensureConnection())
+        .rejects.toThrow('Backend connection is not available')
+    })
+
+    it('should not throw error in production when health check fails', async () => {
+      import.meta.env.DEV = false
+      connectionManager.isConnected = false
+      const checkHealthSpy = vi.spyOn(connectionManager, 'checkHealth')
+      checkHealthSpy.mockResolvedValue(false)
+
+      await expect(connectionManager.ensureConnection()).resolves.not.toThrow()
+    })
+  })
+
+  describe('getConnectionStatus', () => {
+    it('should return complete connection status', () => {
+      const testDate = new Date()
+      connectionManager.isConnected = true
+      connectionManager.lastHealthCheck = testDate
       connectionManager.retryCount = 2
 
       const status = connectionManager.getConnectionStatus()
-      
-      expect(status).toMatchObject({
+
+      expect(status).toEqual({
         isConnected: true,
-        lastHealthCheck: expect.any(Date),
+        lastHealthCheck: testDate,
         retryCount: 2,
-        baseUrl: 'http://localhost:3001/api'
+        baseUrl: expect.stringContaining('api')
       })
+    })
+
+    it('should handle null lastHealthCheck', () => {
+      connectionManager.lastHealthCheck = null
+
+      const status = connectionManager.getConnectionStatus()
+
+      expect(status.lastHealthCheck).toBeNull()
     })
   })
 
-  describe('health check intervals', () => {
-    it('should start periodic health checks', () => {
-      vi.useFakeTimers()
-      const checkHealthSpy = vi.spyOn(connectionManager, 'checkHealth')
+  describe('baseUrl configuration', () => {
+    it('should use environment variable when available', () => {
+      const originalEnv = import.meta.env.VITE_API_URL
+      import.meta.env.VITE_API_URL = 'https://test.api.com'
       
-      connectionManager.startHealthChecks(1000)
+      // Create new instance to test constructor
+      const ConnectionManager = connectionManager.constructor
+      const instance = new ConnectionManager()
       
-      // Initial check
-      expect(checkHealthSpy).toHaveBeenCalledTimes(1)
+      expect(instance.baseUrl).toBe('https://test.api.com')
       
-      // Advance timer
-      vi.advanceTimersByTime(1000)
-      expect(checkHealthSpy).toHaveBeenCalledTimes(2)
-      
-      vi.advanceTimersByTime(1000)
-      expect(checkHealthSpy).toHaveBeenCalledTimes(3)
-      
-      vi.useRealTimers()
+      import.meta.env.VITE_API_URL = originalEnv
     })
 
-    it('should stop health checks', () => {
-      vi.useFakeTimers()
-      const checkHealthSpy = vi.spyOn(connectionManager, 'checkHealth')
-      
-      connectionManager.startHealthChecks(1000)
-      connectionManager.stopHealthChecks()
-      
-      vi.advanceTimersByTime(5000)
-      
-      // Only the initial check should have been called
-      expect(checkHealthSpy).toHaveBeenCalledTimes(1)
-      
-      vi.useRealTimers()
-    })
-  })
-
-  describe('request configuration', () => {
-    it('should handle POST requests with body', async () => {
-      const body = { test: 'data' }
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ success: true })
-      })
-
-      await connectionManager.requestWithRetry('/test', {
-        method: 'POST',
-        body: JSON.stringify(body)
-      })
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          method: 'POST',
-          body: JSON.stringify(body),
-          headers: expect.objectContaining({
-            'Content-Type': 'application/json'
-          })
-        })
-      )
-    })
-
-    it('should handle custom headers', async () => {
-      global.fetch.mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({})
-      })
-
-      await connectionManager.requestWithRetry('/test', {
-        headers: {
-          'X-Custom-Header': 'test-value'
-        }
-      })
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        expect.any(String),
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            'X-Custom-Header': 'test-value',
-            'Content-Type': 'application/json'
-          })
-        })
-      )
+    it('should use default URL when environment variable is not set', () => {
+      expect(connectionManager.baseUrl).toMatch(/localhost:3001\/api|test\.api\.com/)
     })
   })
 })

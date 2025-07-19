@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { ChevronRight, AlertCircle, CheckCircle, Clock, Building2, Package, MapPin, TrendingUp, PlayCircle, FileText, PenTool, XCircle } from 'lucide-react'
 import { formatCurrency } from '../../../utils/formatters'
 import MonthlyBadge from '../../indicators/MonthlyBadge'
+import dataService from '../../../services/dataService'
 
 const OpportunityPipelineFlow = ({ pipeline }) => {
   const [selectedStage, setSelectedStage] = useState(null)
@@ -12,14 +13,18 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
   
   useEffect(() => {
     // Fetch all opportunities for the cards
-    fetch(`${import.meta.env.VITE_API_URL}/opportunities`)
-      .then(r => r.json())
-      .then(data => {
+    const fetchOpportunities = async () => {
+      try {
+        const data = await dataService.getOpportunities()
         if (data?.opportunities) {
           setAllOpportunities(data.opportunities)
         }
-      })
-      .catch(console.error)
+      } catch (error) {
+        console.error('Error fetching opportunities:', error)
+      }
+    }
+    
+    fetchOpportunities()
   }, [])
   
   if (!pipeline?.pipeline || pipeline?.totals?.total_opportunities === 0) {

@@ -1,12 +1,17 @@
 
+import connectionManager from './connectionManager';
+
 class ExportService {
   constructor() {
     this.baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
   }
 
-  async downloadFile(url, filename) {
+  async downloadFile(endpoint, filename) {
     try {
-      const response = await fetch(url, {
+      // Ensure connection before making request
+      await connectionManager.ensureConnection();
+      
+      const response = await fetch(`${this.baseURL}${endpoint}`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -49,10 +54,10 @@ class ExportService {
     if (quarter) params.quarter = quarter;
     
     const queryString = this.buildQueryString(params);
-    const url = `${this.baseURL}/export/overview?${queryString}`;
+    const endpoint = `/export/overview?${queryString}`;
     const filename = `proceed-overview-${period}-${year}.xlsx`;
     
-    await this.downloadFile(url, filename);
+    await this.downloadFile(endpoint, filename);
   }
 
   async exportBusinessUnits(year, period, month = null, quarter = null) {
@@ -61,10 +66,10 @@ class ExportService {
     if (quarter) params.quarter = quarter;
     
     const queryString = this.buildQueryString(params);
-    const url = `${this.baseURL}/export/business-units?${queryString}`;
+    const endpoint = `/export/business-units?${queryString}`;
     const filename = `proceed-business-units-${period}-${year}.xlsx`;
     
-    await this.downloadFile(url, filename);
+    await this.downloadFile(endpoint, filename);
   }
 
   async exportCustomers(year, period, month = null, quarter = null) {
@@ -73,10 +78,10 @@ class ExportService {
     if (quarter) params.quarter = quarter;
     
     const queryString = this.buildQueryString(params);
-    const url = `${this.baseURL}/export/customers?${queryString}`;
+    const endpoint = `/export/customers?${queryString}`;
     const filename = `proceed-customers-${period}-${year}.xlsx`;
     
-    await this.downloadFile(url, filename);
+    await this.downloadFile(endpoint, filename);
   }
 
   async exportTrends(year, serviceType = null) {
@@ -84,10 +89,10 @@ class ExportService {
     if (serviceType) params.serviceType = serviceType;
     
     const queryString = this.buildQueryString(params);
-    const url = `${this.baseURL}/export/trends?${queryString}`;
+    const endpoint = `/export/trends?${queryString}`;
     const filename = `proceed-trends-${year}.xlsx`;
     
-    await this.downloadFile(url, filename);
+    await this.downloadFile(endpoint, filename);
   }
 
   async exportCustomOverview(exportData) {
@@ -150,14 +155,15 @@ class ExportService {
     this.downloadBlob(blob, filename);
   }
 
-  async exportTable(data, filename = 'export') {
+  async exportTable(params) {
+    const { data, headers, title, filename = 'export' } = params;
     const response = await fetch(`${this.baseURL}/export/table`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       },
-      body: JSON.stringify({ data, filename })
+      body: JSON.stringify({ data, headers, title, filename })
     });
 
     if (!response.ok) {
