@@ -57,17 +57,17 @@ class TemplateService {
       const opportunitiesData = await this.fetchAllOpportunitiesData();
       const opportunitiesTemplateData = this.formatOpportunitiesForTemplate(opportunitiesData);
       const wsOpportunities = xlsx.utils.json_to_sheet(opportunitiesTemplateData, {
-        header: ['project', 'service', 'location', 'scope_of_work', 'requirements', 'status', 'est_monthly_revenue', 'est_gp_percent']
+        header: ['Project', 'Service', 'Location', 'Scope of work', 'Requirements', 'Status', 'Est. Monthly Revenue', 'Est. GP%']
       });
       wsOpportunities['!cols'] = [
-        { wch: 30 }, // project
-        { wch: 20 }, // service
-        { wch: 20 }, // location
-        { wch: 40 }, // scope_of_work
-        { wch: 40 }, // requirements
-        { wch: 15 }, // status
-        { wch: 20 }, // est_monthly_revenue
-        { wch: 15 }  // est_gp_percent
+        { wch: 30 }, // Project
+        { wch: 30 }, // Service
+        { wch: 20 }, // Location
+        { wch: 40 }, // Scope of work
+        { wch: 40 }, // Requirements
+        { wch: 25 }, // Status
+        { wch: 20 }, // Est. Monthly Revenue
+        { wch: 15 }  // Est. GP%
       ];
       xlsx.utils.book_append_sheet(wb, wsOpportunities, 'Opportunities');
       
@@ -241,14 +241,14 @@ class TemplateService {
    */
   formatOpportunitiesForTemplate(data) {
     return data.map(row => ({
-      'project': row.project,
-      'service': row.service,
-      'location': row.location || '',
-      'scope_of_work': row.scope_of_work || '',
-      'requirements': row.requirements || '',
-      'status': row.status || '',
-      'est_monthly_revenue': row.est_monthly_revenue || 0,
-      'est_gp_percent': row.est_gp_percent || 0
+      'Project': row.project,
+      'Service': row.service,
+      'Location': row.location || '',
+      'Scope of work': row.scope_of_work || '',
+      'Requirements': row.requirements || '',
+      'Status': row.status || '',
+      'Est. Monthly Revenue': row.est_monthly_revenue || 0,
+      'Est. GP%': (row.est_gp_percent * 100) || 0  // Convert to percentage
     }));
   }
 
@@ -283,8 +283,8 @@ class TemplateService {
           'baseline_forecast', 'opportunity_value'
         ],
         'Opportunities': [
-          'project', 'service', 'location', 'scope_of_work', 
-          'requirements', 'status', 'est_monthly_revenue', 'est_gp_percent'
+          'Project', 'Service', 'Location', 'Scope of work', 
+          'Requirements', 'Status', 'Est. Monthly Revenue', 'Est. GP%'
         ]
       };
       
