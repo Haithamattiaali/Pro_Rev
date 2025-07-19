@@ -1,8 +1,20 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { formatPercentage, formatCurrency } from '../../utils/formatters'
 
 const GaugeChart = ({ value, title, targetAmount = 0, currentAmount = 0 }) => {
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
   const data = [
     { value: Math.min(value, 100) },
     { value: Math.max(0, 100 - value) }
@@ -16,7 +28,7 @@ const GaugeChart = ({ value, title, targetAmount = 0, currentAmount = 0 }) => {
 
   return (
     <div className="text-center">
-      <ResponsiveContainer width="100%" height={200}>
+      <ResponsiveContainer width="100%" height={isMobile ? 150 : 200}>
         <PieChart>
           <Pie
             data={data}
@@ -34,8 +46,8 @@ const GaugeChart = ({ value, title, targetAmount = 0, currentAmount = 0 }) => {
         </PieChart>
       </ResponsiveContainer>
       <div className="mt-2">
-        <p className="text-3xl font-bold text-primary">{formatPercentage(value)}</p>
-        <p className="text-sm text-neutral-mid mt-0">{title}</p>
+        <p className="text-2xl md:text-3xl font-bold text-primary">{formatPercentage(value)}</p>
+        <p className="text-xs md:text-sm text-neutral-mid mt-0">{title}</p>
         {value < 100 && targetAmount > 0 && (
           <p className="text-xs text-amber-600 mt-0 font-semibold">
             {formatPercentage(100 - value)} to go • {formatCurrency(targetAmount - currentAmount)}

@@ -21,7 +21,7 @@ const ContentCard = ({
         )}>
           <div>
             {title && (
-              <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-gray-900">{title}</h2>
             )}
             {subtitle && (
               <p className="text-sm text-gray-500 mt-1">{subtitle}</p>

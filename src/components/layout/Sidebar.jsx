@@ -15,7 +15,7 @@ const utilityItems = [
   { path: '/upload', label: 'Data Upload', icon: Upload },
 ]
 
-const Sidebar = () => {
+const Sidebar = ({ onCloseMobile }) => {
   const { periodFilter } = useFilter()
   
   // Create dynamic period prefix
@@ -47,7 +47,7 @@ const Sidebar = () => {
   
   const periodPrefix = getPeriodPrefix()
   return (
-    <aside className="w-64 bg-white shadow-lg">
+    <aside className="w-64 lg:w-64 h-screen bg-white shadow-lg">
       <div className="p-6">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
@@ -70,6 +70,7 @@ const Sidebar = () => {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={onCloseMobile}
               className={({ isActive }) =>
                 `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors mb-2 ${
                   isActive
@@ -97,6 +98,7 @@ const Sidebar = () => {
             <NavLink
               key={item.path}
               to={item.path}
+              onClick={onCloseMobile}
               className={({ isActive }) =>
                 `flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors mb-2 ${
                   isActive

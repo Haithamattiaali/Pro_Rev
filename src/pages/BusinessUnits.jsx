@@ -198,7 +198,7 @@ const BusinessUnits = () => {
       {selectedUnitData && (
         <div className="dashboard-card">
           <h2 className="section-title">{dataService.getPeriodLabel(periodFilter.period)} Performance Summary</h2>
-          <div className={`grid grid-cols-2 ${selectedUnitData && selectedUnitData.revenue > 0 ? 'md:grid-cols-6' : 'md:grid-cols-4'} gap-4`}>
+          <div className={`grid grid-cols-2 sm:grid-cols-3 ${selectedUnitData && selectedUnitData.revenue > 0 ? 'lg:grid-cols-6' : 'lg:grid-cols-4'} gap-3 md:gap-4`}>
             <div className="text-center p-4 bg-secondary-pale rounded-lg">
               <p className="metric-label">Target</p>
               <p className="text-xl font-bold text-primary-dark mt-1">{formatCurrency(selectedUnitData.target)}</p>
@@ -276,7 +276,8 @@ const BusinessUnits = () => {
             size="small"
           />
         </div>
-        <BaseTable variant="default" striped hoverable>
+        <div className="overflow-x-auto -mx-2 md:mx-0">
+          <BaseTable variant="default" striped hoverable>
           <BaseTable.Header>
             <BaseTable.Row>
               <BaseTable.Head>Month</BaseTable.Head>
@@ -367,13 +368,14 @@ const BusinessUnits = () => {
             </BaseTable.Footer>
           )}
         </BaseTable>
+        </div>
       </div>
 
       {/* Key Metrics Enhanced */}
       {selectedUnitData && (
         <div className="dashboard-card">
           <h2 className="section-title">Key Metrics - {selectedUnit}</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {/* Customer Count */}
             <BaseCard variant="elevated" className="group hover:scale-[1.02] transition-transform">
               <div className="flex items-start justify-between mb-4">

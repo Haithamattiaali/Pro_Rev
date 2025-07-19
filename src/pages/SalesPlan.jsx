@@ -155,7 +155,7 @@ const SalesPlanContent = () => {
   }
 
   return (
-    <div className="p-6 bg-neutral-light min-h-screen" ref={dashboardRef} data-dashboard="true">
+    <div className="p-6 bg-neutral-light min-h-screen w-full max-w-full overflow-x-hidden" ref={dashboardRef} data-dashboard="true">
       {/* Period Filter */}
       <StickyPeriodFilter useHierarchical={true} disableValidation={true} />
 
@@ -198,40 +198,41 @@ const SalesPlanContent = () => {
       </div>
 
       {/* Tab Navigation */}
-      <div className="bg-white rounded-lg shadow-sm p-1 grid grid-cols-4 gap-1 mb-6">
+      <div className="bg-white rounded-lg shadow-sm p-1 grid grid-cols-2 md:grid-cols-4 gap-1 mb-3 md:mb-6">
         <button
           onClick={() => setActiveTab('gl')}
-          className={`px-4 py-3 rounded-md transition-all font-medium ${
+          className={`px-1 sm:px-4 py-1.5 sm:py-3 rounded-md transition-all font-medium text-xs sm:text-base ${
             activeTab === 'gl' 
               ? 'bg-primary text-white shadow-md' 
               : 'text-neutral-dark hover:bg-gray-50'
           }`}
         >
-          By GL
+          GL
         </button>
         <button
           onClick={() => setActiveTab('business-unit')}
-          className={`px-4 py-3 rounded-md transition-all font-medium ${
+          className={`px-1 sm:px-4 py-1.5 sm:py-3 rounded-md transition-all font-medium text-xs sm:text-base ${
             activeTab === 'business-unit' 
               ? 'bg-primary text-white shadow-md' 
               : 'text-neutral-dark hover:bg-gray-50'
           }`}
         >
-          By Business Unit
+          <span className="hidden sm:inline">By Business Unit</span>
+          <span className="sm:hidden">Business</span>
         </button>
         <button
           onClick={() => setActiveTab('monthly')}
-          className={`px-4 py-3 rounded-md transition-all font-medium ${
+          className={`px-1 sm:px-4 py-1.5 sm:py-3 rounded-md transition-all font-medium text-xs sm:text-base ${
             activeTab === 'monthly' 
               ? 'bg-primary text-white shadow-md' 
               : 'text-neutral-dark hover:bg-gray-50'
           }`}
         >
-          By Month
+          Monthly
         </button>
         <button
           onClick={() => setActiveTab('opportunities')}
-          className={`px-4 py-3 rounded-md transition-all font-medium ${
+          className={`px-1 sm:px-4 py-1.5 sm:py-3 rounded-md transition-all font-medium text-xs sm:text-base ${
             activeTab === 'opportunities' 
               ? 'bg-primary text-white shadow-md' 
               : 'text-neutral-dark hover:bg-gray-50'
@@ -242,19 +243,23 @@ const SalesPlanContent = () => {
       </div>
 
       {/* Tab Content */}
-      <div className="space-y-6">
+      <div className="space-y-3 md:space-y-6 overflow-x-hidden">
         {/* By GL Tab */}
         {activeTab === 'gl' && (
-          <div className="space-y-6">
+          <div className="space-y-3 md:space-y-6">
             <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Sales Plan by GL Account</h3>
+              <div className="p-3 md:p-6">
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">Sales Plan by GL Account</h3>
                 <GLChart data={glData} />
               </div>
             </div>
             <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-6">
-                <GLTable data={glData} />
+              <div className="p-3 md:p-6">
+                <div className="overflow-x-auto -mx-3 md:mx-0">
+                  <div className="min-w-[768px] px-3 md:px-0">
+                    <GLTable data={glData} />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -262,16 +267,20 @@ const SalesPlanContent = () => {
 
         {/* By Business Unit Tab */}
         {activeTab === 'business-unit' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Sales Plan by Business Unit</h3>
-                <BusinessUnitChart data={businessUnitData} />
+          <div className="space-y-3 md:space-y-6 w-full max-w-full overflow-hidden">
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="p-3 md:p-6 overflow-hidden">
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">Sales Plan by Business Unit</h3>
+                <div className="w-full max-w-full overflow-hidden">
+                  <BusinessUnitChart data={businessUnitData} />
+                </div>
               </div>
             </div>
-            <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-6">
-                <BusinessUnitTable data={businessUnitData} />
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="p-3 md:p-6 overflow-hidden">
+                <div className="w-full max-w-full overflow-hidden">
+                  <BusinessUnitTable data={businessUnitData} />
+                </div>
               </div>
             </div>
           </div>
@@ -279,16 +288,20 @@ const SalesPlanContent = () => {
 
         {/* By Month Tab */}
         {activeTab === 'monthly' && (
-          <div className="space-y-6">
+          <div className="space-y-3 md:space-y-6">
             <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Monthly Sales Plan</h3>
+              <div className="p-3 md:p-6">
+                <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">Monthly Sales Plan</h3>
                 <MonthlyChart data={monthlyData} />
               </div>
             </div>
             <div className="bg-white rounded-lg shadow-sm">
-              <div className="p-6">
-                <MonthlyTable data={monthlyData} />
+              <div className="p-3 md:p-6">
+                <div className="overflow-x-auto -mx-3 md:mx-0">
+                  <div className="min-w-[768px] px-3 md:px-0">
+                    <MonthlyTable data={monthlyData} />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -317,7 +330,9 @@ const SalesPlanContent = () => {
 const SalesPlan = () => {
   return (
     <SalesPlanProvider>
-      <SalesPlanContent />
+      <div className="w-full max-w-[100vw] overflow-hidden">
+        <SalesPlanContent />
+      </div>
     </SalesPlanProvider>
   )
 }

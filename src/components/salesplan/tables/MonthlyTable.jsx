@@ -141,7 +141,7 @@ const MonthlyTable = ({ data }) => {
           <tbody className="bg-white divide-y divide-gray-200">
             {tableData.map((row, index) => (
               <tr key={index} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 ">
                   <div className="flex items-center gap-3">
                     <div 
                       className="w-3 h-3 rounded-full"
@@ -153,22 +153,22 @@ const MonthlyTable = ({ data }) => {
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                <td className="px-6 py-4  text-sm text-right text-gray-900">
                   {formatCurrency(row.baseline)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">
+                <td className="px-6 py-4  text-sm text-right text-gray-500">
                   {row.baselinePercent}%
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                <td className="px-6 py-4  text-sm text-right text-gray-900">
                   {formatCurrency(row.opportunities)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">
+                <td className="px-6 py-4  text-sm text-right text-gray-500">
                   {row.opportunityPercent}%
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-gray-900">
+                <td className="px-6 py-4  text-sm text-right font-semibold text-gray-900">
                   {formatCurrency(row.total)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-right">
+                <td className="px-6 py-4  text-right">
                   {index > 0 && (
                     <div className="flex items-center justify-end gap-2">
                       <span className={`text-sm font-medium ${
@@ -192,50 +192,50 @@ const MonthlyTable = ({ data }) => {
             <>
               <tfoot className="bg-gray-100 border-t-2 border-gray-300">
                 <tr>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 ">
                     <span className="text-sm font-semibold text-gray-900">Total</span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">
+                  <td className="px-6 py-4  text-sm text-right font-bold text-gray-900">
                     {formatCurrency(summary.totals.baseline)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-500">
+                  <td className="px-6 py-4  text-sm text-right font-bold text-gray-500">
                     {summary.totals.baselinePercent}%
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">
+                  <td className="px-6 py-4  text-sm text-right font-bold text-gray-900">
                     {formatCurrency(summary.totals.opportunities)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-500">
+                  <td className="px-6 py-4  text-sm text-right font-bold text-gray-500">
                     {summary.totals.opportunityPercent}%
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-primary">
+                  <td className="px-6 py-4  text-sm text-right font-bold text-primary">
                     {formatCurrency(summary.totals.total)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <td className="px-6 py-4  text-right">
                     <span className="text-xs text-gray-600">
                       {tableData.length} months
                     </span>
                   </td>
                 </tr>
                 <tr className="bg-gray-50 border-t">
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-6 py-4 ">
                     <span className="text-sm font-semibold text-gray-700">Average</span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">
+                  <td className="px-6 py-4  text-sm text-right text-gray-700">
                     {formatCurrency(summary.averages.baseline)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">
+                  <td className="px-6 py-4  text-sm text-right text-gray-500">
                     -
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-700">
+                  <td className="px-6 py-4  text-sm text-right text-gray-700">
                     {formatCurrency(summary.averages.opportunities)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">
+                  <td className="px-6 py-4  text-sm text-right text-gray-500">
                     -
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-gray-700">
+                  <td className="px-6 py-4  text-sm text-right font-semibold text-gray-700">
                     {formatCurrency(summary.averages.total)}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right">
+                  <td className="px-6 py-4  text-right">
                     <span className="text-xs text-gray-600">
                       Per month
                     </span>

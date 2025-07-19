@@ -166,7 +166,7 @@ const GLTable = ({ data }) => {
           <tbody className="bg-white divide-y divide-gray-200">
             {tableData.map((row, index) => (
               <tr key={index} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4 whitespace-nowrap">
+                <td className="px-6 py-4 ">
                   <div className="flex items-center">
                     {hasServiceType && (
                       <div className="w-2 h-8 rounded mr-3" style={{
@@ -178,23 +178,23 @@ const GLTable = ({ data }) => {
                   </div>
                 </td>
                 {hasServiceType && (
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                  <td className="px-6 py-4  text-sm text-gray-700">
                     {row.service_type}
                   </td>
                 )}
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                <td className="px-6 py-4  text-sm text-right text-gray-900">
                   {formatCurrency(row.baseline_forecast)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">
+                <td className="px-6 py-4  text-sm text-right text-gray-500">
                   {row.baselinePercent}%
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                <td className="px-6 py-4  text-sm text-right text-gray-900">
                   {formatCurrency(row.opportunity_value)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right text-gray-500">
+                <td className="px-6 py-4  text-sm text-right text-gray-500">
                   {row.opportunitiesPercent}%
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-semibold text-gray-900">
+                <td className="px-6 py-4  text-sm text-right font-semibold text-gray-900">
                   {formatCurrency(row.total)}
                 </td>
               </tr>
@@ -203,22 +203,22 @@ const GLTable = ({ data }) => {
           {totals && (
             <tfoot className="bg-gray-100 border-t-2 border-gray-300">
               <tr>
-                <td colSpan={hasServiceType ? "2" : "1"} className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
+                <td colSpan={hasServiceType ? "2" : "1"} className="px-6 py-4  text-sm font-semibold text-gray-900">
                   Total
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">
+                <td className="px-6 py-4  text-sm text-right font-bold text-gray-900">
                   {formatCurrency(totals.baseline)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-500">
+                <td className="px-6 py-4  text-sm text-right font-bold text-gray-500">
                   {totals.baselinePercent}%
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-900">
+                <td className="px-6 py-4  text-sm text-right font-bold text-gray-900">
                   {formatCurrency(totals.opportunities)}
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-gray-500">
+                <td className="px-6 py-4  text-sm text-right font-bold text-gray-500">
                   {totals.opportunitiesPercent}%
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-bold text-primary">
+                <td className="px-6 py-4  text-sm text-right font-bold text-primary">
                   {formatCurrency(totals.total)}
                 </td>
               </tr>

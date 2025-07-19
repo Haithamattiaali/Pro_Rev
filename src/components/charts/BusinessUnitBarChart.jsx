@@ -1,8 +1,24 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { formatCurrency, formatPercentage } from '../../utils/formatters';
 
 const BusinessUnitBarChart = ({ data, title = 'Monthly Performance' }) => {
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth)
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth)
+    }
+    
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+  
+  const getChartHeight = () => {
+    if (windowWidth < 640) return 300
+    if (windowWidth < 1024) return 350
+    return 400
+  }
   // Custom tooltip to show formatted values
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -116,8 +132,8 @@ const BusinessUnitBarChart = ({ data, title = 'Monthly Performance' }) => {
 
   return (
     <div className="w-full">
-      <h3 className="text-lg font-semibold text-secondary mb-4">{title}</h3>
-      <ResponsiveContainer width="100%" height={400}>
+      <h3 className="text-base md:text-lg font-semibold text-secondary mb-4">{title}</h3>
+      <ResponsiveContainer width="100%" height={getChartHeight()}>
         <BarChart 
           data={data} 
           margin={{ top: 20, right: 80, left: 60, bottom: 60 }}
@@ -200,7 +216,7 @@ const BusinessUnitBarChart = ({ data, title = 'Monthly Performance' }) => {
       </ResponsiveContainer>
       
       {/* Summary Statistics */}
-      <div className="mt-6 grid grid-cols-3 gap-4">
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
         <div className="text-center p-3 bg-secondary-pale rounded-lg">
           <p className="text-xs text-neutral-mid uppercase font-semibold">Total Target</p>
           <p className="text-xl font-bold text-accent-blue mt-1">

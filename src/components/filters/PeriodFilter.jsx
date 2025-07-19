@@ -67,14 +67,14 @@ const PeriodFilter = () => {
   };
 
   return (
-    <div className="bg-white p-4 rounded-lg shadow-sm border border-secondary-pale">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
+    <div className="bg-white p-3 md:p-4 rounded-lg shadow-sm border border-secondary-pale">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-4 w-full sm:w-auto">
           {/* Period Type Selection */}
-          <div className="flex space-x-2">
+          <div className="flex space-x-1 sm:space-x-2">
             <button
               onClick={() => updatePeriod('MTD')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                 selectedPeriod === 'MTD'
                   ? 'bg-primary text-white'
                   : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
@@ -84,7 +84,7 @@ const PeriodFilter = () => {
             </button>
             <button
               onClick={() => updatePeriod('QTD')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                 selectedPeriod === 'QTD'
                   ? 'bg-primary text-white'
                   : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
@@ -94,7 +94,7 @@ const PeriodFilter = () => {
             </button>
             <button
               onClick={() => updatePeriod('YTD')}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
                 selectedPeriod === 'YTD'
                   ? 'bg-primary text-white'
                   : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
@@ -110,7 +110,7 @@ const PeriodFilter = () => {
             <select
               value={selectedMonth}
               onChange={(e) => handleMonthChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-              className="appearance-none bg-neutral-light border border-secondary-pale text-neutral-dark py-2 px-4 pr-8 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="appearance-none bg-neutral-light border border-secondary-pale text-neutral-dark text-xs sm:text-sm py-2 px-3 sm:px-4 pr-8 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               {months.map((month) => (
                 <option key={month.value} value={month.value}>
@@ -128,7 +128,7 @@ const PeriodFilter = () => {
             <select
               value={selectedQuarter}
               onChange={(e) => handleQuarterChange(e.target.value === 'all' ? 'all' : parseInt(e.target.value))}
-              className="appearance-none bg-neutral-light border border-secondary-pale text-neutral-dark py-2 px-4 pr-8 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              className="appearance-none bg-neutral-light border border-secondary-pale text-neutral-dark text-xs sm:text-sm py-2 px-3 sm:px-4 pr-8 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
             >
               {quarters.map((quarter) => (
                 <option key={quarter.value} value={quarter.value}>
@@ -141,17 +141,17 @@ const PeriodFilter = () => {
         )}
 
           {/* Year Display */}
-          <div className="text-sm text-neutral-mid">
+          <div className="text-xs sm:text-sm text-neutral-mid">
             <span className="font-medium">Year:</span> {selectedYear}
           </div>
         </div>
         
         {/* Company Logo */}
-        <div className="flex items-center">
+        <div className="hidden sm:flex items-center">
           <img 
             src={companyLogo} 
             alt="Company Logo" 
-            className="h-10 w-auto object-contain"
+            className="h-8 sm:h-10 w-auto object-contain"
           />
         </div>
       </div>

@@ -177,7 +177,7 @@ const Customers = () => {
       {/* Top Customers Overview */}
       <div className="dashboard-card">
         <h2 className="section-title">Top Customers by Revenue</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           {sortedCustomers.slice(0, 3).map((customer, index) => {
             // Calculate total revenue for percentage
             const totalRevenue = sortedCustomers.reduce((sum, c) => sum + c.revenue, 0);
@@ -288,7 +288,7 @@ const Customers = () => {
       {/* Customer Selector */}
       <div className="dashboard-card">
         <h2 className="section-title">Select Customer for Detailed Analysis</h2>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
           {sortedCustomers.map((customer) => {
             // Calculate total revenue for percentage
             const totalRevenue = sortedCustomers.reduce((sum, c) => sum + c.revenue, 0);
@@ -435,7 +435,8 @@ const Customers = () => {
                   headers={['serviceType', 'revenue', 'target', 'achievement']}
                 />
               </div>
-              <BaseTable variant="compact" className="mt-4">
+              <div className="overflow-x-auto -mx-2 md:mx-0">
+                <BaseTable variant="compact" className="mt-4">
                 <BaseTable.Header>
                   <BaseTable.Row>
                     <BaseTable.Head>Service Type</BaseTable.Head>
@@ -479,6 +480,7 @@ const Customers = () => {
                   </BaseTable.Row>
                 </BaseTable.Footer>
               </BaseTable>
+              </div>
             </div>
           )}
         </div>
@@ -506,7 +508,8 @@ const Customers = () => {
             headers={['rank', 'customer', 'revenue', 'target', 'achievement', 'transportation', 'warehouses', 'profitMargin']}
           />
         </div>
-        <BaseTable variant="default" striped hoverable>
+        <div className="overflow-x-auto -mx-2 md:mx-0">
+          <BaseTable variant="default" striped hoverable>
           <BaseTable.Header sticky>
             <BaseTable.Row>
               <BaseTable.Head align="center">Rank</BaseTable.Head>
@@ -569,6 +572,7 @@ const Customers = () => {
             })}
           </BaseTable.Body>
         </BaseTable>
+        </div>
       </div>
     </div>
   )

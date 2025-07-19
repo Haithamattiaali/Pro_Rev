@@ -117,7 +117,7 @@ const OpportunityMatrix = ({ matrixData }) => {
       const quadrant = quadrants[quadrantIndex]
       
       return (
-        <div className="bg-white p-5 rounded-xl shadow-2xl border border-gray-200 min-w-[320px]">
+        <div className="bg-white p-5 rounded-xl shadow-2xl border border-gray-200">
           <div className="flex items-center justify-between mb-3">
             <h4 className="font-bold text-gray-900 text-lg flex-1 pr-2">{data.project}</h4>
             <span 

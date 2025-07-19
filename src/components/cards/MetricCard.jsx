@@ -31,8 +31,8 @@ const MetricCard = ({ title, subtitle, value, format = 'currency', trend, trendV
       
       <div className="flex items-start justify-between relative z-10">
         <div className="flex-1">
-          <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wider mb-1">{title}</p>
-          <p className="text-3xl font-bold text-neutral-dark tracking-tight">{formatValue(value)}</p>
+          <p className="text-xs sm:text-sm font-semibold text-neutral-mid uppercase tracking-wider mb-1">{title}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-neutral-dark tracking-tight">{formatValue(value)}</p>
           {subtitle && <p className="text-xs text-neutral-mid mt-1">{subtitle}</p>}
           
           {trend && (
@@ -53,14 +53,14 @@ const MetricCard = ({ title, subtitle, value, format = 'currency', trend, trendV
         
         {Icon && (
           <div className="relative">
-            <div className={`w-14 h-14 rounded-xl flex items-center justify-center shadow-lg transition-transform hover:scale-105 ${
+            <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center shadow-lg transition-transform hover:scale-105 ${
               iconColor === 'primary' ? 'bg-gradient-to-br from-primary-light to-primary/20 shadow-primary/20' :
               iconColor === 'blue' ? 'bg-gradient-to-br from-accent-blue/20 to-accent-blue/10 shadow-accent-blue/20' :
               iconColor === 'green' ? 'bg-gradient-to-br from-green-100 to-green-50 shadow-green-200' :
               iconColor === 'coral' ? 'bg-gradient-to-br from-accent-coral/20 to-accent-coral/10 shadow-accent-coral/20' :
               'bg-gradient-to-br from-primary-light to-primary/20 shadow-primary/20'
             }`}>
-              <Icon className={`w-7 h-7 ${
+              <Icon className={`w-6 h-6 sm:w-7 sm:h-7 ${
                 iconColor === 'primary' ? 'text-primary' :
                 iconColor === 'blue' ? 'text-accent-blue' :
                 iconColor === 'green' ? 'text-green-600' :

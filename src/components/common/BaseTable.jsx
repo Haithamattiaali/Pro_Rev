@@ -78,7 +78,7 @@ const TableRow = ({ children, className = '', clickable = false, onClick }) => {
   );
 };
 
-const TableHead = ({ children, className = '', align = 'left', sortable = false }) => {
+const TableHead = ({ children, className = '', align = 'left', sortable = false, ...props }) => {
   const alignStyles = {
     left: 'text-left',
     center: 'text-center',
@@ -86,12 +86,15 @@ const TableHead = ({ children, className = '', align = 'left', sortable = false 
   };
   
   return (
-    <th className={cn(
-      'px-4 py-3 font-semibold text-secondary',
-      alignStyles[align],
-      sortable && 'cursor-pointer hover:text-primary transition-colors',
-      className
-    )}>
+    <th 
+      className={cn(
+        'px-4 py-3 font-semibold text-secondary',
+        alignStyles[align],
+        sortable && 'cursor-pointer hover:text-primary transition-colors',
+        className
+      )}
+      {...props}
+    >
       <div className="flex items-center gap-1">
         {children}
         {sortable && (
@@ -104,22 +107,34 @@ const TableHead = ({ children, className = '', align = 'left', sortable = false 
   );
 };
 
-const TableCell = ({ children, className = '', align = 'left', numeric = false }) => {
+const TableCell = ({ children, className = '', align = 'left', numeric = false, variant = '', ...props }) => {
   const alignStyles = {
     left: 'text-left',
     center: 'text-center',
     right: 'text-right'
   };
   
+  const variantStyles = {
+    header: 'font-semibold text-secondary',
+    footer: 'font-semibold text-gray-900',
+    '': ''
+  };
+  
+  const Component = variant === 'header' ? 'th' : 'td';
+  
   return (
-    <td className={cn(
-      'px-4 py-3',
-      alignStyles[align],
-      numeric && 'font-mono',
-      className
-    )}>
+    <Component 
+      className={cn(
+        'px-4 py-3',
+        alignStyles[align],
+        numeric && 'font-mono',
+        variantStyles[variant] || '',
+        className
+      )}
+      {...props}
+    >
       {children}
-    </td>
+    </Component>
   );
 };
 

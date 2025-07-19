@@ -135,7 +135,7 @@ const BusinessUnitChart = ({ data }) => {
   
   return (
     <div className="w-full">
-      <ResponsiveContainer width="100%" height={400}>
+      <ResponsiveContainer width="100%" height={window.innerWidth < 768 ? 300 : 400}>
         <BarChart 
           data={enrichedData}
           margin={{ top: 30, right: 30, left: 20, bottom: 40 }}
@@ -232,8 +232,8 @@ const BusinessUnitChart = ({ data }) => {
       </ResponsiveContainer>
       
       {/* Legend below chart */}
-      <div className="flex items-center justify-center gap-6 mt-4 pt-4 border-t border-gray-100">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 mt-4 pt-4 border-t border-gray-100">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded" style={{ backgroundColor: '#005b8c' }}></div>
             <span className="text-xs font-medium text-gray-700">Transportation - Baseline</span>
@@ -243,7 +243,7 @@ const BusinessUnitChart = ({ data }) => {
             <span className="text-xs font-medium text-gray-700">Transportation - Opportunities</span>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded" style={{ backgroundColor: '#e05e3d' }}></div>
             <span className="text-xs font-medium text-gray-700">Warehousing - Baseline</span>
@@ -256,7 +256,7 @@ const BusinessUnitChart = ({ data }) => {
       </div>
       
       {/* Enhanced Summary Stats with Breakdown */}
-      <div className="grid grid-cols-2 gap-4 mt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 mt-4 md:mt-6">
         {enrichedData.map((item, index) => {
           const getIcon = () => {
             if (item.name === 'Transportation') return <Truck className="w-5 h-5" />

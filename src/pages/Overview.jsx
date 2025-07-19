@@ -176,7 +176,7 @@ const Overview = () => {
       </ToolbarSection>
 
       {/* Key Metrics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 lg:gap-6">
         <MetricCard
           title="Total Revenue"
           value={overview.revenue}
@@ -212,7 +212,7 @@ const Overview = () => {
 
       {/* Achievement Gauge */}
       <ContentCard title="Overall Achievement" shadow="md">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           <div className="text-center">
             <GaugeChart
               value={overview.achievement}
@@ -223,7 +223,7 @@ const Overview = () => {
           </div>
           
           <div className="col-span-2">
-            <h3 className="text-lg font-semibold text-secondary mb-4">Business Unit Performance</h3>
+            <h3 className="text-base md:text-lg font-semibold text-secondary mb-4">Business Unit Performance</h3>
             <div className="space-y-4">
               {serviceBreakdown.map((unit) => (
                 <BaseCard 
@@ -244,17 +244,17 @@ const Overview = () => {
                       <div className="flex-1">
                         <p className="font-semibold text-gray-900">{unit.service_type}</p>
                         <div className="flex items-baseline gap-3 mt-1">
-                          <span className="text-xl font-bold text-primary">
+                          <span className="text-lg md:text-xl font-bold text-primary">
                             {formatCurrency(unit.revenue)}
                           </span>
-                          <span className="text-sm text-gray-500">
+                          <span className="text-xs md:text-sm text-gray-500">
                             of {formatCurrency(unit.target)} target
                           </span>
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`text-2xl font-bold ${
+                      <p className={`text-xl md:text-2xl font-bold ${
                         unit.achievement_percentage >= 100 ? 'text-green-600' :
                         unit.achievement_percentage >= 80 ? 'text-yellow-600' :
                         'text-red-600'
@@ -273,7 +273,7 @@ const Overview = () => {
 
       {/* Achievement Summary */}
       <ContentCard title="Achievement Summary" shadow="md">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
           {/* Target */}
           <BaseCard 
             variant="elevated" 
@@ -297,7 +297,7 @@ const Overview = () => {
                   {periodFilter.year}
                 </div>
               </div>
-              <p className="text-3xl font-bold text-neutral-dark mb-3">
+              <p className="text-2xl md:text-3xl font-bold text-neutral-dark mb-3">
                 {formatCurrency(overview.target)}
               </p>
               <div className="space-y-2">
@@ -349,7 +349,7 @@ const Overview = () => {
                   {overview.achievement >= 100 ? 'Exceeding' : overview.achievement >= 80 ? 'On Track' : 'Behind'}
                 </div>
               </div>
-              <p className="text-3xl font-bold text-neutral-dark mb-3">
+              <p className="text-2xl md:text-3xl font-bold text-neutral-dark mb-3">
                 {formatCurrency(overview.revenue)}
               </p>
               <div className="space-y-2">
@@ -428,7 +428,7 @@ const Overview = () => {
                   {overview.achievement >= 100 ? 'Surplus' : 'Deficit'}
                 </div>
               </div>
-              <p className={`text-3xl font-bold mb-3 ${
+              <p className={`text-2xl md:text-3xl font-bold mb-3 ${
                 overview.achievement >= 100 ? 'text-green-600' : 'text-neutral-dark'
               }`}>
                 {overview.achievement >= 100 

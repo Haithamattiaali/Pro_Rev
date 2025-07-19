@@ -36,7 +36,7 @@ const StickyPeriodFilter = ({ useModular = true, useNewFilterBar = true, useHier
       {/* Placeholder to maintain space */}
       <div ref={placeholderRef}>
         {/* Sticky version */}
-        <div className={`relative ${isSticky ? 'fixed top-[64px] left-64 right-0 z-[100] bg-neutral-light px-6 pt-6 shadow-md' : ''}`}>
+        <div className={`relative ${isSticky ? 'fixed top-[64px] left-0 lg:left-64 right-0 z-20 bg-neutral-light px-3 md:px-6 pt-3 md:pt-6 shadow-md' : ''}`}>
           {getFilterComponent()}
         </div>
         
