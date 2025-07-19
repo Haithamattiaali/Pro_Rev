@@ -247,6 +247,9 @@ class ETLService {
   }
   
   async processOpportunitiesData(data) {
+    console.log('Processing opportunities data:', data.length, 'records');
+    console.log('First record sample:', data[0]);
+    
     let inserted = 0;
     let updated = 0;
     let errors = 0;
@@ -321,38 +324,57 @@ class ETLService {
   }
   
   validateOpportunityRow(row) {
+    // Helper function to get field value case-insensitively
+    const getField = (obj, fieldName) => {
+      // Try exact match first
+      if (obj[fieldName] !== undefined) return obj[fieldName];
+      
+      // Try lowercase
+      const lowerFieldName = fieldName.toLowerCase();
+      if (obj[lowerFieldName] !== undefined) return obj[lowerFieldName];
+      
+      // Try to find key case-insensitively
+      const key = Object.keys(obj).find(k => k.toLowerCase() === lowerFieldName);
+      return key ? obj[key] : undefined;
+    };
+    
     // Required fields for opportunities
-    if (!row.Project || !row.Service) {
+    const project = getField(row, 'Project');
+    const service = getField(row, 'Service');
+    
+    if (!project || !service) {
       console.warn('Missing required opportunity fields:', row);
       return null;
     }
     
     // Parse GP percentage (remove % sign if present)
     let gpPercent = null;
-    if (row['Est. GP%'] && String(row['Est. GP%']).trim() !== '') {
-      const gpValue = parseFloat(String(row['Est. GP%']).replace('%', ''));
+    const gpField = getField(row, 'Est. GP%') || getField(row, 'est_gp_percent');
+    if (gpField && String(gpField).trim() !== '') {
+      const gpValue = parseFloat(String(gpField).replace('%', ''));
       if (!isNaN(gpValue)) {
-        // Convert percentage to decimal (e.g., 25% -> 0.25)
-        gpPercent = gpValue / 100;
+        // If value is already decimal (like 0.28), use as is; otherwise convert percentage
+        gpPercent = gpValue <= 1 ? gpValue : gpValue / 100;
       }
     }
     
     // Parse monthly revenue (remove commas)
     let monthlyRevenue = null;
-    if (row['Est. Monthly Revenue'] && String(row['Est. Monthly Revenue']).trim() !== '') {
-      const revenue = parseFloat(String(row['Est. Monthly Revenue']).replace(/,/g, ''));
+    const revenueField = getField(row, 'Est. Monthly Revenue') || getField(row, 'est_monthly_revenue');
+    if (revenueField && String(revenueField).trim() !== '') {
+      const revenue = parseFloat(String(revenueField).replace(/,/g, ''));
       if (!isNaN(revenue)) {
         monthlyRevenue = revenue;
       }
     }
     
     return {
-      project: String(row.Project).trim(),
-      service: String(row.Service).trim(),
-      location: row.Location ? String(row.Location).trim() : null,
-      scope_of_work: row['Scope of work'] ? String(row['Scope of work']).trim() : null,
-      requirements: row.Requirements ? String(row.Requirements).trim() : null,
-      status: row.Status ? String(row.Status).trim() : null,
+      project: String(project).trim(),
+      service: String(service).trim(),
+      location: getField(row, 'Location') ? String(getField(row, 'Location')).trim() : null,
+      scope_of_work: getField(row, 'Scope of work') || getField(row, 'scope_of_work') ? String(getField(row, 'Scope of work') || getField(row, 'scope_of_work')).trim() : null,
+      requirements: getField(row, 'Requirements') ? String(getField(row, 'Requirements')).trim() : null,
+      status: getField(row, 'Status') ? String(getField(row, 'Status')).trim() : null,
       est_monthly_revenue: monthlyRevenue,
       est_gp_percent: gpPercent
     };
