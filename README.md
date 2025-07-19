@@ -62,6 +62,55 @@ npm run build
 
 The built files will be in the `dist/` directory.
 
+### Testing
+
+#### Running Tests
+
+**Important Note**: Tests currently fail when run from a directory path containing spaces. If your project is in a path like `/Pro Rev/`, you'll need to either:
+1. Move the project to a path without spaces
+2. Run tests in CI/CD (GitHub Actions)
+3. Use a Docker container
+
+```bash
+# Frontend tests
+npm test                    # Run tests in watch mode
+npm run test:coverage       # Run tests with coverage report
+npm run test:ui            # Run tests with UI interface
+
+# Backend tests
+cd backend && npm test      # Run backend tests
+
+# E2E tests
+npm run test:e2e           # Run Playwright E2E tests
+```
+
+#### Test Structure
+
+- **Unit Tests**: Located alongside components in `*.test.{js,jsx}` files
+- **E2E Tests**: Located in `e2e/` directory using Playwright
+- **Coverage Target**: 100% (configured in `vitest.config.js`)
+
+#### Continuous Integration
+
+Tests run automatically on push/PR via GitHub Actions:
+- Frontend unit tests (Node 18.x, 20.x)
+- Backend unit tests (Node 18.x, 20.x)
+- E2E tests with Playwright
+- Build verification
+
+### Development Tools
+
+```bash
+# Run both frontend and backend with file watching
+npm run watch       # or npm run dev:all
+
+# Code quality
+npm run lint        # Run ESLint
+npm run lint:fix    # Fix linting issues
+npm run format      # Format code with Prettier
+npm run quality     # Run all quality checks
+```
+
 ### Deployment
 
 This project is configured for deployment on Netlify. The frontend is served as a static site, while the backend API should be deployed separately.
