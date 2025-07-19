@@ -173,10 +173,11 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
             {/* Pipeline Metrics Summary */}
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
-                <p className="text-xs text-neutral-mid font-medium">Total Pipeline</p>
+                <p className="text-xs text-neutral-mid font-medium">Total Monthly Pipeline</p>
                 <p className="text-lg font-bold text-primary">
                   {formatCurrency(sortedPipeline.reduce((sum, stage) => sum + (stage.total_revenue || 0), 0))}
                 </p>
+                <p className="text-xs text-neutral-mid">per month</p>
               </div>
               <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
                 <p className="text-xs text-neutral-mid font-medium">Opportunities</p>
@@ -185,13 +186,14 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                 </p>
               </div>
               <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
-                <p className="text-xs text-neutral-mid font-medium">Avg Deal Size</p>
+                <p className="text-xs text-neutral-mid font-medium">Avg Monthly Deal</p>
                 <p className="text-lg font-bold text-accent-blue">
                   {formatCurrency(
                     sortedPipeline.reduce((sum, stage) => sum + (stage.total_revenue || 0), 0) / 
                     Math.max(sortedPipeline.reduce((sum, stage) => sum + (stage.count || 0), 0), 1)
                   )}
                 </p>
+                <p className="text-xs text-neutral-mid">per month</p>
               </div>
             </div>
           </div>
@@ -338,10 +340,11 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                           
                           <div className="space-y-2">
                             <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-secondary-light/20">
-                              <p className="text-xs text-neutral-mid mb-1 font-medium">Pipeline Value</p>
+                              <p className="text-xs text-neutral-mid mb-1 font-medium">Monthly Pipeline Value</p>
                               <p className="text-base font-bold text-secondary">
                                 {formatCurrency(stage.total_revenue || 0)}
                               </p>
+                              <p className="text-xs text-neutral-mid">per month</p>
                             </div>
                             
                             <div className="bg-white/70 backdrop-blur-sm rounded-lg p-3 border border-secondary-light/20">

@@ -181,6 +181,7 @@ const SalesPlanContent = () => {
         />
         <MetricCard
           title="Opportunities"
+          subtitle="Monthly value × 12 months"
           value={overviewData?.totals?.total_opportunity_value || 0}
           format="currency"
           icon={Target}
@@ -296,7 +297,16 @@ const SalesPlanContent = () => {
         {activeTab === 'opportunities' && (
           <div className="bg-white rounded-lg shadow-sm">
             <div className="p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Opportunities Analysis</h3>
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Opportunities Analysis</h3>
+                  <p className="text-sm text-gray-600 mt-1">All values shown are monthly revenue figures</p>
+                </div>
+                <div className="bg-blue-50 px-3 py-2 rounded-lg">
+                  <p className="text-xs font-medium text-blue-800">💡 Revenue Type: Monthly</p>
+                  <p className="text-xs text-blue-600">Annual = Monthly × 12</p>
+                </div>
+              </div>
               <OpportunitiesChart data={opportunitiesData} />
             </div>
           </div>

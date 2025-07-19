@@ -3,7 +3,7 @@ import { TrendingUp, TrendingDown } from 'lucide-react'
 import { formatCurrency, formatPercentage } from '../../utils/formatters'
 import BaseCard from './BaseCard'
 
-const MetricCard = ({ title, value, format = 'currency', trend, trendValue, icon: Icon, iconColor = 'primary' }) => {
+const MetricCard = ({ title, subtitle, value, format = 'currency', trend, trendValue, icon: Icon, iconColor = 'primary' }) => {
   const formatValue = (val) => {
     switch (format) {
       case 'currency':
@@ -33,6 +33,7 @@ const MetricCard = ({ title, value, format = 'currency', trend, trendValue, icon
         <div className="flex-1">
           <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wider mb-1">{title}</p>
           <p className="text-3xl font-bold text-neutral-dark tracking-tight">{formatValue(value)}</p>
+          {subtitle && <p className="text-xs text-neutral-mid mt-1">{subtitle}</p>}
           
           {trend && (
             <div className="flex items-center mt-3 space-x-1">

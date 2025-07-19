@@ -16,10 +16,11 @@ const OpportunityInsights = ({ insights }) => {
         <div className="bg-white rounded-lg p-4 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Total Pipeline</p>
+              <p className="text-sm text-gray-600">Total Monthly Pipeline</p>
               <p className="text-xl font-bold text-gray-900">
                 {formatCurrency(metrics?.total_revenue || 0)}
               </p>
+              <p className="text-xs text-gray-500">per month</p>
             </div>
             <DollarSign className="w-8 h-8 text-gray-400" />
           </div>
@@ -38,10 +39,11 @@ const OpportunityInsights = ({ insights }) => {
         <div className="bg-white rounded-lg p-4 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Avg Deal Size</p>
+              <p className="text-sm text-gray-600">Avg Monthly Deal Size</p>
               <p className="text-xl font-bold text-gray-900">
                 {formatCurrency(metrics?.avg_deal_size || 0)}
               </p>
+              <p className="text-xs text-gray-500">per month</p>
             </div>
             <TrendingUp className="w-8 h-8 text-gray-400" />
           </div>
