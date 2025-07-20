@@ -32,13 +32,13 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
   const [filterState, setFilterState] = useState({
     // Primary selections - now support arrays for multi-select
     selectedYears: [currentYear], // Array of selected years
-    viewMode: 'quarterly', // 'yearly' | 'quarterly' | 'monthly'
-    selectedPeriods: [`Q${currentQuarter}`], // Array of selected periods
+    viewMode: 'yearly', // 'yearly' | 'quarterly' | 'monthly'
+    selectedPeriods: [], // Array of selected periods - empty for yearly view
     multiSelectMode: false, // Toggle for multi-select mode
     
     // Legacy single selection (for backward compatibility)
     selectedYear: currentYear,
-    selectedPeriod: `Q${currentQuarter}`,
+    selectedPeriod: null, // No period selected for yearly view
     
     // Advanced features
     comparisonMode: null, // null | 'previous' | 'yearOverYear' | 'custom'

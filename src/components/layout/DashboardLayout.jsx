@@ -24,7 +24,7 @@ const DashboardLayout = () => {
       {/* Overlay for mobile */}
       {sidebarOpen && (
         <div
-          className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-30"
+          className="lg:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-30 transition-opacity"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -32,7 +32,7 @@ const DashboardLayout = () => {
       {/* Sidebar */}
       <div className={`${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } lg:translate-x-0 fixed lg:relative z-40 transition-transform duration-300 ease-in-out`}>
+      } lg:translate-x-0 fixed lg:sticky top-0 z-40 transition-transform duration-300 ease-in-out h-screen lg:h-screen`}>
         <Sidebar onCloseMobile={() => setSidebarOpen(false)} />
       </div>
 
