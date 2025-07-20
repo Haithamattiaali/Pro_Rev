@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Banknote, Target, TrendingUp, Percent, Loader2, Truck, Warehouse, Calendar, BarChart3, Package, Activity, Users, Shield, AlertTriangle, Clock, CheckCircle } from 'lucide-react'
+import { Banknote, Target, TrendingUp, Percent, Loader2, Truck, Warehouse, Calendar, BarChart3, Package, Activity, Users, Shield, AlertTriangle, Clock, CheckCircle, Trophy, TrendingDown } from 'lucide-react'
 import MetricCard from '../components/cards/MetricCard'
 import ContentCard from '../components/cards/ContentCard'
 import BaseCard from '../components/common/BaseCard'
@@ -387,89 +387,133 @@ const Overview = () => {
             </div>
           </BaseCard>
 
-          {/* To Go / Over Achievement */}
+          {/* Revenue Outperformance / Gap Analysis */}
           <BaseCard 
             variant="elevated" 
             className="relative overflow-hidden group hover:scale-[1.02] transition-transform"
           >
-            <div className={`absolute top-0 right-0 w-24 h-24 rounded-full -mr-12 -mt-12 ${
-              overview.achievement >= 100 ? 'bg-green-100/20' : 'bg-accent-coral/10'
-            }`}></div>
-            <div className={`absolute bottom-0 left-0 w-16 h-16 rounded-full -ml-8 -mb-8 ${
-              overview.achievement >= 100 ? 'bg-green-100/10' : 'bg-accent-coral/5'
-            }`}></div>
-            <div className="relative">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-md ${
-                    overview.achievement >= 100 
-                      ? 'bg-gradient-to-br from-green-100 to-green-50' 
-                      : 'bg-gradient-to-br from-accent-coral/20 to-accent-coral/10'
-                  }`}>
-                    {overview.achievement >= 100 ? (
-                      <Shield className="w-6 h-6 text-green-600" strokeWidth={2} />
-                    ) : (
-                      <AlertTriangle className="w-6 h-6 text-accent-coral" strokeWidth={2} />
-                    )}
+            {overview.achievement >= 100 ? (
+              <>
+                {/* Success gradient background - using brand primary colors */}
+                <div className="absolute inset-0 bg-gradient-to-br from-primary-light/10 to-primary/5"></div>
+                
+                <div className="relative">
+                  {/* Header Section */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center shadow-lg">
+                        <Trophy className="w-6 h-6 text-white" strokeWidth={2} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-neutral-dark uppercase tracking-wider">
+                          REVENUE OUTPERFORMANCE
+                        </p>
+                        <p className="text-xs text-neutral-mid">
+                          Performance Variance Analysis
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">
-                      {overview.achievement >= 100 ? 'Over Achievement' : 'Gap to Target'}
+                  
+                  {/* Separator Line */}
+                  <div className="h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent mb-4"></div>
+                  
+                  {/* Main Value Section */}
+                  <div className="text-center mb-4">
+                    <p className="text-3xl md:text-4xl font-bold text-primary mb-1">
+                      +{formatCurrency(Math.abs(overview.revenue - overview.target))}
                     </p>
-                    <p className="text-xs text-neutral-mid">
-                      {overview.achievement >= 100 ? 'Surplus Amount' : 'Amount Needed'}
-                    </p>
+                    <div className="h-0.5 w-24 bg-primary/30 mx-auto"></div>
+                  </div>
+                  
+                  {/* Metrics Box */}
+                  <div className="bg-primary/5 border border-primary/10 rounded-lg p-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-neutral-mid uppercase tracking-wide">
+                          TARGET EXCEEDANCE RATE
+                        </p>
+                        <span className="text-2xl font-bold text-primary">
+                          +{formatPercentage(overview.achievement - 100)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-neutral-mid">
+                        <span>Target</span>
+                        <div className="flex-1 h-px bg-neutral-light"></div>
+                        <span>{formatPercentage(100)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                        <span>Actual</span>
+                        <div className="flex-1 h-px bg-primary/30"></div>
+                        <span>{formatPercentage(overview.achievement)}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div className={`text-xs font-medium px-2 py-1 rounded-full ${
-                  overview.achievement >= 100 ? 'bg-green-100 text-green-700' : 'bg-accent-coral/10 text-accent-coral'
-                }`}>
-                  <TrendingUp className="w-3 h-3 inline mr-1" />
-                  {overview.achievement >= 100 ? 'Surplus' : 'Deficit'}
-                </div>
-              </div>
-              <p className={`text-2xl md:text-3xl font-bold mb-3 ${
-                overview.achievement >= 100 ? 'text-green-600' : 'text-neutral-dark'
-              }`}>
-                {overview.achievement >= 100 
-                  ? `+${formatCurrency(overview.revenue - overview.target)}`
-                  : formatCurrency(overview.target - overview.revenue)
-                }
-              </p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-neutral-mid flex items-center gap-1">
-                    <Percent className="w-3 h-3" />
-                    {overview.achievement >= 100 ? 'Exceeded by' : 'Remaining'}
-                  </span>
-                  <span className={`font-semibold ${
-                    overview.achievement >= 100 ? 'text-green-600' : 'text-accent-coral'
-                  }`}>
-                    {overview.achievement >= 100 
-                      ? formatPercentage(overview.achievement - 100)
-                      : formatPercentage(100 - overview.achievement)
-                    }
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-neutral-mid flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    Days in Period
-                  </span>
-                  <span className="font-semibold text-neutral-dark">
-                    {dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter).length * 30}
-                  </span>
-                </div>
-                {overview.achievement >= 100 && (
-                  <div className="mt-2 p-2 bg-green-50 rounded-lg">
-                    <p className="text-xs text-green-700 font-medium flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" />
-                      Target Successfully Achieved!
+              </>
+            ) : (
+              <>
+                {/* Deficit gradient background - using brand accent coral */}
+                <div className="absolute inset-0 bg-gradient-to-br from-accent-coral/10 to-accent-coral/5"></div>
+                
+                <div className="relative">
+                  {/* Header Section */}
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-accent-coral to-red-600 rounded-lg flex items-center justify-center shadow-lg">
+                        <TrendingDown className="w-6 h-6 text-white" strokeWidth={2} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-neutral-dark uppercase tracking-wider">
+                          REVENUE TO GO
+                        </p>
+                        <p className="text-xs text-neutral-mid">
+                          Gap to Target Analysis
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Separator Line */}
+                  <div className="h-px bg-gradient-to-r from-transparent via-accent-coral/20 to-transparent mb-4"></div>
+                  
+                  {/* Main Value Section */}
+                  <div className="text-center mb-4">
+                    <p className="text-3xl md:text-4xl font-bold text-accent-coral mb-1">
+                      -{formatCurrency(Math.abs(overview.target - overview.revenue))}
+                    </p>
+                    <div className="h-0.5 w-24 bg-accent-coral/30 mx-auto mb-2"></div>
+                    <p className="text-xs font-semibold text-accent-coral uppercase tracking-wider">
+                      AMOUNT NEEDED
                     </p>
                   </div>
-                )}
-              </div>
-            </div>
+                  
+                  {/* Metrics Box */}
+                  <div className="bg-accent-coral/5 border border-accent-coral/10 rounded-lg p-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <p className="text-xs font-semibold text-neutral-mid uppercase tracking-wide">
+                          TARGET ACHIEVEMENT GAP
+                        </p>
+                        <span className="text-2xl font-bold text-accent-coral">
+                          -{formatPercentage(100 - overview.achievement)}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-neutral-mid">
+                        <span>Target</span>
+                        <div className="flex-1 h-px bg-neutral-light"></div>
+                        <span>{formatPercentage(100)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs font-semibold text-accent-coral">
+                        <span>Actual</span>
+                        <div className="flex-1 h-px bg-accent-coral/30"></div>
+                        <span>{formatPercentage(overview.achievement)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </>
+            )}
           </BaseCard>
         </div>
       </ContentCard>
