@@ -43,7 +43,7 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
     // Advanced features
     comparisonMode: null, // null | 'previous' | 'yearOverYear' | 'custom'
     comparisonPeriod: null,
-    quickPreset: null, // 'YTD' | 'QTD' | 'MTD' | 'L4Q' | 'L12M' | null
+    quickPreset: 'YTD', // 'YTD' | 'QTD' | 'MTD' | 'L4Q' | 'L12M' | null - Default to YTD
     
     // UI state
     isFilterOpen: false
