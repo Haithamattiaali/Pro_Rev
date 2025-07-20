@@ -56,30 +56,14 @@ const Sidebar = ({ onCloseMobile }) => {
         }}></div>
       </div>
       
-      {/* Header */}
-      <div className="p-6 bg-gradient-to-b from-white to-neutral-light/30 backdrop-blur-sm border-b border-secondary-pale/20 relative z-10">
-        <div className="flex items-center justify-center">
-          <div className="relative group">
-            {/* Glow effect */}
-            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            
-            {/* Logo container with subtle shadow and hover effect */}
-            <div className="relative bg-white rounded-xl p-3 shadow-lg ring-1 ring-secondary-pale/10 group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
-              <img 
-                src="/src/assets/logo.png" 
-                alt="Company Logo" 
-                className="h-14 w-auto object-contain filter drop-shadow-sm"
-              />
-            </div>
-            
-            {/* Subtle accent lines */}
-            <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
-          </div>
-        </div>
-        
-        {/* Optional tagline or year */}
-        <div className="mt-4 text-center">
-          <p className="text-xs text-neutral-mid/70 font-medium tracking-wider uppercase">Excellence Since 2025</p>
+      {/* Header - matching main header height */}
+      <div className="bg-white border-b border-secondary-pale relative z-10">
+        <div className="px-6 py-4 h-[89px] flex items-center justify-center">
+          <img 
+            src="/src/assets/logo.png" 
+            alt="Company Logo" 
+            className="h-12 w-auto object-contain"
+          />
         </div>
       </div>
       

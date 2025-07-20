@@ -122,12 +122,6 @@ const FilterSummary = ({ displayLabel, isPartialPeriod, dateRange, selectedPerio
             {formatDateRange()}
           </p>
         </div>
-        {isPartialPeriod && (
-          <div className="flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 rounded-md">
-            <AlertCircle className="w-3 h-3" />
-            <span className="text-xs font-medium">Partial Period</span>
-          </div>
-        )}
       </div>
     </motion.div>
   );
