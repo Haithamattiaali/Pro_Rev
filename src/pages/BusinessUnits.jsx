@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Truck, Package, Loader2, Users, TrendingUp, FileText, DollarSign, Calendar, BarChart3, Percent, Activity, Target } from 'lucide-react'
+import { Truck, Package, Loader2, Users, TrendingUp, TrendingDown, Trophy, FileText, DollarSign, Calendar, BarChart3, Percent, Activity, Target, Banknote } from 'lucide-react'
 import { formatCurrency, formatPercentage, getAchievementStatus, getGrossProfitStatus } from '../utils/formatters'
 import BusinessUnitBarChart from '../components/charts/BusinessUnitBarChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
@@ -137,8 +137,8 @@ const BusinessUnits = () => {
     .map(month => ({
       ...month,
       achievement: month.target > 0 ? (month.revenue / month.target) * 100 : 0,
-      grossProfit: month.target - month.cost,
-      grossProfitMargin: month.target > 0 ? ((month.target - month.cost) / month.target) * 100 : 0
+      grossProfit: month.target - month.cost, // GP based on target
+      grossProfitMargin: month.target > 0 ? ((month.target - month.cost) / month.target) * 100 : 0 // GP% based on target
     }))
 
   // Check if no year is selected
@@ -225,16 +225,16 @@ const BusinessUnits = () => {
               <>
                 <div className="text-center p-4 bg-secondary-pale rounded-lg">
                   <p className="metric-label">Gross Profit</p>
-                  <p className="text-xl font-bold text-accent-blue mt-1">{formatCurrency(selectedUnitData.profit)}</p>
+                  <p className="text-xl font-bold text-accent-blue mt-1">{formatCurrency(selectedUnitData.target - selectedUnitData.cost)}</p>
                 </div>
                 <div className="text-center p-4 bg-secondary-pale rounded-lg">
                   <p className="metric-label">GP Margin</p>
                   <p className={`text-xl font-bold mt-1 ${
-                    getGrossProfitStatus(selectedUnitData.profitMargin) === 'high' ? 'text-green-600' :
-                    getGrossProfitStatus(selectedUnitData.profitMargin) === 'medium' ? 'text-yellow-600' :
+                    getGrossProfitStatus(((selectedUnitData.target - selectedUnitData.cost) / selectedUnitData.target) * 100) === 'high' ? 'text-green-600' :
+                    getGrossProfitStatus(((selectedUnitData.target - selectedUnitData.cost) / selectedUnitData.target) * 100) === 'medium' ? 'text-yellow-600' :
                     'text-red-600'
                   }`}>
-                    {formatPercentage(selectedUnitData.profitMargin)}
+                    {formatPercentage(((selectedUnitData.target - selectedUnitData.cost) / selectedUnitData.target) * 100)}
                   </p>
                 </div>
               </>
@@ -252,266 +252,310 @@ const BusinessUnits = () => {
         />
       </div>
 
-      {/* Detailed Period Breakdown */}
-      <div className="dashboard-card">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="section-title mb-0">Monthly Breakdown</h2>
-          <TableExportButton
-            data={unitMonthlyData.map(month => {
-              const base = {
+      {/* Monthly Breakdown Table */}
+      <div className="bg-white rounded-xl shadow-sm border border-secondary-pale/20 overflow-hidden">
+        <div className="px-6 py-4 border-b border-secondary-pale/20 bg-gradient-to-r from-white to-secondary-pale/5">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-bold text-primary-dark">Monthly Breakdown</h2>
+            <TableExportButton
+              data={unitMonthlyData.map(month => ({
                 Month: month.month,
                 Target: month.target,
                 Revenue: month.revenue,
-                Cost: month.cost,
-                'Achievement %': month.achievement
-              };
-              if (selectedUnitData && selectedUnitData.revenue > 0) {
-                base['Gross Profit'] = month.grossProfit;
-                base['GP Margin'] = month.grossProfitMargin;
-              }
-              return base;
-            })}
-            filename={`${selectedUnit}_monthly_breakdown_${periodFilter.year}`}
-            variant="inline"
-            size="small"
-          />
+                'Achievement %': month.achievement,
+                'GP %': month.grossProfitMargin
+              }))}
+              filename={`${selectedUnit}_monthly_breakdown_${periodFilter.year}`}
+              variant="inline"
+              size="small"
+            />
+          </div>
         </div>
-        <div className="overflow-x-auto -mx-2 md:mx-0">
-          <BaseTable variant="default" striped hoverable>
-          <BaseTable.Header>
-            <BaseTable.Row>
-              <BaseTable.Head>Month</BaseTable.Head>
-              <BaseTable.Head align="right">Target</BaseTable.Head>
-              <BaseTable.Head align="right">Revenue</BaseTable.Head>
-              <BaseTable.Head align="right">Cost</BaseTable.Head>
-              <BaseTable.Head align="center">Achievement %</BaseTable.Head>
-              {selectedUnitData && selectedUnitData.revenue > 0 && (
-                <>
-                  <BaseTable.Head align="right">Gross Profit</BaseTable.Head>
-                  <BaseTable.Head align="center">GP Margin</BaseTable.Head>
-                </>
-              )}
-            </BaseTable.Row>
-          </BaseTable.Header>
-          <BaseTable.Body striped hoverable>
-            {unitMonthlyData.map((month) => (
-              <BaseTable.Row key={month.month}>
-                <BaseTable.Cell className="font-semibold text-neutral-dark">{month.month}</BaseTable.Cell>
-                <BaseTable.Cell align="right" numeric>{formatCurrency(month.target)}</BaseTable.Cell>
-                <BaseTable.Cell align="right" numeric>{formatCurrency(month.revenue)}</BaseTable.Cell>
-                <BaseTable.Cell align="right" numeric>{formatCurrency(month.cost)}</BaseTable.Cell>
-                <BaseTable.Cell align="center">
-                  <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                    getAchievementStatus(month.achievement) === 'high' ? 'bg-green-100 text-green-800' :
-                    getAchievementStatus(month.achievement) === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {formatPercentage(month.achievement)}
-                  </span>
-                </BaseTable.Cell>
-                {selectedUnitData && selectedUnitData.revenue > 0 && (
-                  <>
-                    <BaseTable.Cell align="right" numeric>{formatCurrency(month.grossProfit)}</BaseTable.Cell>
-                    <BaseTable.Cell align="center">
-                  <span className={`font-semibold ${
-                    getGrossProfitStatus(month.grossProfitMargin) === 'high' ? 'text-green-600' :
-                    getGrossProfitStatus(month.grossProfitMargin) === 'medium' ? 'text-yellow-600' :
-                    'text-red-600'
-                  }`}>
-                    {formatPercentage(month.grossProfitMargin)}
-                  </span>
-                    </BaseTable.Cell>
-                  </>
-                )}
-              </BaseTable.Row>
-            ))}
-          </BaseTable.Body>
-          {unitMonthlyData.length > 0 && (
-            <BaseTable.Footer>
-              <BaseTable.Row>
-                <BaseTable.Cell className="font-bold">Total</BaseTable.Cell>
-                <BaseTable.Cell align="right" numeric className="font-bold">
-                  {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.target, 0))}
-                </BaseTable.Cell>
-                <BaseTable.Cell align="right" numeric className="font-bold">
-                  {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.revenue, 0))}
-                </BaseTable.Cell>
-                <BaseTable.Cell align="right" numeric className="font-bold">
-                  {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.cost, 0))}
-                </BaseTable.Cell>
-                <BaseTable.Cell align="center">
-                  <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                    getAchievementStatus(selectedUnitData?.achievement || 0) === 'high' ? 'bg-green-100 text-green-800' :
-                    getAchievementStatus(selectedUnitData?.achievement || 0) === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
-                  }`}>
-                    {formatPercentage(selectedUnitData?.achievement || 0)}
-                  </span>
-                </BaseTable.Cell>
-                {selectedUnitData && selectedUnitData.revenue > 0 && (
-                  <>
-                    <BaseTable.Cell align="right" numeric className="font-bold">
-                      {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.grossProfit, 0))}
-                    </BaseTable.Cell>
-                    <BaseTable.Cell align="center">
-                      <span className={`font-semibold ${
-                        getGrossProfitStatus(selectedUnitData?.grossProfitMargin || 0) === 'high' ? 'text-green-600' :
-                        getGrossProfitStatus(selectedUnitData?.grossProfitMargin || 0) === 'medium' ? 'text-yellow-600' :
-                        'text-red-600'
-                      }`}>
-                        {formatPercentage(selectedUnitData?.grossProfitMargin || 0)}
-                      </span>
-                    </BaseTable.Cell>
-                  </>
-                )}
-              </BaseTable.Row>
-            </BaseTable.Footer>
-          )}
-        </BaseTable>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-secondary-pale/10 border-b border-secondary-pale/20">
+                <th className="text-left py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Month</th>
+                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Target</th>
+                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Revenue</th>
+                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Achievement</th>
+                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">GP%</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-secondary-pale/10">
+              {unitMonthlyData.map((month) => (
+                <tr key={month.month} className="hover:bg-secondary-pale/5 transition-colors">
+                  <td className="py-3 px-4 font-medium text-neutral-dark">{month.month}</td>
+                  <td className="py-3 px-4 text-right text-neutral-dark font-mono text-sm">{formatCurrency(month.target)}</td>
+                  <td className="py-3 px-4 text-right text-neutral-dark font-mono text-sm">{formatCurrency(month.revenue)}</td>
+                  <td className="py-3 px-4 text-right">
+                    <span className="font-semibold text-neutral-dark">
+                      {formatPercentage(month.achievement)}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <span className="font-semibold text-neutral-dark">
+                      {formatPercentage(month.grossProfitMargin)}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+            {unitMonthlyData.length > 0 && (
+              <tfoot>
+                <tr className="bg-gradient-to-r from-secondary-pale/20 to-secondary-pale/10 border-t-2 border-secondary-pale/30">
+                  <td className="py-3 px-4 font-bold text-neutral-dark">Total</td>
+                  <td className="py-3 px-4 text-right font-bold text-neutral-dark font-mono">
+                    {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.target, 0))}
+                  </td>
+                  <td className="py-3 px-4 text-right font-bold text-neutral-dark font-mono">
+                    {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.revenue, 0))}
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <span className="font-bold text-neutral-dark">
+                      {formatPercentage(selectedUnitData?.achievement || 0)}
+                    </span>
+                  </td>
+                  <td className="py-3 px-4 text-right">
+                    <span className="font-bold text-neutral-dark">
+                      {formatPercentage(((selectedUnitData?.target - selectedUnitData?.cost) / selectedUnitData?.target) * 100 || 0)}
+                    </span>
+                  </td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
         </div>
       </div>
 
-      {/* Key Metrics Enhanced */}
+      {/* Achievement Summary */}
       {selectedUnitData && (
         <div className="dashboard-card">
-          <h2 className="section-title">Key Metrics - {selectedUnit}</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-            {/* Customer Count */}
-            <BaseCard variant="elevated" className="group hover:scale-[1.02] transition-transform">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center shadow-md">
-                    <Users className="w-6 h-6 text-primary" strokeWidth={2} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Customer Count</p>
-                    <p className="text-xs text-neutral-mid">Active Accounts</p>
-                  </div>
-                </div>
-                <div className="text-xs bg-primary/10 text-primary font-medium px-2 py-1 rounded-full">
-                  {selectedUnit}
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-neutral-dark mb-4">{selectedUnitData ? selectedUnitData.customerCount || 0 : 0}</p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-neutral-mid flex items-center gap-1">
-                    <Activity className="w-3 h-3" />
-                    Revenue Contribution
-                  </span>
-                  <span className="font-semibold text-neutral-dark">
-                    {formatPercentage(selectedUnitData ? (selectedUnitData.revenue / businessUnits.reduce((sum, unit) => sum + unit.revenue, 0)) * 100 : 0)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-neutral-mid flex items-center gap-1">
-                    <BarChart3 className="w-3 h-3" />
-                    Avg Order Value
-                  </span>
-                  <span className="font-semibold text-neutral-dark">
-                    {formatCurrency(selectedUnitData ? selectedUnitData.revenue / (selectedUnitData.customerCount || 1) / 12 : 0)}
-                  </span>
-                </div>
-              </div>
-            </BaseCard>
-
-            {/* Avg Revenue per Customer */}
-            <BaseCard variant="elevated" className="group hover:scale-[1.02] transition-transform">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-accent-blue/20 to-accent-blue/10 rounded-xl flex items-center justify-center shadow-md">
-                    <DollarSign className="w-6 h-6 text-accent-blue" strokeWidth={2} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Avg Revenue</p>
-                    <p className="text-xs text-neutral-mid">Per Customer</p>
+          <h2 className="section-title">Achievement Summary</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
+            {/* Target */}
+            <BaseCard 
+              variant="elevated" 
+              className="relative overflow-hidden group hover:scale-[1.02] transition-transform"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-accent-blue/10 rounded-full -mr-12 -mt-12"></div>
+              <div className="absolute bottom-0 left-0 w-16 h-16 bg-accent-blue/5 rounded-full -ml-8 -mb-8"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-accent-blue/20 to-accent-blue/10 rounded-xl flex items-center justify-center shadow-md">
+                      <Target className="w-6 h-6 text-accent-blue" strokeWidth={2} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Target</p>
+                      <p className="text-xs text-neutral-mid">{dataService.getPeriodLabel(periodFilter.period, periodFilter.month, periodFilter.quarter)}</p>
+                    </div>
                   </div>
                 </div>
-                <div className="text-xs bg-accent-blue/10 text-accent-blue font-medium px-2 py-1 rounded-full">
-                  <TrendingUp className="w-3 h-3 inline mr-1" />
-                  Performance
-                </div>
-              </div>
-              <p className="text-3xl font-bold text-neutral-dark mb-4">
-                {formatCurrency(selectedUnitData && selectedUnitData.customerCount > 0 ? selectedUnitData.revenue / selectedUnitData.customerCount : 0)}
-              </p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-neutral-mid flex items-center gap-1">
-                    <Target className="w-3 h-3" />
-                    Target per Customer
-                  </span>
-                  <span className="font-semibold text-neutral-dark">
-                    {formatCurrency(selectedUnitData ? selectedUnitData.target / (selectedUnitData.customerCount || 1) : 0)}
-                  </span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                  <div 
-                    className="h-2 bg-gradient-to-r from-accent-blue to-blue-600 rounded-full transition-all duration-500"
-                    style={{ width: `${selectedUnitData ? Math.min((selectedUnitData.revenue / selectedUnitData.target) * 100, 100) : 0}%` }}
-                  />
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-neutral-mid flex items-center gap-1">
-                    <Percent className="w-3 h-3" />
-                    Customer Efficiency
-                  </span>
-                  <span className={`font-semibold ${
-                    selectedUnitData && selectedUnitData.achievement >= 100 ? 'text-green-600' : 'text-neutral-dark'
-                  }`}>
-                    {formatPercentage(selectedUnitData ? selectedUnitData.achievement : 0)}
-                  </span>
+                <p className="text-2xl md:text-3xl font-bold text-neutral-dark mb-3">
+                  {formatCurrency(selectedUnitData.target)}
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-neutral-mid flex items-center gap-1">
+                      <BarChart3 className="w-3 h-3" />
+                      Monthly Avg
+                    </span>
+                    <span className="font-semibold text-neutral-dark">
+                      {formatCurrency(selectedUnitData.target / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter).length)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-neutral-mid flex items-center gap-1">
+                      {selectedUnit === 'Transportation' ? (
+                        <Truck className="w-3 h-3" />
+                      ) : (
+                        <Package className="w-3 h-3" />
+                      )}
+                      {selectedUnit} Avg
+                    </span>
+                    <span className="font-semibold text-neutral-dark">
+                      {formatCurrency(selectedUnitData.target / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter).length)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </BaseCard>
 
-            {/* Receivables */}
-            <BaseCard variant="elevated" className="group hover:scale-[1.02] transition-transform">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-accent-coral/20 to-accent-coral/10 rounded-xl flex items-center justify-center shadow-md">
-                    <FileText className="w-6 h-6 text-accent-coral" strokeWidth={2} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Receivables</p>
-                    <p className="text-xs text-neutral-mid">Outstanding</p>
+            {/* Revenue Achieved */}
+            <BaseCard 
+              variant="elevated" 
+              className="relative overflow-hidden group hover:scale-[1.02] transition-transform"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full -mr-12 -mt-12"></div>
+              <div className="absolute bottom-0 left-0 w-16 h-16 bg-primary/5 rounded-full -ml-8 -mb-8"></div>
+              <div className="relative">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-xl flex items-center justify-center shadow-md">
+                      <Banknote className="w-6 h-6 text-primary" strokeWidth={2} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Revenue Achieved</p>
+                      <p className="text-xs text-neutral-mid">{dataService.getPeriodLabel(periodFilter.period, periodFilter.month, periodFilter.quarter)}</p>
+                    </div>
                   </div>
                 </div>
-                <div className={`text-xs font-medium px-2 py-1 rounded-full ${
-                  selectedUnitData && (selectedUnitData.receivables / selectedUnitData.revenue) > 0.3 
-                    ? 'bg-red-100 text-red-700' 
-                    : 'bg-green-100 text-green-700'
-                }`}>
-                  {(selectedUnitData.receivables / selectedUnitData.revenue) > 0.3 ? 'High' : 'Healthy'}
+                <p className="text-2xl md:text-3xl font-bold text-neutral-dark mb-3">
+                  {formatCurrency(selectedUnitData.revenue)}
+                </p>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm mb-3">
+                    <span className="text-neutral-mid flex items-center gap-1">
+                      <Activity className="w-3 h-3" />
+                      Achievement
+                    </span>
+                    <span className={`text-lg font-bold ${
+                      selectedUnitData.achievement >= 100 ? 'text-green-600' : 'text-neutral-dark'
+                    }`}>
+                      {formatPercentage(selectedUnitData.achievement)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-neutral-mid flex items-center gap-1">
+                      <Users className="w-3 h-3" />
+                      Customer Count
+                    </span>
+                    <span className="font-semibold text-neutral-dark">
+                      {selectedUnitData.customerCount || 0}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-neutral-mid flex items-center gap-1">
+                      <BarChart3 className="w-3 h-3" />
+                      Avg Value/Customer
+                    </span>
+                    <span className="font-semibold text-neutral-dark">
+                      {formatCurrency(selectedUnitData.customerCount > 0 ? selectedUnitData.revenue / selectedUnitData.customerCount : 0)}
+                    </span>
+                  </div>
                 </div>
               </div>
-              <p className="text-3xl font-bold text-neutral-dark mb-4">
-                {formatCurrency(selectedUnitData ? selectedUnitData.receivables : 0)}
-              </p>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-neutral-mid flex items-center gap-1">
-                    <Calendar className="w-3 h-3" />
-                    Days Sales Outstanding
-                  </span>
-                  <span className="font-semibold text-neutral-dark">
-                    {selectedUnitData && selectedUnitData.revenue > 0 ? Math.round((selectedUnitData.receivables / selectedUnitData.revenue) * 365) : 0} days
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-neutral-mid flex items-center gap-1">
-                    <Percent className="w-3 h-3" />
-                    % of Revenue
-                  </span>
-                  <span className={`font-semibold ${
-                    selectedUnitData && (selectedUnitData.receivables / selectedUnitData.revenue) > 0.3 
-                      ? 'text-red-600' 
-                      : 'text-green-600'
-                  }`}>
-                    {formatPercentage(selectedUnitData && selectedUnitData.revenue > 0 ? (selectedUnitData.receivables / selectedUnitData.revenue) * 100 : 0)}
-                  </span>
-                </div>
-              </div>
+            </BaseCard>
+
+            {/* Revenue Outperformance / Gap Analysis */}
+            <BaseCard 
+              variant="elevated" 
+              className="relative overflow-hidden group hover:scale-[1.02] transition-transform"
+            >
+              {selectedUnitData.achievement >= 100 ? (
+                <>
+                  {/* Success gradient background - using brand primary colors */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary-light/10 to-primary/5"></div>
+                  
+                  <div className="relative">
+                    {/* Header Section */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center shadow-lg">
+                          <Trophy className="w-6 h-6 text-white" strokeWidth={2} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-neutral-dark uppercase tracking-wider">
+                            REVENUE OUTPERFORMANCE
+                          </p>
+                          <p className="text-xs text-neutral-mid">
+                            {dataService.getPeriodLabel(periodFilter.period, periodFilter.month, periodFilter.quarter)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Separator Line */}
+                    <div className="h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent mb-4"></div>
+                    
+                    {/* Main Value Section */}
+                    <div className="text-center mb-4">
+                      <p className="text-3xl md:text-4xl font-bold text-primary mb-1">
+                        +{formatCurrency(Math.abs(selectedUnitData.revenue - selectedUnitData.target))}
+                      </p>
+                      <div className="h-0.5 w-24 bg-primary/30 mx-auto"></div>
+                    </div>
+                    
+                    {/* Metrics Box */}
+                    <div className="bg-primary/5 border border-primary/10 rounded-lg p-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-semibold text-neutral-mid uppercase tracking-wide">
+                            TARGET EXCEEDANCE RATE
+                          </p>
+                          <span className="text-2xl font-bold text-primary">
+                            +{formatPercentage(selectedUnitData.achievement - 100)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-semibold text-primary">
+                          <span>Actual</span>
+                          <div className="flex-1 h-px bg-primary/30"></div>
+                          <span>{formatPercentage(selectedUnitData.achievement)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Deficit gradient background - using brand accent coral */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-accent-coral/10 to-accent-coral/5"></div>
+                  
+                  <div className="relative">
+                    {/* Header Section */}
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gradient-to-br from-accent-coral to-red-600 rounded-lg flex items-center justify-center shadow-lg">
+                          <TrendingDown className="w-6 h-6 text-white" strokeWidth={2} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-bold text-neutral-dark uppercase tracking-wider">
+                            REVENUE TO GO
+                          </p>
+                          <p className="text-xs text-neutral-mid">
+                            {dataService.getPeriodLabel(periodFilter.period, periodFilter.month, periodFilter.quarter)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Separator Line */}
+                    <div className="h-px bg-gradient-to-r from-transparent via-accent-coral/20 to-transparent mb-4"></div>
+                    
+                    {/* Main Value Section */}
+                    <div className="text-center mb-4">
+                      <p className="text-3xl md:text-4xl font-bold text-accent-coral mb-1">
+                        -{formatCurrency(Math.abs(selectedUnitData.target - selectedUnitData.revenue))}
+                      </p>
+                      <div className="h-0.5 w-24 bg-accent-coral/30 mx-auto mb-2"></div>
+                      <p className="text-xs font-semibold text-accent-coral uppercase tracking-wider">
+                        AMOUNT NEEDED
+                      </p>
+                    </div>
+                    
+                    {/* Metrics Box */}
+                    <div className="bg-accent-coral/5 border border-accent-coral/10 rounded-lg p-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <p className="text-xs font-semibold text-neutral-mid uppercase tracking-wide">
+                            TARGET ACHIEVEMENT GAP
+                          </p>
+                          <span className="text-2xl font-bold text-accent-coral">
+                            -{formatPercentage(100 - selectedUnitData.achievement)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-semibold text-accent-coral">
+                          <span>Actual</span>
+                          <div className="flex-1 h-px bg-accent-coral/30"></div>
+                          <span>{formatPercentage(selectedUnitData.achievement)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </BaseCard>
           </div>
         </div>

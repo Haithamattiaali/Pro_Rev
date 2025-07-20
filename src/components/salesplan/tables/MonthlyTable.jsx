@@ -65,24 +65,24 @@ const MonthlyTable = ({ data }) => {
     return { totals: totalsWithPercent, averages }
   }, [tableData])
   
-  // Get month color based on index
+  // Get month color based on index using brand colors
   const getMonthColor = (index) => {
-    const colors = ['#005b8c', '#e05e3d', '#9e1f63']
+    const colors = ['#9e1f63', '#005b8c', '#424046'] // Primary, Accent Blue, Secondary
     return colors[index % colors.length]
   }
   
   if (!tableData || tableData.length === 0) {
     return (
-      <div className="bg-gray-50 rounded-lg p-8 text-center">
-        <p className="text-gray-500">No monthly data available for the selected period</p>
+      <div className="bg-secondary-pale rounded-lg p-8 text-center">
+        <p className="text-neutral-mid">No monthly data available for the selected period</p>
       </div>
     )
   }
   
   return (
     <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-      <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-        <h4 className="font-semibold text-gray-900">Monthly Sales Plan Details</h4>
+      <div className="p-4 border-b border-secondary-pale flex items-center justify-between">
+        <h4 className="font-semibold text-neutral-dark">Monthly Sales Plan Details</h4>
         <TableExportButton
           data={tableData}
           headers={['Month', 'Baseline', 'Baseline %', 'Opportunities', 'Opportunities %', 'Total', 'MoM Change']}
@@ -95,52 +95,52 @@ const MonthlyTable = ({ data }) => {
         <table className="w-full">
           <thead>
             {/* First row - Main category headers */}
-            <tr className="bg-gray-50 border-b border-gray-100">
+            <tr className="bg-secondary-pale/50 border-b border-secondary-pale">
               <th className="px-6 py-3 text-left" rowSpan="2">
-                <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+                <span className="text-xs font-medium text-secondary uppercase tracking-wider">
                   Month
                 </span>
               </th>
-              <th className="px-6 py-2 text-center border-l border-gray-100" colSpan="2">
-                <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+              <th className="px-6 py-2 text-center border-l border-secondary-pale" colSpan="2">
+                <span className="text-xs font-medium text-secondary uppercase tracking-wider">
                   Baseline Forecast
                 </span>
               </th>
-              <th className="px-6 py-2 text-center border-l border-gray-100" colSpan="2">
-                <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+              <th className="px-6 py-2 text-center border-l border-secondary-pale" colSpan="2">
+                <span className="text-xs font-medium text-secondary uppercase tracking-wider">
                   Opportunities
                 </span>
               </th>
-              <th className="px-6 py-3 text-right border-l border-gray-100" rowSpan="2">
-                <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right border-l border-secondary-pale" rowSpan="2">
+                <span className="text-xs font-medium text-secondary uppercase tracking-wider">
                   Total Forecast
                 </span>
               </th>
-              <th className="px-6 py-3 text-right border-l border-gray-100" rowSpan="2">
-                <span className="text-xs font-medium text-gray-700 uppercase tracking-wider">
+              <th className="px-6 py-3 text-right border-l border-secondary-pale" rowSpan="2">
+                <span className="text-xs font-medium text-secondary uppercase tracking-wider">
                   MoM Change
                 </span>
               </th>
             </tr>
             {/* Second row - Sub headers */}
-            <tr className="bg-gray-50 border-b border-gray-200">
+            <tr className="bg-secondary-pale/50 border-b border-secondary-pale">
+              <th className="px-6 py-2 text-right border-l border-secondary-pale">
+                <span className="text-xs font-medium text-neutral-mid">Amount</span>
+              </th>
+              <th className="px-6 py-2 text-right">
+                <span className="text-xs font-medium text-neutral-mid">%</span>
+              </th>
               <th className="px-6 py-2 text-right border-l border-gray-100">
                 <span className="text-xs font-medium text-gray-600">Amount</span>
               </th>
               <th className="px-6 py-2 text-right">
-                <span className="text-xs font-medium text-gray-600">%</span>
-              </th>
-              <th className="px-6 py-2 text-right border-l border-gray-100">
-                <span className="text-xs font-medium text-gray-600">Amount</span>
-              </th>
-              <th className="px-6 py-2 text-right">
-                <span className="text-xs font-medium text-gray-600">%</span>
+                <span className="text-xs font-medium text-neutral-mid">%</span>
               </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-white divide-y divide-secondary-pale">
             {tableData.map((row, index) => (
-              <tr key={index} className="hover:bg-gray-50 transition-colors">
+              <tr key={index} className="hover:bg-secondary-pale/30 transition-colors">
                 <td className="px-6 py-4 ">
                   <div className="flex items-center gap-3">
                     <div 
@@ -148,15 +148,15 @@ const MonthlyTable = ({ data }) => {
                       style={{ backgroundColor: getMonthColor(index) }}
                     />
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm font-medium text-gray-900">{row.month}</span>
+                      <Calendar className="w-4 h-4 text-neutral-mid" />
+                      <span className="text-sm font-medium text-neutral-dark">{row.month}</span>
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4  text-sm text-right text-gray-900">
+                <td className="px-6 py-4  text-sm text-right text-neutral-dark">
                   {formatCurrency(row.baseline)}
                 </td>
-                <td className="px-6 py-4  text-sm text-right text-gray-500">
+                <td className="px-6 py-4  text-sm text-right text-neutral-mid">
                   {row.baselinePercent}%
                 </td>
                 <td className="px-6 py-4  text-sm text-right text-gray-900">
@@ -165,19 +165,19 @@ const MonthlyTable = ({ data }) => {
                 <td className="px-6 py-4  text-sm text-right text-gray-500">
                   {row.opportunityPercent}%
                 </td>
-                <td className="px-6 py-4  text-sm text-right font-semibold text-gray-900">
+                <td className="px-6 py-4  text-sm text-right font-semibold text-primary-dark">
                   {formatCurrency(row.total)}
                 </td>
                 <td className="px-6 py-4  text-right">
                   {index > 0 && (
                     <div className="flex items-center justify-end gap-2">
                       <span className={`text-sm font-medium ${
-                        row.isGrowing ? 'text-green-600' : row.momChange < 0 ? 'text-red-600' : 'text-gray-600'
+                        row.isGrowing ? 'text-primary' : row.momChange < 0 ? 'text-accent-coral' : 'text-neutral-mid'
                       }`}>
                         {row.momChange > 0 && '+'}{formatCurrency(row.momChange)}
                       </span>
                       <span className={`text-xs flex items-center gap-0.5 ${
-                        row.isGrowing ? 'text-green-600' : row.momChange < 0 ? 'text-red-600' : 'text-gray-600'
+                        row.isGrowing ? 'text-primary' : row.momChange < 0 ? 'text-accent-coral' : 'text-neutral-mid'
                       }`}>
                         {row.isGrowing ? <TrendingUp className="w-3 h-3" /> : row.momChange < 0 ? <TrendingDown className="w-3 h-3" /> : null}
                         ({row.momPercent > 0 && '+'}{row.momPercent.toFixed(1)}%)
@@ -190,15 +190,15 @@ const MonthlyTable = ({ data }) => {
           </tbody>
           {summary && (
             <>
-              <tfoot className="bg-gray-100 border-t-2 border-gray-300">
+              <tfoot className="bg-secondary-pale border-t-2 border-secondary">
                 <tr>
                   <td className="px-6 py-4 ">
-                    <span className="text-sm font-semibold text-gray-900">Total</span>
+                    <span className="text-sm font-semibold text-neutral-dark">Total</span>
                   </td>
-                  <td className="px-6 py-4  text-sm text-right font-bold text-gray-900">
+                  <td className="px-6 py-4  text-sm text-right font-bold text-neutral-dark">
                     {formatCurrency(summary.totals.baseline)}
                   </td>
-                  <td className="px-6 py-4  text-sm text-right font-bold text-gray-500">
+                  <td className="px-6 py-4  text-sm text-right font-bold text-neutral-mid">
                     {summary.totals.baselinePercent}%
                   </td>
                   <td className="px-6 py-4  text-sm text-right font-bold text-gray-900">
@@ -211,19 +211,19 @@ const MonthlyTable = ({ data }) => {
                     {formatCurrency(summary.totals.total)}
                   </td>
                   <td className="px-6 py-4  text-right">
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-neutral-mid">
                       {tableData.length} months
                     </span>
                   </td>
                 </tr>
-                <tr className="bg-gray-50 border-t">
+                <tr className="bg-secondary-pale/50 border-t">
                   <td className="px-6 py-4 ">
-                    <span className="text-sm font-semibold text-gray-700">Average</span>
+                    <span className="text-sm font-semibold text-secondary">Average</span>
                   </td>
-                  <td className="px-6 py-4  text-sm text-right text-gray-700">
+                  <td className="px-6 py-4  text-sm text-right text-secondary">
                     {formatCurrency(summary.averages.baseline)}
                   </td>
-                  <td className="px-6 py-4  text-sm text-right text-gray-500">
+                  <td className="px-6 py-4  text-sm text-right text-neutral-mid">
                     -
                   </td>
                   <td className="px-6 py-4  text-sm text-right text-gray-700">
@@ -232,11 +232,11 @@ const MonthlyTable = ({ data }) => {
                   <td className="px-6 py-4  text-sm text-right text-gray-500">
                     -
                   </td>
-                  <td className="px-6 py-4  text-sm text-right font-semibold text-gray-700">
+                  <td className="px-6 py-4  text-sm text-right font-semibold text-secondary">
                     {formatCurrency(summary.averages.total)}
                   </td>
                   <td className="px-6 py-4  text-right">
-                    <span className="text-xs text-gray-600">
+                    <span className="text-xs text-neutral-mid">
                       Per month
                     </span>
                   </td>

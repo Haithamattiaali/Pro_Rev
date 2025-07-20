@@ -327,7 +327,7 @@ const SummaryCards = ({ data }) => {
       )
     },
     {
-      title: 'Total Revenue',
+      title: 'Total Forecast',
       total: grandTotal,
       baseline: totalBaseline,
       opportunities: totalOpportunities,
@@ -360,8 +360,8 @@ const SummaryCards = ({ data }) => {
               {/* Icon and Title */}
               <div className="flex items-center justify-between mb-3">
                 <div>
-                  <h3 className="text-base font-semibold text-gray-800">{item.title}</h3>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <h3 className="text-base font-semibold text-neutral-dark">{item.title}</h3>
+                  <p className="text-xs text-neutral-mid mt-0.5">
                     {((item.total / grandTotal) * 100).toFixed(1)}% of total
                   </p>
                 </div>
@@ -382,11 +382,11 @@ const SummaryCards = ({ data }) => {
                 </p>
                 <div className="mt-2 space-y-1">
                   <div className="flex justify-between text-xs">
-                    <span className="text-gray-600">Baseline:</span>
+                    <span className="text-neutral-mid">Baseline:</span>
                     <span className="font-medium">{formatCurrency(item.baseline)} ({baselinePercent}%)</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-gray-600">Opportunities:</span>
+                    <span className="text-neutral-mid">Opportunities:</span>
                     <span className="font-medium">{formatCurrency(item.opportunities)} ({opportunitiesPercent}%)</span>
                   </div>
                 </div>
@@ -394,7 +394,7 @@ const SummaryCards = ({ data }) => {
               
               {/* Stacked Progress Bar */}
               <div className="mt-3">
-                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden flex">
+                <div className="w-full bg-secondary-pale rounded-full h-2 overflow-hidden flex">
                   <div 
                     className="h-full transition-all duration-1000 ease-out"
                     style={{ 

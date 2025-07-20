@@ -40,7 +40,7 @@ const OpportunityInsights = ({ insights }) => {
         <div className="bg-white rounded-lg p-4 border border-gray-200">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600">Avg Deal Size</p>
+              <p className="text-sm text-neutral-mid">Avg Opportunity Size</p>
               <p className="text-xl font-bold text-gray-900">
                 {formatCurrency(metrics?.avg_deal_size || 0)}
               </p>

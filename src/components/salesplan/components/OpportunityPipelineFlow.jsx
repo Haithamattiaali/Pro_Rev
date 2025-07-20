@@ -180,7 +180,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
             </div>
             
             {/* Pipeline Metrics Summary */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
                 <p className="text-xs text-neutral-mid font-medium">Total Pipeline</p>
                 <p className="text-lg font-bold text-primary">
@@ -197,7 +197,7 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                 </p>
               </div>
               <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
-                <p className="text-xs text-neutral-mid font-medium">Avg Deal Size</p>
+                <p className="text-xs text-neutral-mid font-medium">Avg Opportunity Size</p>
                 <p className="text-lg font-bold text-accent-blue">
                   {formatCurrency(
                     sortedPipeline.reduce((sum, stage) => sum + (stage.total_revenue || 0), 0) / 
@@ -206,6 +206,16 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                 </p>
                 <div className="mt-1">
                   <MonthlyBadge size="mini" showIcon={false} />
+                </div>
+              </div>
+              <div className="bg-white/80 backdrop-blur-sm rounded-lg px-4 py-3 border border-secondary-light/30">
+                <p className="text-xs text-neutral-mid font-medium">Avg GP</p>
+                <p className="text-lg font-bold text-primary-dark">
+                  {(sortedPipeline.reduce((sum, stage) => sum + ((stage.avg_gp_percent || 0) * (stage.count || 0)), 0) / 
+                    Math.max(sortedPipeline.reduce((sum, stage) => sum + (stage.count || 0), 0), 1) * 100).toFixed(1)}%
+                </p>
+                <div className="mt-1">
+                  <span className="text-[10px] text-neutral-mid">Weighted Average</span>
                 </div>
               </div>
             </div>
@@ -258,16 +268,6 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                         filter="url(#pathGlow)"
                         className="animate-pulse"
                       />
-                    )}
-                    {/* Flow Particles */}
-                    {isActive && (
-                      <circle r="4" fill="#9e1f63" opacity="0.8">
-                        <animateMotion
-                          dur="3s"
-                          repeatCount="indefinite"
-                          path={`M ${startX} 50 Q ${(startX + endX) / 2} ${50 - curveHeight} ${endX} 50`}
-                        />
-                      </circle>
                     )}
                   </g>
                 )

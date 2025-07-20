@@ -211,75 +211,59 @@ const MonthlyChart = ({ data }) => {
       
       {/* Enhanced Summary Stats with Breakdown */}
       {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
           <div className="relative overflow-hidden rounded-xl bg-white shadow-md">
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500 to-blue-700 opacity-5"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-accent-blue to-accent-blue/20 opacity-10"></div>
             <div className="relative p-4">
-              <p className="text-xs text-blue-700 uppercase tracking-wide font-medium">Total Forecast</p>
-              <p className="text-xl font-bold text-blue-900 mt-1">
+              <p className="text-xs text-accent-blue uppercase tracking-wide font-medium">Total Forecast</p>
+              <p className="text-xl font-bold text-neutral-dark mt-1">
                 {formatCurrency(stats.totalForecast)}
               </p>
               <div className="mt-2 space-y-1">
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-600">Baseline:</span>
-                  <span className="font-medium">{formatCurrency(stats.totalBaseline)} ({((stats.totalBaseline / stats.totalForecast) * 100).toFixed(1)}%)</span>
+                  <span className="text-neutral-mid">Baseline:</span>
+                  <span className="font-medium text-secondary">{formatCurrency(stats.totalBaseline)} ({((stats.totalBaseline / stats.totalForecast) * 100).toFixed(1)}%)</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-600">Opportunities:</span>
-                  <span className="font-medium">{formatCurrency(stats.totalOpportunities)} ({((stats.totalOpportunities / stats.totalForecast) * 100).toFixed(1)}%)</span>
+                  <span className="text-neutral-mid">Opportunities:</span>
+                  <span className="font-medium text-secondary">{formatCurrency(stats.totalOpportunities)} ({((stats.totalOpportunities / stats.totalForecast) * 100).toFixed(1)}%)</span>
                 </div>
               </div>
             </div>
           </div>
           
           <div className="relative overflow-hidden rounded-xl bg-white shadow-md">
-            <div className="absolute inset-0 bg-gradient-to-br from-gray-500 to-gray-700 opacity-5"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-secondary to-secondary-light opacity-10"></div>
             <div className="relative p-4">
-              <p className="text-xs text-gray-700 uppercase tracking-wide font-medium">Monthly Average</p>
-              <p className="text-xl font-bold text-gray-900 mt-1">
+              <p className="text-xs text-secondary uppercase tracking-wide font-medium">Monthly Average</p>
+              <p className="text-xl font-bold text-neutral-dark mt-1">
                 {formatCurrency(stats.avgMonthly)}
               </p>
               <div className="mt-2 space-y-1">
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-600">Avg Baseline:</span>
-                  <span className="font-medium">{formatCurrency(stats.totalBaseline / chartData.length)}</span>
+                  <span className="text-neutral-mid">Avg Baseline:</span>
+                  <span className="font-medium text-secondary">{formatCurrency(stats.totalBaseline / chartData.length)}</span>
                 </div>
                 <div className="flex justify-between text-xs">
-                  <span className="text-gray-600">Avg Opportunities:</span>
-                  <span className="font-medium">{formatCurrency(stats.totalOpportunities / chartData.length)}</span>
+                  <span className="text-neutral-mid">Avg Opportunities:</span>
+                  <span className="font-medium text-secondary">{formatCurrency(stats.totalOpportunities / chartData.length)}</span>
                 </div>
               </div>
             </div>
           </div>
           
           <div className="relative overflow-hidden rounded-xl bg-white shadow-md">
-            <div className="absolute inset-0 bg-gradient-to-br from-green-500 to-green-700 opacity-5"></div>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary-dark opacity-5"></div>
             <div className="relative p-4">
-              <p className="text-xs text-green-700 uppercase tracking-wide font-medium">Best Month</p>
-              <p className="text-lg font-bold text-green-900 mt-1">
-                {stats.maxMonth?.month || 'N/A'}
-              </p>
-              <p className="text-sm font-semibold text-green-800">
-                {formatCurrency(stats.maxMonth?.total || 0)}
-              </p>
-              <div className="mt-1 text-xs text-green-600">
-                B: {formatCurrency(stats.maxMonth?.baseline || 0)} / O: {formatCurrency(stats.maxMonth?.opportunities || 0)}
-              </div>
-            </div>
-          </div>
-          
-          <div className="relative overflow-hidden rounded-xl bg-white shadow-md">
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-500 to-red-600 opacity-5"></div>
-            <div className="relative p-4">
-              <p className="text-xs text-orange-700 uppercase tracking-wide font-medium">Opportunity Ratio</p>
-              <p className="text-xl font-bold text-orange-900 mt-1">
+              <p className="text-xs text-primary uppercase tracking-wide font-medium">Factored Growth</p>
+              <p className="text-xl font-bold text-primary-dark mt-1">
                 {((stats.totalOpportunities / stats.totalBaseline) * 100).toFixed(1)}%
               </p>
               <div className="mt-2">
-                <p className="text-xs text-orange-600">Growth potential over baseline</p>
-                <div className="mt-2 w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+                <p className="text-xs text-neutral-mid">Implemented average growth over baseline</p>
+                <div className="mt-2 w-full bg-secondary-pale rounded-full h-2 overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-orange-400 to-red-500 transition-all duration-1000"
+                    className="h-full bg-gradient-to-r from-primary to-primary-dark transition-all duration-1000"
                     style={{ width: `${Math.min(((stats.totalOpportunities / stats.totalBaseline) * 100), 100)}%` }}
                   ></div>
                 </div>

@@ -146,11 +146,11 @@ const Customers = () => {
         <StickyPeriodFilter useHierarchical={true} />
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-              <Users className="w-8 h-8 text-gray-400" />
+            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary-pale flex items-center justify-center">
+              <Users className="w-8 h-8 text-neutral-mid" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Data to Display</h3>
-            <p className="text-gray-500">Please select a year to view customer data</p>
+            <h3 className="text-lg font-semibold text-neutral-dark mb-2">No Data to Display</h3>
+            <p className="text-neutral-mid">Please select a year to view customer data</p>
           </div>
         </div>
       </div>
@@ -426,60 +426,61 @@ const Customers = () => {
 
           {/* Service Breakdown */}
           {selectedAchievementData && selectedAchievementData.services.length > 0 && (
-            <div>
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-secondary">Service Breakdown</h3>
-                <TableExportButton
-                  data={selectedAchievementData.services}
-                  filename={`${selectedCustomer}-service-breakdown`}
-                  headers={['serviceType', 'revenue', 'target', 'achievement']}
-                />
+            <div className="bg-white rounded-xl shadow-sm border border-secondary-pale/20 overflow-hidden">
+              <div className="px-6 py-4 border-b border-secondary-pale/20 bg-gradient-to-r from-white to-secondary-pale/5">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-bold text-primary-dark">Service Breakdown</h3>
+                  <TableExportButton
+                    data={selectedAchievementData.services}
+                    filename={`${selectedCustomer}-service-breakdown`}
+                    headers={['serviceType', 'revenue', 'target', 'achievement']}
+                    variant="inline"
+                    size="small"
+                  />
+                </div>
               </div>
-              <div className="overflow-x-auto -mx-2 md:mx-0">
-                <BaseTable variant="compact" className="mt-4">
-                <BaseTable.Header>
-                  <BaseTable.Row>
-                    <BaseTable.Head>Service Type</BaseTable.Head>
-                    <BaseTable.Head align="right">Revenue</BaseTable.Head>
-                    <BaseTable.Head align="right">Target</BaseTable.Head>
-                    <BaseTable.Head align="center">Achievement %</BaseTable.Head>
-                  </BaseTable.Row>
-                </BaseTable.Header>
-                <BaseTable.Body hoverable>
-                  {selectedAchievementData.services.map((service) => (
-                    <BaseTable.Row key={service.serviceType}>
-                      <BaseTable.Cell className="font-semibold text-neutral-dark">{service.serviceType}</BaseTable.Cell>
-                      <BaseTable.Cell align="right" numeric>{formatCurrency(service.revenue)}</BaseTable.Cell>
-                      <BaseTable.Cell align="right" numeric>{formatCurrency(service.target)}</BaseTable.Cell>
-                      <BaseTable.Cell align="center">
-                        <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                          getAchievementStatus(service.achievement) === 'high' ? 'bg-green-100 text-green-800' :
-                          getAchievementStatus(service.achievement) === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-red-100 text-red-800'
-                        }`}>
-                          {formatPercentage(service.achievement)}
+              
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-secondary-pale/10 border-b border-secondary-pale/20">
+                      <th className="text-left py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Service Type</th>
+                      <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Revenue</th>
+                      <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Target</th>
+                      <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Achievement</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-secondary-pale/10">
+                    {selectedAchievementData.services.map((service) => (
+                      <tr key={service.serviceType} className="hover:bg-secondary-pale/5 transition-colors">
+                        <td className="py-3 px-4 font-medium text-neutral-dark">{service.serviceType}</td>
+                        <td className="py-3 px-4 text-right text-neutral-dark font-mono text-sm">{formatCurrency(service.revenue)}</td>
+                        <td className="py-3 px-4 text-right text-neutral-dark font-mono text-sm">{formatCurrency(service.target)}</td>
+                        <td className="py-3 px-4 text-right">
+                          <span className="font-semibold text-neutral-dark">
+                            {formatPercentage(service.achievement)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr className="bg-gradient-to-r from-secondary-pale/20 to-secondary-pale/10 border-t-2 border-secondary-pale/30">
+                      <td className="py-3 px-4 font-bold text-neutral-dark">Total</td>
+                      <td className="py-3 px-4 text-right font-bold text-neutral-dark font-mono">
+                        {formatCurrency(selectedAchievementData.totalRevenue)}
+                      </td>
+                      <td className="py-3 px-4 text-right font-bold text-neutral-dark font-mono">
+                        {formatCurrency(selectedAchievementData.totalTarget)}
+                      </td>
+                      <td className="py-3 px-4 text-right">
+                        <span className="font-bold text-neutral-dark">
+                          {formatPercentage(selectedAchievementData.overallAchievement)}
                         </span>
-                      </BaseTable.Cell>
-                    </BaseTable.Row>
-                  ))}
-                </BaseTable.Body>
-                <BaseTable.Footer>
-                  <BaseTable.Row>
-                    <BaseTable.Cell className="font-bold">Total</BaseTable.Cell>
-                    <BaseTable.Cell align="right" numeric className="font-bold">{formatCurrency(selectedAchievementData.totalRevenue)}</BaseTable.Cell>
-                    <BaseTable.Cell align="right" numeric className="font-bold">{formatCurrency(selectedAchievementData.totalTarget)}</BaseTable.Cell>
-                    <BaseTable.Cell align="center">
-                      <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                        getAchievementStatus(selectedAchievementData.overallAchievement) === 'high' ? 'bg-green-100 text-green-800' :
-                        getAchievementStatus(selectedAchievementData.overallAchievement) === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                        {formatPercentage(selectedAchievementData.overallAchievement)}
-                      </span>
-                    </BaseTable.Cell>
-                  </BaseTable.Row>
-                </BaseTable.Footer>
-              </BaseTable>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
               </div>
             </div>
           )}
@@ -487,91 +488,66 @@ const Customers = () => {
       )}
 
       {/* All Customers Summary Table */}
-      <div className="dashboard-card">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="section-title mb-0">All Customers Summary</h2>
-          <TableExportButton
-            data={sortedCustomers.map((customer, index) => {
-              const breakdown = serviceBreakdown.find(sb => sb.customer === customer.customer);
-              return {
-                rank: index + 1,
-                customer: customer.customer,
-                revenue: customer.revenue,
-                target: customer.target,
-                achievement: customer.achievement,
-                transportation: breakdown?.transportation || 0,
-                warehouses: breakdown?.warehouses || 0,
-                profitMargin: customer.profitMargin
-              };
-            })}
-            filename="all-customers-summary"
-            headers={['rank', 'customer', 'revenue', 'target', 'achievement', 'transportation', 'warehouses', 'profitMargin']}
-          />
+      <div className="bg-white rounded-xl shadow-sm border border-secondary-pale/20 overflow-hidden">
+        <div className="px-6 py-4 border-b border-secondary-pale/20 bg-gradient-to-r from-white to-secondary-pale/5">
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-bold text-primary-dark">All Customers Summary</h2>
+            <TableExportButton
+              data={sortedCustomers.map((customer, index) => ({
+                Customer: customer.customer,
+                Target: customer.target,
+                Revenue: customer.revenue,
+                'Achievement %': customer.achievement,
+                'GP %': customer.profitMargin
+              }))}
+              filename="all-customers-summary"
+              variant="inline"
+              size="small"
+            />
+          </div>
         </div>
-        <div className="overflow-x-auto -mx-2 md:mx-0">
-          <BaseTable variant="default" striped hoverable>
-          <BaseTable.Header sticky>
-            <BaseTable.Row>
-              <BaseTable.Head align="center">Rank</BaseTable.Head>
-              <BaseTable.Head>Customer</BaseTable.Head>
-              <BaseTable.Head align="right">Revenue</BaseTable.Head>
-              <BaseTable.Head align="right">Target</BaseTable.Head>
-              <BaseTable.Head align="center">Achievement %</BaseTable.Head>
-              <BaseTable.Head align="right">Transportation Revenue</BaseTable.Head>
-              <BaseTable.Head align="right">Warehouses Revenue</BaseTable.Head>
-              <BaseTable.Head align="center">Profit Margin</BaseTable.Head>
-            </BaseTable.Row>
-          </BaseTable.Header>
-          <BaseTable.Body striped hoverable>
-            {sortedCustomers.map((customer, index) => {
-              const isSelected = selectedCustomer === customer.customer;
-              const breakdown = serviceBreakdown.find(sb => sb.customer === customer.customer);
-              
-              return (
-                <BaseTable.Row 
-                  key={customer.customer}
-                  className={isSelected ? 'bg-primary-light/10 hover:bg-primary-light/20' : ''}
-                  clickable
-                  onClick={() => setSelectedCustomer(customer.customer)}
-                >
-                  <BaseTable.Cell align="center" className="font-bold">
-                    {index + 1 <= 3 ? (
-                      <div className="flex items-center justify-center gap-1">
-                        {index + 1 === 1 && <Trophy className="w-4 h-4 text-yellow-500" />}
-                        {index + 1 === 2 && <Star className="w-4 h-4 text-gray-400" />}
-                        {index + 1 === 3 && <Crown className="w-4 h-4 text-orange-600" />}
-                        <span>{index + 1}</span>
-                      </div>
-                    ) : (
-                      <span>{index + 1}</span>
-                    )}
-                  </BaseTable.Cell>
-                  <BaseTable.Cell className="font-semibold text-neutral-dark">{customer.customer}</BaseTable.Cell>
-                  <BaseTable.Cell align="right" numeric>{formatCurrency(customer.revenue)}</BaseTable.Cell>
-                  <BaseTable.Cell align="right" numeric>{formatCurrency(customer.target)}</BaseTable.Cell>
-                  <BaseTable.Cell align="center">
-                    <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
-                      getAchievementStatus(customer.achievement) === 'high' ? 'bg-green-100 text-green-800' :
-                      getAchievementStatus(customer.achievement) === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-red-100 text-red-800'
-                    }`}>
-                      {formatPercentage(customer.achievement)}
-                    </span>
-                  </BaseTable.Cell>
-                  <BaseTable.Cell align="right" numeric>
-                    {breakdown?.transportation > 0 ? formatCurrency(breakdown.transportation) : '-'}
-                  </BaseTable.Cell>
-                  <BaseTable.Cell align="right" numeric>
-                    {breakdown?.warehouses > 0 ? formatCurrency(breakdown.warehouses) : '-'}
-                  </BaseTable.Cell>
-                  <BaseTable.Cell align="center" className="font-medium">
-                    {formatPercentage(customer.profitMargin)}
-                  </BaseTable.Cell>
-                </BaseTable.Row>
-              );
-            })}
-          </BaseTable.Body>
-        </BaseTable>
+        
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-secondary-pale/10 border-b border-secondary-pale/20">
+                <th className="text-left py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Customer</th>
+                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Target</th>
+                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Revenue</th>
+                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Achievement</th>
+                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">GP%</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-secondary-pale/10">
+              {sortedCustomers.map((customer, index) => {
+                const isSelected = selectedCustomer === customer.customer;
+                
+                return (
+                  <tr 
+                    key={customer.customer}
+                    className={`hover:bg-secondary-pale/5 transition-colors cursor-pointer ${
+                      isSelected ? 'bg-primary-light/10' : ''
+                    }`}
+                    onClick={() => setSelectedCustomer(customer.customer)}
+                  >
+                    <td className="py-3 px-4 font-medium text-neutral-dark">{customer.customer}</td>
+                    <td className="py-3 px-4 text-right text-neutral-dark font-mono text-sm">{formatCurrency(customer.target)}</td>
+                    <td className="py-3 px-4 text-right text-neutral-dark font-mono text-sm">{formatCurrency(customer.revenue)}</td>
+                    <td className="py-3 px-4 text-right">
+                      <span className="font-semibold text-neutral-dark">
+                        {formatPercentage(customer.achievement)}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      <span className="font-semibold text-neutral-dark">
+                        {formatPercentage(customer.profitMargin)}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
