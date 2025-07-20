@@ -11,39 +11,49 @@ const BaseTable = ({
   bordered = true,
   sticky = false,
   rounded = true,
+  elevated = false,
   ...props 
 }) => {
-  const baseStyles = 'w-full bg-white';
+  const baseStyles = 'w-full bg-white relative';
   
   const variantStyles = {
     default: '',
     compact: 'text-sm',
-    spacious: 'text-base'
+    spacious: 'text-base',
+    executive: 'text-sm'
   };
   
   const tableClasses = cn(
     baseStyles,
     variantStyles[variant],
-    rounded && 'overflow-hidden rounded-lg',
-    bordered && 'border border-secondary-pale/30',
-    'shadow-sm',
+    rounded && 'overflow-hidden rounded-xl',
+    bordered && 'border border-secondary-pale/20',
+    elevated ? 'shadow-lg shadow-primary/5' : 'shadow-sm',
+    'transition-all duration-300',
     className
   );
   
   return (
     <div className={tableClasses} {...props}>
-      <table className="w-full">
+      <table className="w-full border-collapse">
         {children}
       </table>
     </div>
   );
 };
 
-const TableHeader = ({ children, className = '', sticky = false }) => {
+const TableHeader = ({ children, className = '', sticky = false, variant = 'default' }) => {
+  const variantStyles = {
+    default: 'bg-gradient-to-r from-primary to-primary-dark text-white',
+    subtle: 'bg-gradient-to-r from-secondary-pale/20 to-secondary-pale/10 text-secondary',
+    minimal: 'bg-neutral-light/50 border-b-2 border-secondary-pale/30'
+  };
+  
   return (
     <thead className={cn(
-      'bg-secondary-pale/10 border-b border-secondary-pale/30',
-      sticky && 'sticky top-0 z-10',
+      variantStyles[variant] || variantStyles.default,
+      sticky && 'sticky top-0 z-20 shadow-md',
+      'transition-all duration-300',
       className
     )}>
       {children}
@@ -51,11 +61,12 @@ const TableHeader = ({ children, className = '', sticky = false }) => {
   );
 };
 
-const TableBody = ({ children, className = '', striped = false, hoverable = true }) => {
+const TableBody = ({ children, className = '', striped = true, hoverable = true }) => {
   return (
     <tbody className={cn(
-      striped && '[&>tr:nth-child(odd)]:bg-neutral-light/30',
-      hoverable && '[&>tr]:transition-colors [&>tr]:duration-200 [&>tr:hover]:bg-primary/5',
+      'divide-y divide-secondary-pale/10',
+      striped && '[&>tr:nth-child(even)]:bg-neutral-light/30',
+      hoverable && '[&>tr]:transition-all [&>tr]:duration-200 [&>tr:hover]:bg-primary/8 [&>tr:hover]:shadow-sm',
       className
     )}>
       {children}
@@ -63,12 +74,13 @@ const TableBody = ({ children, className = '', striped = false, hoverable = true
   );
 };
 
-const TableRow = ({ children, className = '', clickable = false, onClick }) => {
+const TableRow = ({ children, className = '', clickable = false, onClick, selected = false }) => {
   return (
     <tr 
       className={cn(
-        'border-b border-secondary-pale/20 last:border-b-0',
-        clickable && 'cursor-pointer',
+        'border-b border-secondary-pale/10 last:border-b-0',
+        clickable && 'cursor-pointer active:scale-[0.99] transition-transform',
+        selected && 'bg-accent-blue/10 hover:bg-accent-blue/15',
         className
       )}
       onClick={onClick}
@@ -78,7 +90,7 @@ const TableRow = ({ children, className = '', clickable = false, onClick }) => {
   );
 };
 
-const TableHead = ({ children, className = '', align = 'left', sortable = false, ...props }) => {
+const TableHead = ({ children, className = '', align = 'left', sortable = false, sorted = null, ...props }) => {
   const alignStyles = {
     left: 'text-left',
     center: 'text-center',
@@ -88,26 +100,47 @@ const TableHead = ({ children, className = '', align = 'left', sortable = false,
   return (
     <th 
       className={cn(
-        'px-4 py-3 font-semibold text-secondary',
+        'px-6 py-4 font-bold text-xs uppercase tracking-wider',
         alignStyles[align],
-        sortable && 'cursor-pointer hover:text-primary transition-colors',
+        sortable && 'cursor-pointer hover:opacity-80 transition-all group',
+        'text-current',
         className
       )}
       {...props}
     >
-      <div className="flex items-center gap-1">
+      <div className={cn(
+        'flex items-center gap-2',
+        align === 'right' && 'justify-end',
+        align === 'center' && 'justify-center'
+      )}>
         {children}
         {sortable && (
-          <svg className="w-3 h-3 opacity-50" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10 3L3 10h14L10 3zm0 14l7-7H3l7 7z"/>
-          </svg>
+          <div className={cn(
+            'flex flex-col transition-all',
+            sorted === 'asc' && 'text-white',
+            sorted === 'desc' && 'text-white',
+            !sorted && 'opacity-40 group-hover:opacity-60'
+          )}>
+            <svg className={cn(
+              'w-2 h-2',
+              sorted === 'asc' ? 'text-white' : 'text-current opacity-40'
+            )} fill="currentColor" viewBox="0 0 12 12">
+              <path d="M6 1L1 7h10L6 1z"/>
+            </svg>
+            <svg className={cn(
+              'w-2 h-2 -mt-1',
+              sorted === 'desc' ? 'text-white' : 'text-current opacity-40'
+            )} fill="currentColor" viewBox="0 0 12 12">
+              <path d="M6 11L11 5H1l5 6z"/>
+            </svg>
+          </div>
         )}
       </div>
     </th>
   );
 };
 
-const TableCell = ({ children, className = '', align = 'left', numeric = false, variant = '', ...props }) => {
+const TableCell = ({ children, className = '', align = 'left', numeric = false, variant = '', highlight = false, ...props }) => {
   const alignStyles = {
     left: 'text-left',
     center: 'text-center',
@@ -115,8 +148,10 @@ const TableCell = ({ children, className = '', align = 'left', numeric = false, 
   };
   
   const variantStyles = {
-    header: 'font-semibold text-secondary',
-    footer: 'font-semibold text-gray-900',
+    header: 'font-bold text-neutral-dark',
+    footer: 'font-bold text-neutral-dark',
+    currency: 'font-mono text-sm',
+    percentage: 'font-semibold',
     '': ''
   };
   
@@ -125,10 +160,12 @@ const TableCell = ({ children, className = '', align = 'left', numeric = false, 
   return (
     <Component 
       className={cn(
-        'px-4 py-3',
+        'px-6 py-4',
         alignStyles[align],
-        numeric && 'font-mono',
+        numeric && 'font-mono tabular-nums',
+        highlight && 'font-semibold text-primary',
         variantStyles[variant] || '',
+        'text-neutral-dark',
         className
       )}
       {...props}
@@ -138,14 +175,80 @@ const TableCell = ({ children, className = '', align = 'left', numeric = false, 
   );
 };
 
-const TableFooter = ({ children, className = '' }) => {
+const TableFooter = ({ children, className = '', variant = 'default' }) => {
+  const variantStyles = {
+    default: 'bg-gradient-to-r from-secondary-pale/20 to-secondary-pale/10 border-t-2 border-secondary-pale/30',
+    primary: 'bg-gradient-to-r from-primary-light/20 to-primary-light/10 border-t-2 border-primary-light/30',
+    minimal: 'bg-neutral-light border-t border-secondary-pale/20'
+  };
+  
   return (
     <tfoot className={cn(
-      'bg-secondary-pale/5 border-t-2 border-secondary-pale/30 font-medium',
+      'font-bold',
+      variantStyles[variant] || variantStyles.default,
       className
     )}>
       {children}
     </tfoot>
+  );
+};
+
+// Empty state component
+const TableEmpty = ({ message = 'No data available', icon: Icon, className = '' }) => {
+  return (
+    <tr>
+      <td colSpan="100%" className="text-center py-12">
+        <div className={cn('flex flex-col items-center gap-3 text-neutral-mid', className)}>
+          {Icon && <Icon className="w-12 h-12 opacity-30" />}
+          <p className="text-sm font-medium">{message}</p>
+        </div>
+      </td>
+    </tr>
+  );
+};
+
+// Loading state component
+const TableLoading = ({ rows = 5, columns = 4, className = '' }) => {
+  return (
+    <>
+      {[...Array(rows)].map((_, rowIndex) => (
+        <tr key={rowIndex}>
+          {[...Array(columns)].map((_, colIndex) => (
+            <td key={colIndex} className="px-6 py-4">
+              <div className={cn(
+                'h-4 bg-neutral-light rounded animate-pulse',
+                colIndex === 0 && 'w-32',
+                colIndex > 0 && 'w-20'
+              )} />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+};
+
+// Action button component
+const TableAction = ({ onClick, icon: Icon, label, variant = 'default', className = '' }) => {
+  const variantStyles = {
+    default: 'text-secondary hover:text-primary',
+    edit: 'text-accent-blue hover:text-accent-blue/80',
+    delete: 'text-accent-coral hover:text-accent-coral/80',
+    view: 'text-secondary hover:text-primary'
+  };
+  
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'p-1.5 rounded-lg transition-all hover:bg-secondary-pale/20 hover:scale-110',
+        variantStyles[variant],
+        className
+      )}
+      title={label}
+    >
+      <Icon className="w-4 h-4" />
+    </button>
   );
 };
 
@@ -155,5 +258,8 @@ BaseTable.Row = TableRow;
 BaseTable.Head = TableHead;
 BaseTable.Cell = TableCell;
 BaseTable.Footer = TableFooter;
+BaseTable.Empty = TableEmpty;
+BaseTable.Loading = TableLoading;
+BaseTable.Action = TableAction;
 
 export default BaseTable;

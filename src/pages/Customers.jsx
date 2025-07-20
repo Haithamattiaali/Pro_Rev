@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Users, Award, TrendingUp, Loader2, Trophy, Star, Crown } from 'lucide-react'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
+import { cn } from '../utils/cn'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { ExportButton } from '../components/export'
 import TableExportButton from '../components/buttons/TableExportButton'
@@ -440,55 +441,63 @@ const Customers = () => {
                 </div>
               </div>
               
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-secondary-pale/10 border-b border-secondary-pale/20">
-                      <th className="text-left py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Service Type</th>
-                      <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Revenue</th>
-                      <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Target</th>
-                      <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Achievement</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-secondary-pale/10">
-                    {selectedAchievementData.services.map((service) => (
-                      <tr key={service.serviceType} className="hover:bg-secondary-pale/5 transition-colors">
-                        <td className="py-3 px-4 font-medium text-neutral-dark">{service.serviceType}</td>
-                        <td className="py-3 px-4 text-right text-neutral-dark font-mono text-sm">{formatCurrency(service.revenue)}</td>
-                        <td className="py-3 px-4 text-right text-neutral-dark font-mono text-sm">{formatCurrency(service.target)}</td>
-                        <td className="py-3 px-4 text-right">
-                          <span className="font-semibold text-neutral-dark">
-                            {formatPercentage(service.achievement)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                  <tfoot>
-                    <tr className="bg-gradient-to-r from-secondary-pale/20 to-secondary-pale/10 border-t-2 border-secondary-pale/30">
-                      <td className="py-3 px-4 font-bold text-neutral-dark">Total</td>
-                      <td className="py-3 px-4 text-right font-bold text-neutral-dark font-mono">
-                        {formatCurrency(selectedAchievementData.totalRevenue)}
-                      </td>
-                      <td className="py-3 px-4 text-right font-bold text-neutral-dark font-mono">
-                        {formatCurrency(selectedAchievementData.totalTarget)}
-                      </td>
-                      <td className="py-3 px-4 text-right">
-                        <span className="font-bold text-neutral-dark">
-                          {formatPercentage(selectedAchievementData.overallAchievement)}
+              <BaseTable variant="compact">
+                <BaseTable.Header variant="minimal">
+                  <BaseTable.Row>
+                    <BaseTable.Head>Service Type</BaseTable.Head>
+                    <BaseTable.Head align="right">Revenue</BaseTable.Head>
+                    <BaseTable.Head align="right">Target</BaseTable.Head>
+                    <BaseTable.Head align="right">Achievement</BaseTable.Head>
+                  </BaseTable.Row>
+                </BaseTable.Header>
+                
+                <BaseTable.Body>
+                  {selectedAchievementData.services.map((service) => (
+                    <BaseTable.Row key={service.serviceType}>
+                      <BaseTable.Cell variant="header">{service.serviceType}</BaseTable.Cell>
+                      <BaseTable.Cell align="right" variant="currency">{formatCurrency(service.revenue)}</BaseTable.Cell>
+                      <BaseTable.Cell align="right" variant="currency">{formatCurrency(service.target)}</BaseTable.Cell>
+                      <BaseTable.Cell align="right" variant="percentage">
+                        <span className={cn(
+                          getAchievementStatus(service.achievement) === 'high' ? 'text-green-600' :
+                          getAchievementStatus(service.achievement) === 'medium' ? 'text-yellow-600' :
+                          'text-red-600'
+                        )}>
+                          {formatPercentage(service.achievement)}
                         </span>
-                      </td>
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
+                      </BaseTable.Cell>
+                    </BaseTable.Row>
+                  ))}
+                </BaseTable.Body>
+                
+                <BaseTable.Footer variant="minimal">
+                  <BaseTable.Row>
+                    <BaseTable.Cell variant="footer">Total</BaseTable.Cell>
+                    <BaseTable.Cell align="right" variant="footer">
+                      {formatCurrency(selectedAchievementData.totalRevenue)}
+                    </BaseTable.Cell>
+                    <BaseTable.Cell align="right" variant="footer">
+                      {formatCurrency(selectedAchievementData.totalTarget)}
+                    </BaseTable.Cell>
+                    <BaseTable.Cell align="right" variant="footer">
+                      <span className={cn(
+                        getAchievementStatus(selectedAchievementData.overallAchievement) === 'high' ? 'text-green-600' :
+                        getAchievementStatus(selectedAchievementData.overallAchievement) === 'medium' ? 'text-yellow-600' :
+                        'text-red-600'
+                      )}>
+                        {formatPercentage(selectedAchievementData.overallAchievement)}
+                      </span>
+                    </BaseTable.Cell>
+                  </BaseTable.Row>
+                </BaseTable.Footer>
+              </BaseTable>
             </div>
           )}
         </div>
       )}
 
       {/* All Customers Summary Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-secondary-pale/20 overflow-hidden">
+      <BaseTable elevated variant="executive">
         <div className="px-6 py-4 border-b border-secondary-pale/20 bg-gradient-to-r from-white to-secondary-pale/5">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold text-primary-dark">All Customers Summary</h2>
@@ -507,49 +516,65 @@ const Customers = () => {
           </div>
         </div>
         
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-secondary-pale/10 border-b border-secondary-pale/20">
-                <th className="text-left py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Customer</th>
-                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Target</th>
-                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Revenue</th>
-                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Achievement</th>
-                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">GP%</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-secondary-pale/10">
-              {sortedCustomers.map((customer, index) => {
-                const isSelected = selectedCustomer === customer.customer;
-                
-                return (
-                  <tr 
-                    key={customer.customer}
-                    className={`hover:bg-secondary-pale/5 transition-colors cursor-pointer ${
-                      isSelected ? 'bg-primary-light/10' : ''
-                    }`}
-                    onClick={() => setSelectedCustomer(customer.customer)}
-                  >
-                    <td className="py-3 px-4 font-medium text-neutral-dark">{customer.customer}</td>
-                    <td className="py-3 px-4 text-right text-neutral-dark font-mono text-sm">{formatCurrency(customer.target)}</td>
-                    <td className="py-3 px-4 text-right text-neutral-dark font-mono text-sm">{formatCurrency(customer.revenue)}</td>
-                    <td className="py-3 px-4 text-right">
-                      <span className="font-semibold text-neutral-dark">
-                        {formatPercentage(customer.achievement)}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4 text-right">
-                      <span className="font-semibold text-neutral-dark">
-                        {formatPercentage(customer.profitMargin)}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+        <BaseTable.Header variant="subtle">
+          <BaseTable.Row>
+            <BaseTable.Head>Customer</BaseTable.Head>
+            <BaseTable.Head align="right">Target</BaseTable.Head>
+            <BaseTable.Head align="right">Revenue</BaseTable.Head>
+            <BaseTable.Head align="right">Achievement</BaseTable.Head>
+            <BaseTable.Head align="right">GP%</BaseTable.Head>
+          </BaseTable.Row>
+        </BaseTable.Header>
+        
+        <BaseTable.Body>
+          {sortedCustomers.length === 0 ? (
+            <BaseTable.Empty message="No customer data available" icon={Users} />
+          ) : (
+            sortedCustomers.map((customer, index) => {
+              const isSelected = selectedCustomer === customer.customer;
+              
+              return (
+                <BaseTable.Row 
+                  key={customer.customer}
+                  clickable
+                  selected={isSelected}
+                  onClick={() => setSelectedCustomer(customer.customer)}
+                >
+                  <BaseTable.Cell variant="header">
+                    <div className="flex items-center gap-2">
+                      {index < 3 && (
+                        <div className={cn(
+                          'w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold',
+                          index === 0 && 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-white',
+                          index === 1 && 'bg-gradient-to-br from-gray-300 to-gray-500 text-white',
+                          index === 2 && 'bg-gradient-to-br from-orange-400 to-orange-600 text-white'
+                        )}>
+                          {index === 0 && <Crown className="w-3 h-3" />}
+                          {index === 1 && '2'}
+                          {index === 2 && '3'}
+                        </div>
+                      )}
+                      {customer.customer}
+                    </div>
+                  </BaseTable.Cell>
+                  <BaseTable.Cell align="right" variant="currency">{formatCurrency(customer.target)}</BaseTable.Cell>
+                  <BaseTable.Cell align="right" variant="currency">{formatCurrency(customer.revenue)}</BaseTable.Cell>
+                  <BaseTable.Cell align="right" variant="percentage">
+                    <span className={cn(
+                      getAchievementStatus(customer.achievement) === 'high' ? 'text-green-600' :
+                      getAchievementStatus(customer.achievement) === 'medium' ? 'text-yellow-600' :
+                      'text-red-600'
+                    )}>
+                      {formatPercentage(customer.achievement)}
+                    </span>
+                  </BaseTable.Cell>
+                  <BaseTable.Cell align="right" variant="percentage">{formatPercentage(customer.profitMargin)}</BaseTable.Cell>
+                </BaseTable.Row>
+              );
+            })
+          )}
+        </BaseTable.Body>
+      </BaseTable>
     </div>
   )
 }

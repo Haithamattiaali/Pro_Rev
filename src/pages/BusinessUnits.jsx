@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Truck, Package, Loader2, Users, TrendingUp, TrendingDown, Trophy, FileText, DollarSign, Calendar, BarChart3, Percent, Activity, Target, Banknote } from 'lucide-react'
 import { formatCurrency, formatPercentage, getAchievementStatus, getGrossProfitStatus } from '../utils/formatters'
+import { cn } from '../utils/cn'
 import BusinessUnitBarChart from '../components/charts/BusinessUnitBarChart'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { ExportButton } from '../components/export'
@@ -253,7 +254,7 @@ const BusinessUnits = () => {
       </div>
 
       {/* Monthly Breakdown Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-secondary-pale/20 overflow-hidden">
+      <BaseTable elevated variant="executive">
         <div className="px-6 py-4 border-b border-secondary-pale/20 bg-gradient-to-r from-white to-secondary-pale/5">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold text-primary-dark">Monthly Breakdown</h2>
@@ -272,62 +273,80 @@ const BusinessUnits = () => {
           </div>
         </div>
         
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-secondary-pale/10 border-b border-secondary-pale/20">
-                <th className="text-left py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Month</th>
-                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Target</th>
-                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Revenue</th>
-                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">Achievement</th>
-                <th className="text-right py-2 px-4 font-medium text-xs uppercase tracking-wider text-neutral-mid">GP%</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-secondary-pale/10">
-              {unitMonthlyData.map((month) => (
-                <tr key={month.month} className="hover:bg-secondary-pale/5 transition-colors">
-                  <td className="py-3 px-4 font-medium text-neutral-dark">{month.month}</td>
-                  <td className="py-3 px-4 text-right text-neutral-dark font-mono text-sm">{formatCurrency(month.target)}</td>
-                  <td className="py-3 px-4 text-right text-neutral-dark font-mono text-sm">{formatCurrency(month.revenue)}</td>
-                  <td className="py-3 px-4 text-right">
-                    <span className="font-semibold text-neutral-dark">
-                      {formatPercentage(month.achievement)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <span className="font-semibold text-neutral-dark">
-                      {formatPercentage(month.grossProfitMargin)}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            {unitMonthlyData.length > 0 && (
-              <tfoot>
-                <tr className="bg-gradient-to-r from-secondary-pale/20 to-secondary-pale/10 border-t-2 border-secondary-pale/30">
-                  <td className="py-3 px-4 font-bold text-neutral-dark">Total</td>
-                  <td className="py-3 px-4 text-right font-bold text-neutral-dark font-mono">
-                    {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.target, 0))}
-                  </td>
-                  <td className="py-3 px-4 text-right font-bold text-neutral-dark font-mono">
-                    {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.revenue, 0))}
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <span className="font-bold text-neutral-dark">
-                      {formatPercentage(selectedUnitData?.achievement || 0)}
-                    </span>
-                  </td>
-                  <td className="py-3 px-4 text-right">
-                    <span className="font-bold text-neutral-dark">
-                      {formatPercentage(((selectedUnitData?.target - selectedUnitData?.cost) / selectedUnitData?.target) * 100 || 0)}
-                    </span>
-                  </td>
-                </tr>
-              </tfoot>
-            )}
-          </table>
-        </div>
-      </div>
+        <BaseTable.Header variant="subtle">
+          <BaseTable.Row>
+            <BaseTable.Head>Month</BaseTable.Head>
+            <BaseTable.Head align="right">Target</BaseTable.Head>
+            <BaseTable.Head align="right">Revenue</BaseTable.Head>
+            <BaseTable.Head align="right">Achievement</BaseTable.Head>
+            <BaseTable.Head align="right">GP%</BaseTable.Head>
+          </BaseTable.Row>
+        </BaseTable.Header>
+        
+        <BaseTable.Body>
+          {unitMonthlyData.length === 0 ? (
+            <BaseTable.Empty message="No monthly data available" />
+          ) : (
+            unitMonthlyData.map((month) => (
+              <BaseTable.Row key={month.month}>
+                <BaseTable.Cell variant="header">{month.month}</BaseTable.Cell>
+                <BaseTable.Cell align="right" variant="currency">{formatCurrency(month.target)}</BaseTable.Cell>
+                <BaseTable.Cell align="right" variant="currency">{formatCurrency(month.revenue)}</BaseTable.Cell>
+                <BaseTable.Cell align="right" variant="percentage">
+                  <span className={cn(
+                    getAchievementStatus(month.achievement) === 'high' ? 'text-green-600' :
+                    getAchievementStatus(month.achievement) === 'medium' ? 'text-yellow-600' :
+                    'text-red-600'
+                  )}>
+                    {formatPercentage(month.achievement)}
+                  </span>
+                </BaseTable.Cell>
+                <BaseTable.Cell align="right" variant="percentage">
+                  <span className={cn(
+                    getGrossProfitStatus(month.grossProfitMargin) === 'high' ? 'text-green-600' :
+                    getGrossProfitStatus(month.grossProfitMargin) === 'medium' ? 'text-yellow-600' :
+                    'text-red-600'
+                  )}>
+                    {formatPercentage(month.grossProfitMargin)}
+                  </span>
+                </BaseTable.Cell>
+              </BaseTable.Row>
+            ))
+          )}
+        </BaseTable.Body>
+        
+        {unitMonthlyData.length > 0 && (
+          <BaseTable.Footer>
+            <BaseTable.Row>
+              <BaseTable.Cell variant="footer">Total</BaseTable.Cell>
+              <BaseTable.Cell align="right" variant="footer">
+                {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.target, 0))}
+              </BaseTable.Cell>
+              <BaseTable.Cell align="right" variant="footer">
+                {formatCurrency(unitMonthlyData.reduce((sum, month) => sum + month.revenue, 0))}
+              </BaseTable.Cell>
+              <BaseTable.Cell align="right" variant="footer">
+                <span className={cn(
+                  getAchievementStatus(selectedUnitData?.achievement || 0) === 'high' ? 'text-green-600' :
+                  getAchievementStatus(selectedUnitData?.achievement || 0) === 'medium' ? 'text-yellow-600' :
+                  'text-red-600'
+                )}>
+                  {formatPercentage(selectedUnitData?.achievement || 0)}
+                </span>
+              </BaseTable.Cell>
+              <BaseTable.Cell align="right" variant="footer">
+                <span className={cn(
+                  getGrossProfitStatus(((selectedUnitData?.target - selectedUnitData?.cost) / selectedUnitData?.target) * 100 || 0) === 'high' ? 'text-green-600' :
+                  getGrossProfitStatus(((selectedUnitData?.target - selectedUnitData?.cost) / selectedUnitData?.target) * 100 || 0) === 'medium' ? 'text-yellow-600' :
+                  'text-red-600'
+                )}>
+                  {formatPercentage(((selectedUnitData?.target - selectedUnitData?.cost) / selectedUnitData?.target) * 100 || 0)}
+                </span>
+              </BaseTable.Cell>
+            </BaseTable.Row>
+          </BaseTable.Footer>
+        )}
+      </BaseTable>
 
       {/* Achievement Summary */}
       {selectedUnitData && (
