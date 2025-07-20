@@ -289,12 +289,8 @@ const Overview = () => {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Target</p>
-                    <p className="text-xs text-neutral-mid">{periodFilter.period} Goal</p>
+                    <p className="text-xs text-neutral-mid">{dataService.getPeriodLabel(periodFilter.period, periodFilter.month, periodFilter.quarter)}</p>
                   </div>
-                </div>
-                <div className="text-xs text-accent-blue font-medium bg-accent-blue/10 px-2 py-1 rounded-full">
-                  <Calendar className="w-3 h-3 inline mr-1" />
-                  {periodFilter.year}
                 </div>
               </div>
               <p className="text-2xl md:text-3xl font-bold text-neutral-dark mb-3">
@@ -310,15 +306,25 @@ const Overview = () => {
                     {formatCurrency(overview.target / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter).length)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-neutral-mid flex items-center gap-1">
-                    <Package className="w-3 h-3" />
-                    Per Unit
-                  </span>
-                  <span className="font-semibold text-neutral-dark">
-                    {formatCurrency(overview.target / 2)}
-                  </span>
-                </div>
+                {serviceBreakdown && serviceBreakdown.length > 0 && (
+                  <>
+                    {serviceBreakdown.map((service) => (
+                      <div key={service.service_type} className="flex items-center justify-between text-sm">
+                        <span className="text-neutral-mid flex items-center gap-1">
+                          {service.service_type === 'Transportation' ? (
+                            <Truck className="w-3 h-3" />
+                          ) : (
+                            <Warehouse className="w-3 h-3" />
+                          )}
+                          {service.service_type} Avg
+                        </span>
+                        <span className="font-semibold text-neutral-dark">
+                          {formatCurrency(service.target / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter).length)}
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             </div>
           </BaseCard>
@@ -338,51 +344,44 @@ const Overview = () => {
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-neutral-mid uppercase tracking-wide">Revenue Achieved</p>
-                    <p className="text-xs text-neutral-mid">Actual Performance</p>
+                    <p className="text-xs text-neutral-mid">{dataService.getPeriodLabel(periodFilter.period, periodFilter.month, periodFilter.quarter)}</p>
                   </div>
-                </div>
-                <div className={`text-xs font-medium px-2 py-1 rounded-full ${
-                  overview.achievement >= 100 ? 'bg-green-100 text-green-700' : 
-                  overview.achievement >= 80 ? 'bg-yellow-100 text-yellow-700' : 
-                  'bg-red-100 text-red-700'
-                }`}>
-                  {overview.achievement >= 100 ? 'Exceeding' : overview.achievement >= 80 ? 'On Track' : 'Behind'}
                 </div>
               </div>
               <p className="text-2xl md:text-3xl font-bold text-neutral-dark mb-3">
                 {formatCurrency(overview.revenue)}
               </p>
               <div className="space-y-2">
-                <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center justify-between text-sm mb-3">
                   <span className="text-neutral-mid flex items-center gap-1">
                     <Activity className="w-3 h-3" />
                     Achievement
                   </span>
-                  <span className={`font-semibold ${
+                  <span className={`text-lg font-bold ${
                     overview.achievement >= 100 ? 'text-green-600' : 'text-neutral-dark'
                   }`}>
                     {formatPercentage(overview.achievement)}
                   </span>
                 </div>
-                <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                  <div 
-                    className={`h-full rounded-full transition-all duration-500 ${
-                      overview.achievement >= 100 ? 'bg-green-500' :
-                      overview.achievement >= 80 ? 'bg-yellow-500' :
-                      'bg-red-500'
-                    }`}
-                    style={{ width: `${Math.min(overview.achievement, 100)}%` }}
-                  />
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-neutral-mid flex items-center gap-1">
-                    <Users className="w-3 h-3" />
-                    Per Business Unit
-                  </span>
-                  <span className="font-semibold text-neutral-dark">
-                    {formatCurrency(overview.revenue / 2)}
-                  </span>
-                </div>
+                {serviceBreakdown && serviceBreakdown.length > 0 && (
+                  <>
+                    {serviceBreakdown.map((service) => (
+                      <div key={service.service_type} className="flex items-center justify-between text-sm">
+                        <span className="text-neutral-mid flex items-center gap-1">
+                          {service.service_type === 'Transportation' ? (
+                            <Truck className="w-3 h-3" />
+                          ) : (
+                            <Warehouse className="w-3 h-3" />
+                          )}
+                          {service.service_type} Avg
+                        </span>
+                        <span className="font-semibold text-neutral-dark">
+                          {formatCurrency(service.revenue / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter).length)}
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                )}
               </div>
             </div>
           </BaseCard>
@@ -409,7 +408,7 @@ const Overview = () => {
                           REVENUE OUTPERFORMANCE
                         </p>
                         <p className="text-xs text-neutral-mid">
-                          Performance Variance Analysis
+                          {dataService.getPeriodLabel(periodFilter.period, periodFilter.month, periodFilter.quarter)}
                         </p>
                       </div>
                     </div>
@@ -437,11 +436,6 @@ const Overview = () => {
                           +{formatPercentage(overview.achievement - 100)}
                         </span>
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-neutral-mid">
-                        <span>Target</span>
-                        <div className="flex-1 h-px bg-neutral-light"></div>
-                        <span>{formatPercentage(100)}</span>
-                      </div>
                       <div className="flex items-center gap-2 text-xs font-semibold text-primary">
                         <span>Actual</span>
                         <div className="flex-1 h-px bg-primary/30"></div>
@@ -468,7 +462,7 @@ const Overview = () => {
                           REVENUE TO GO
                         </p>
                         <p className="text-xs text-neutral-mid">
-                          Gap to Target Analysis
+                          {dataService.getPeriodLabel(periodFilter.period, periodFilter.month, periodFilter.quarter)}
                         </p>
                       </div>
                     </div>
@@ -498,11 +492,6 @@ const Overview = () => {
                         <span className="text-2xl font-bold text-accent-coral">
                           -{formatPercentage(100 - overview.achievement)}
                         </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-xs text-neutral-mid">
-                        <span>Target</span>
-                        <div className="flex-1 h-px bg-neutral-light"></div>
-                        <span>{formatPercentage(100)}</span>
                       </div>
                       <div className="flex items-center gap-2 text-xs font-semibold text-accent-coral">
                         <span>Actual</span>
