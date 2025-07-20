@@ -57,15 +57,29 @@ const Sidebar = ({ onCloseMobile }) => {
       </div>
       
       {/* Header */}
-      <div className="p-6 bg-white/80 backdrop-blur-sm border-b border-secondary-pale/20 relative z-10">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center shadow-md transform transition-transform hover:scale-105">
-            <TrendingUp className="w-6 h-6 text-white" />
+      <div className="p-6 bg-gradient-to-b from-white to-neutral-light/30 backdrop-blur-sm border-b border-secondary-pale/20 relative z-10">
+        <div className="flex items-center justify-center">
+          <div className="relative group">
+            {/* Glow effect */}
+            <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            {/* Logo container with subtle shadow and hover effect */}
+            <div className="relative bg-white rounded-xl p-3 shadow-lg ring-1 ring-secondary-pale/10 group-hover:shadow-xl transition-all duration-300 transform group-hover:scale-105">
+              <img 
+                src="/src/assets/logo.png" 
+                alt="Company Logo" 
+                className="h-14 w-auto object-contain filter drop-shadow-sm"
+              />
+            </div>
+            
+            {/* Subtle accent lines */}
+            <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 w-16 h-0.5 bg-gradient-to-r from-transparent via-primary/30 to-transparent"></div>
           </div>
-          <div>
-            <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-primary-dark bg-clip-text text-transparent tracking-tighter">PROCEED</h1>
-            <p className="text-xs text-neutral-mid">Revenue Dashboard</p>
-          </div>
+        </div>
+        
+        {/* Optional tagline or year */}
+        <div className="mt-4 text-center">
+          <p className="text-xs text-neutral-mid/70 font-medium tracking-wider uppercase">Excellence Since 2025</p>
         </div>
       </div>
       
