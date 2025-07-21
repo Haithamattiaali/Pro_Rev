@@ -102,6 +102,16 @@ const PeriodFilter = () => {
             >
               YTD
             </button>
+            <button
+              onClick={() => updatePeriod('YEAR')}
+              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+                selectedPeriod === 'YEAR'
+                  ? 'bg-primary text-white'
+                  : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
+              }`}
+            >
+              Year
+            </button>
           </div>
 
         {/* Month Selector - Visible when MTD is selected */}

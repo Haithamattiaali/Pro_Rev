@@ -63,7 +63,7 @@ const BusinessUnits = () => {
           };
         }
         
-        const [unitsData, trendsData] = await Promise.all([
+        const [unitsResponse, trendsData] = await Promise.all([
           dataService.getBusinessUnitData(
             periodFilter.year, 
             periodFilter.period,
@@ -74,11 +74,18 @@ const BusinessUnits = () => {
           dataService.getMonthlyTrends(periodFilter.year, selectedUnit)
         ])
         
-        setBusinessUnits(unitsData)
-        setMonthlyTrends(trendsData)
+        // Handle both response formats (array for regular, object with businessUnits for multi-select)
+        let unitsData = unitsResponse;
+        if (unitsResponse && typeof unitsResponse === 'object' && 'businessUnits' in unitsResponse) {
+          unitsData = unitsResponse.businessUnits;
+        }
+        
+        // Ensure data is arrays
+        setBusinessUnits(Array.isArray(unitsData) ? unitsData : [])
+        setMonthlyTrends(Array.isArray(trendsData) ? trendsData : [])
         
         // Preserve selected unit or set first unit if not selected
-        if (unitsData.length > 0) {
+        if (Array.isArray(unitsData) && unitsData.length > 0) {
           if (selectedUnit) {
             // Check if currently selected unit still exists in new data
             const unitStillExists = unitsData.some(u => u.businessUnit === selectedUnit)
@@ -123,14 +130,15 @@ const BusinessUnits = () => {
     )
   }
 
-  const selectedUnitData = businessUnits.find(unit => unit.businessUnit === selectedUnit)
+  const selectedUnitData = Array.isArray(businessUnits) ? businessUnits.find(unit => unit.businessUnit === selectedUnit) : null
   
   // Filter monthly data based on period selection
   const periodMonths = dataService.getPeriodMonths(
     periodFilter.year, 
     periodFilter.period, 
     periodFilter.month, 
-    periodFilter.quarter
+    periodFilter.quarter,
+    periodFilter  // Pass the full filter object for multi-select support
   )
   
   const unitMonthlyData = monthlyTrends
@@ -179,7 +187,7 @@ const BusinessUnits = () => {
 
       {/* Business Unit Selector */}
       <div className="flex space-x-4">
-        {businessUnits.map((unit) => (
+        {Array.isArray(businessUnits) && businessUnits.map((unit) => (
           <button
             key={unit.businessUnit}
             onClick={() => setSelectedUnit(unit.businessUnit)}
@@ -254,7 +262,7 @@ const BusinessUnits = () => {
       </div>
 
       {/* Monthly Breakdown Table */}
-      <BaseTable elevated variant="executive">
+      <div className="dashboard-card">
         <div className="px-6 py-4 border-b border-secondary-pale/20 bg-gradient-to-r from-white to-secondary-pale/5">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold text-primary-dark">Monthly Breakdown</h2>
@@ -273,7 +281,8 @@ const BusinessUnits = () => {
           </div>
         </div>
         
-        <BaseTable.Header variant="subtle">
+        <BaseTable elevated variant="executive">
+          <BaseTable.Header variant="subtle">
           <BaseTable.Row>
             <BaseTable.Head>Month</BaseTable.Head>
             <BaseTable.Head align="right">Target</BaseTable.Head>
@@ -346,7 +355,8 @@ const BusinessUnits = () => {
             </BaseTable.Row>
           </BaseTable.Footer>
         )}
-      </BaseTable>
+        </BaseTable>
+      </div>
 
       {/* Achievement Summary */}
       {selectedUnitData && (
@@ -382,7 +392,7 @@ const BusinessUnits = () => {
                       Monthly Avg
                     </span>
                     <span className="font-semibold text-neutral-dark">
-                      {formatCurrency(selectedUnitData.target / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter).length)}
+                      {formatCurrency(selectedUnitData.target / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter, periodFilter).length)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
@@ -395,7 +405,7 @@ const BusinessUnits = () => {
                       {selectedUnit} Avg
                     </span>
                     <span className="font-semibold text-neutral-dark">
-                      {formatCurrency(selectedUnitData.target / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter).length)}
+                      {formatCurrency(selectedUnitData.target / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter, periodFilter).length)}
                     </span>
                   </div>
                 </div>

@@ -50,6 +50,12 @@ class ApiService {
     console.log('🌐 API: Requesting multi-select overview data:', params);
     console.log('🌐 API: POST body:', JSON.stringify({ years, periods, viewMode }));
     
+    // Debug Q1+Q2 selection
+    if (viewMode === 'quarterly' && periods.length === 2 && 
+        periods.includes('Q1') && periods.includes('Q2')) {
+      console.log('🔍 Frontend: Sending Q1+Q2 selection');
+    }
+    
     const response = await this.request('/overview/multi-select', {
       method: 'POST',
       headers: {

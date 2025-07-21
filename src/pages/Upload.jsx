@@ -315,19 +315,37 @@ const Upload = () => {
           {/* Upload Results Section */}
           {(uploadResult || validation) && (
             <div className="mt-4 space-y-4">
-              {/* Success Message */}
+              {/* Success/Warning Message */}
               {uploadResult && (
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className={`p-4 rounded-lg border ${
+                  uploadResult.totalRecords === 0 
+                    ? 'bg-amber-50 border-amber-200' 
+                    : 'bg-green-50 border-green-200'
+                }`}>
                   <div className="flex items-center gap-2 mb-2">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                    <p className="text-green-700 font-medium">Upload Successful</p>
+                    {uploadResult.totalRecords === 0 ? (
+                      <>
+                        <AlertCircle className="w-5 h-5 text-amber-600" />
+                        <p className="text-amber-700 font-medium">No Data Found</p>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="w-5 h-5 text-green-600" />
+                        <p className="text-green-700 font-medium">Upload Successful</p>
+                      </>
+                    )}
                   </div>
-                  <div className="text-sm text-green-600 space-y-1">
+                  <div className={`text-sm space-y-1 ${
+                    uploadResult.totalRecords === 0 ? 'text-amber-600' : 'text-green-600'
+                  }`}>
+                    {uploadResult.message && (
+                      <p className="font-medium">{uploadResult.message}</p>
+                    )}
                     <p>Total Records: {uploadResult.totalRecords}</p>
                     <p>New Records: {uploadResult.inserted}</p>
                     <p>Updated Records: {uploadResult.updated}</p>
                     {uploadResult.errors > 0 && (
-                      <p className="text-amber-600">Errors: {uploadResult.errors}</p>
+                      <p className="text-red-600">Errors: {uploadResult.errors}</p>
                     )}
                   </div>
                 </div>

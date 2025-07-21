@@ -26,7 +26,7 @@ class ForecastService {
         month,
         SUM(revenue) as revenue,
         SUM(target) as target,
-        SUM(COALESCE(original_cost, cost)) as cost,
+        SUM(cost) as cost,
         SUM(CASE WHEN service_type = 'Transportation' THEN revenue ELSE 0 END) as transportation,
         SUM(CASE WHEN service_type = 'Warehouses' THEN revenue ELSE 0 END) as warehouses
       FROM revenue_data
@@ -74,16 +74,16 @@ class ForecastService {
         customer,
         SUM(revenue) as totalRevenue,
         SUM(target) as totalTarget,
-        SUM(COALESCE(original_cost, cost)) as totalCost,
+        SUM(cost) as totalCost,
         SUM(CASE WHEN service_type = 'Transportation' THEN revenue ELSE 0 END) as transportation,
         SUM(CASE WHEN service_type = 'Warehouses' THEN revenue ELSE 0 END) as warehouses,
         CASE 
           WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement,
-        SUM(revenue) - SUM(COALESCE(original_cost, cost)) as grossProfit,
+        SUM(revenue) - SUM(cost) as grossProfit,
         CASE 
-          WHEN SUM(revenue) > 0 THEN ((SUM(revenue) - SUM(COALESCE(original_cost, cost))) / SUM(revenue)) * 100
+          WHEN SUM(revenue) > 0 THEN ((SUM(revenue) - SUM(cost)) / SUM(revenue)) * 100
           ELSE 0
         END as grossMargin
       FROM revenue_data

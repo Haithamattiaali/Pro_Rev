@@ -65,6 +65,18 @@ class ETLService {
     let updated = 0;
     let errors = 0;
     
+    // Check if data is empty
+    if (!data || data.length === 0) {
+      return {
+        success: true,
+        totalRecords: 0,
+        inserted: 0,
+        updated: 0,
+        errors: 0,
+        message: 'No data found in the uploaded file'
+      };
+    }
+    
     // Use direct database access for transactions
     const transaction = db.transaction((records) => {
       // Prepare statement for better performance

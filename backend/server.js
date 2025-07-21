@@ -127,14 +127,41 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       results: {}
     };
     
+    let totalInserted = 0;
+    let totalUpdated = 0;
+    let hasData = false;
+    
     if (result.revenueData) {
       response.results.revenueData = result.revenueData;
+      if (result.revenueData.totalRecords > 0) hasData = true;
+      totalInserted += result.revenueData.inserted || 0;
+      totalUpdated += result.revenueData.updated || 0;
     }
     if (result.salesPlan) {
       response.results.salesPlan = result.salesPlan;
+      if (result.salesPlan.totalRecords > 0) hasData = true;
+      totalInserted += result.salesPlan.inserted || 0;
+      totalUpdated += result.salesPlan.updated || 0;
     }
     if (result.opportunities) {
       response.results.opportunities = result.opportunities;
+      if (result.opportunities.totalRecords > 0) hasData = true;
+      totalInserted += result.opportunities.inserted || 0;
+      totalUpdated += result.opportunities.updated || 0;
+    }
+    
+    // Add summary for frontend
+    response.totalRecords = (result.revenueData?.totalRecords || 0) + 
+                           (result.salesPlan?.totalRecords || 0) + 
+                           (result.opportunities?.totalRecords || 0);
+    response.inserted = totalInserted;
+    response.updated = totalUpdated;
+    response.errors = (result.revenueData?.errors || 0) + 
+                     (result.salesPlan?.errors || 0) + 
+                     (result.opportunities?.errors || 0);
+    
+    if (!hasData) {
+      response.message = 'File uploaded successfully but no data was found. Please ensure your file contains data rows.';
     }
     
     res.json(response);
@@ -216,7 +243,19 @@ app.post('/api/overview/multi-select', async (req, res) => {
     if (viewMode === 'monthly') {
       filters.months = periods.map(p => parseInt(p));
     } else if (viewMode === 'quarterly') {
-      filters.quarters = periods.map(p => parseInt(p.replace('Q', '')));
+      filters.quarters = periods.map(p => {
+        const quarterNum = parseInt(p.toString().replace('Q', ''));
+        console.log(`🌐 Converting period '${p}' to quarter: ${quarterNum}`);
+        return quarterNum;
+      });
+    }
+    
+    console.log('🌐 Final filters:', JSON.stringify(filters));
+    
+    // Additional validation for Q1+Q2 selection
+    if (filters.quarters && filters.quarters.length === 2 && 
+        filters.quarters.includes(1) && filters.quarters.includes(2)) {
+      console.log('🔍 Q1+Q2 Selection Detected - Expecting months: Jan-Jun only');
     }
     
     console.log('🌐 Converted filters:', filters);
@@ -269,8 +308,14 @@ app.post('/api/business-units/multi-select', async (req, res) => {
     if (viewMode === 'monthly') {
       filters.months = periods.map(p => parseInt(p));
     } else if (viewMode === 'quarterly') {
-      filters.quarters = periods.map(p => parseInt(p.replace('Q', '')));
+      filters.quarters = periods.map(p => {
+        const quarterNum = parseInt(p.toString().replace('Q', ''));
+        console.log(`🌐 Converting period '${p}' to quarter: ${quarterNum}`);
+        return quarterNum;
+      });
     }
+    
+    console.log('🌐 Final filters:', JSON.stringify(filters));
     
     const data = await dataService.getBusinessUnitDataMultiSelect(filters);
     res.json(data);
@@ -320,8 +365,14 @@ app.post('/api/customers/multi-select', async (req, res) => {
     if (viewMode === 'monthly') {
       filters.months = periods.map(p => parseInt(p));
     } else if (viewMode === 'quarterly') {
-      filters.quarters = periods.map(p => parseInt(p.replace('Q', '')));
+      filters.quarters = periods.map(p => {
+        const quarterNum = parseInt(p.toString().replace('Q', ''));
+        console.log(`🌐 Converting period '${p}' to quarter: ${quarterNum}`);
+        return quarterNum;
+      });
     }
+    
+    console.log('🌐 Final filters:', JSON.stringify(filters));
     
     const data = await dataService.getCustomerDataMultiSelect(filters);
     res.json(data);
@@ -924,8 +975,14 @@ app.post('/api/sales-plan/monthly/multi-select', async (req, res) => {
     if (viewMode === 'monthly') {
       filters.months = periods.map(p => parseInt(p));
     } else if (viewMode === 'quarterly') {
-      filters.quarters = periods.map(p => parseInt(p.replace('Q', '')));
+      filters.quarters = periods.map(p => {
+        const quarterNum = parseInt(p.toString().replace('Q', ''));
+        console.log(`🌐 Converting period '${p}' to quarter: ${quarterNum}`);
+        return quarterNum;
+      });
     }
+    
+    console.log('🌐 Final filters:', JSON.stringify(filters));
     
     const data = await salesPlanService.getSalesPlanMonthlyMultiSelect(filters, serviceType);
     res.json(data);
@@ -1007,8 +1064,14 @@ app.post('/api/sales-plan/overview/multi-select', async (req, res) => {
     if (viewMode === 'monthly') {
       filters.months = periods.map(p => parseInt(p));
     } else if (viewMode === 'quarterly') {
-      filters.quarters = periods.map(p => parseInt(p.replace('Q', '')));
+      filters.quarters = periods.map(p => {
+        const quarterNum = parseInt(p.toString().replace('Q', ''));
+        console.log(`🌐 Converting period '${p}' to quarter: ${quarterNum}`);
+        return quarterNum;
+      });
     }
+    
+    console.log('🌐 Final filters:', JSON.stringify(filters));
     
     const data = await salesPlanService.getSalesPlanOverviewMultiSelect(filters, serviceType);
     res.json(data);
@@ -1035,8 +1098,14 @@ app.post('/api/sales-plan/by-gl/multi-select', async (req, res) => {
     if (viewMode === 'monthly') {
       filters.months = periods.map(p => parseInt(p));
     } else if (viewMode === 'quarterly') {
-      filters.quarters = periods.map(p => parseInt(p.replace('Q', '')));
+      filters.quarters = periods.map(p => {
+        const quarterNum = parseInt(p.toString().replace('Q', ''));
+        console.log(`🌐 Converting period '${p}' to quarter: ${quarterNum}`);
+        return quarterNum;
+      });
     }
+    
+    console.log('🌐 Final filters:', JSON.stringify(filters));
     
     const data = await salesPlanService.getSalesPlanByGLMultiSelect(filters, serviceType);
     res.json(data);

@@ -62,7 +62,7 @@ const Customers = () => {
           };
         }
         
-        const [customersData, achievementData, breakdownData] = await Promise.all([
+        const [customersResponse, achievementData, breakdownData] = await Promise.all([
           dataService.getCustomerData(
             periodFilter.year, 
             periodFilter.period,
@@ -84,12 +84,19 @@ const Customers = () => {
           )
         ])
         
-        setCustomers(customersData)
-        setCustomerAchievement(achievementData)
-        setServiceBreakdown(breakdownData)
+        // Handle both response formats (array for regular, object with customers for multi-select)
+        let customersData = customersResponse;
+        if (customersResponse && typeof customersResponse === 'object' && 'customers' in customersResponse) {
+          customersData = customersResponse.customers;
+        }
+        
+        // Ensure data is arrays
+        setCustomers(Array.isArray(customersData) ? customersData : [])
+        setCustomerAchievement(Array.isArray(achievementData) ? achievementData : [])
+        setServiceBreakdown(Array.isArray(breakdownData) ? breakdownData : [])
         
         // Set first customer as selected by default, but preserve existing selection if customer still exists
-        if (customersData.length > 0) {
+        if (Array.isArray(customersData) && customersData.length > 0) {
           if (selectedCustomer) {
             // Check if currently selected customer still exists in new data
             const customerStillExists = customersData.some(c => c.customer === selectedCustomer)
@@ -134,11 +141,11 @@ const Customers = () => {
     )
   }
 
-  const selectedCustomerData = customers.find(c => c.customer === selectedCustomer)
-  const selectedAchievementData = customerAchievement.find(c => c.customer === selectedCustomer)
+  const selectedCustomerData = Array.isArray(customers) ? customers.find(c => c.customer === selectedCustomer) : null
+  const selectedAchievementData = Array.isArray(customerAchievement) ? customerAchievement.find(c => c.customer === selectedCustomer) : null
   
   // Sort customers by revenue for ranking
-  const sortedCustomers = [...customers].sort((a, b) => b.revenue - a.revenue)
+  const sortedCustomers = Array.isArray(customers) ? [...customers].sort((a, b) => b.revenue - a.revenue) : []
 
   // Check if no year is selected
   if (!periodFilter.year || periodFilter.period === 'NONE') {
@@ -497,7 +504,7 @@ const Customers = () => {
       )}
 
       {/* All Customers Summary Table */}
-      <BaseTable elevated variant="executive">
+      <div className="dashboard-card">
         <div className="px-6 py-4 border-b border-secondary-pale/20 bg-gradient-to-r from-white to-secondary-pale/5">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-bold text-primary-dark">All Customers Summary</h2>
@@ -516,7 +523,8 @@ const Customers = () => {
           </div>
         </div>
         
-        <BaseTable.Header variant="subtle">
+        <BaseTable elevated variant="executive">
+          <BaseTable.Header variant="subtle">
           <BaseTable.Row>
             <BaseTable.Head>Customer</BaseTable.Head>
             <BaseTable.Head align="right">Target</BaseTable.Head>
@@ -574,7 +582,8 @@ const Customers = () => {
             })
           )}
         </BaseTable.Body>
-      </BaseTable>
+        </BaseTable>
+      </div>
     </div>
   )
 }

@@ -41,7 +41,17 @@ class DataService {
   getMultiSelectMonths(filters) {
     const { months = [], quarters = [], years = [] } = filters;
     
-    console.log('🗓️ getMultiSelectMonths called with:', { months, quarters, years });
+    console.log('🗓️ getMultiSelectMonths called with:', { 
+      months, 
+      quarters, 
+      years,
+      monthsType: typeof months,
+      quartersType: typeof quarters,
+      monthsArray: Array.isArray(months),
+      quartersArray: Array.isArray(quarters),
+      monthsContent: months,
+      quartersContent: quarters
+    });
     
     // If no years selected, return empty array (no data)
     if (!years || years.length === 0) {
@@ -66,8 +76,11 @@ class DataService {
         const startMonth = (quarterNum - 1) * 3 + 1;
         const endMonth = quarterNum * 3;
         
+        console.log(`🗓️ Quarter ${quarterNum} maps to months ${startMonth}-${endMonth}`);
+        
         Object.entries(this.monthMap).forEach(([name, num]) => {
           if (num >= startMonth && num <= endMonth && !allMonths.includes(name)) {
+            console.log(`🗓️   Adding month: ${name} (${num})`);
             allMonths.push(name);
           }
         });
@@ -79,8 +92,22 @@ class DataService {
       return Object.keys(this.monthMap);
     }
 
-    console.log('🗓️ getMultiSelectMonths returning:', allMonths);
-    return allMonths;
+    // Sort months in chronological order
+    const sortedMonths = allMonths.sort((a, b) => this.monthMap[a] - this.monthMap[b]);
+    
+    console.log('🗓️ getMultiSelectMonths returning:', sortedMonths);
+    console.log('🗓️ Month numbers:', sortedMonths.map(m => `${m}(${this.monthMap[m]})`).join(', '));
+    
+    // Validation: Check if we have the expected months for Q1+Q2
+    if (quarters.length === 2 && quarters.includes(1) && quarters.includes(2)) {
+      const expectedMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+      const hasUnexpectedMonths = sortedMonths.some(m => !expectedMonths.includes(m));
+      if (hasUnexpectedMonths) {
+        console.error('🚨 ERROR: Unexpected months in Q1+Q2 selection:', sortedMonths.filter(m => !expectedMonths.includes(m)));
+      }
+    }
+    
+    return sortedMonths;
   }
 
   getPeriodMonths(year, period, month = null, quarter = null) {
@@ -138,6 +165,12 @@ class DataService {
         // Show full year data
         monthStart = 1;
         monthEnd = 12; // Changed to show full year instead of up to current month
+        break;
+      case 'YEAR':
+        // Year shows all 12 months
+        monthStart = 1;
+        monthEnd = 12;
+        console.log('🗓️ YEAR - all 12 months');
         break;
       default:
         monthStart = 1;
@@ -210,21 +243,7 @@ class DataService {
         COUNT(DISTINCT customer) as customer_count,
         COUNT(DISTINCT service_type) as service_count,
         CASE 
-          WHEN SUM(target) > 0 THEN 
-            (SUM(revenue) / SUM(target / CASE month
-              WHEN 'Jan' THEN 31
-              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
-              WHEN 'Mar' THEN 31
-              WHEN 'Apr' THEN 30
-              WHEN 'May' THEN 31
-              WHEN 'Jun' THEN 30
-              WHEN 'Jul' THEN 31
-              WHEN 'Aug' THEN 31
-              WHEN 'Sep' THEN 30
-              WHEN 'Oct' THEN 31
-              WHEN 'Nov' THEN 30
-              WHEN 'Dec' THEN 31
-            END * days)) * 100 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement_percentage
       FROM revenue_data
@@ -232,6 +251,11 @@ class DataService {
     `;
     
     console.log('📊 Multi-select SQL params:', { years, selectedMonths });
+    console.log('📊 SQL Query:', sql);
+    console.log('📊 SQL Parameters:', [...years, ...selectedMonths]);
+    console.log('📊 SQL Month placeholders:', monthPlaceholders);
+    console.log('📊 Month values for IN clause:', selectedMonths);
+    
     const overview = await db.get(sql, [...years, ...selectedMonths]);
     console.log('📊 Multi-select overview result:', overview);
     
@@ -243,21 +267,7 @@ class DataService {
         SUM(target) as target,
         SUM(cost) as cost,
         CASE 
-          WHEN SUM(target) > 0 THEN 
-            (SUM(revenue) / SUM(target / CASE month
-              WHEN 'Jan' THEN 31
-              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
-              WHEN 'Mar' THEN 31
-              WHEN 'Apr' THEN 30
-              WHEN 'May' THEN 31
-              WHEN 'Jun' THEN 30
-              WHEN 'Jul' THEN 31
-              WHEN 'Aug' THEN 31
-              WHEN 'Sep' THEN 30
-              WHEN 'Oct' THEN 31
-              WHEN 'Nov' THEN 30
-              WHEN 'Dec' THEN 31
-            END * days)) * 100 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement_percentage
       FROM revenue_data
@@ -267,6 +277,33 @@ class DataService {
     `;
     
     const serviceBreakdown = await db.all(serviceBreakdownSql, [...years, ...selectedMonths]);
+    
+    // Debug: Check what months are actually in the result
+    const debugSql = `
+      SELECT DISTINCT month, COUNT(*) as record_count
+      FROM revenue_data
+      WHERE year IN (${yearPlaceholders}) AND month IN (${monthPlaceholders})
+      GROUP BY month
+      ORDER BY 
+        CASE month
+          WHEN 'Jan' THEN 1 WHEN 'Feb' THEN 2 WHEN 'Mar' THEN 3
+          WHEN 'Apr' THEN 4 WHEN 'May' THEN 5 WHEN 'Jun' THEN 6
+          WHEN 'Jul' THEN 7 WHEN 'Aug' THEN 8 WHEN 'Sep' THEN 9
+          WHEN 'Oct' THEN 10 WHEN 'Nov' THEN 11 WHEN 'Dec' THEN 12
+        END
+    `;
+    const monthsInResult = await db.all(debugSql, [...years, ...selectedMonths]);
+    console.log('📊 DEBUG - Months actually in result:', monthsInResult);
+    
+    // Additional debug: Show raw data sample
+    const sampleDataSql = `
+      SELECT customer, service_type, year, month, revenue, target
+      FROM revenue_data
+      WHERE year IN (${yearPlaceholders}) AND month IN (${monthPlaceholders})
+      LIMIT 5
+    `;
+    const sampleData = await db.all(sampleDataSql, [...years, ...selectedMonths]);
+    console.log('📊 DEBUG - Sample data rows:', sampleData);
     
     return {
       filters,
@@ -347,21 +384,7 @@ class DataService {
         COUNT(DISTINCT customer) as customer_count,
         COUNT(DISTINCT service_type) as service_count,
         CASE 
-          WHEN SUM(target) > 0 THEN 
-            (SUM(revenue) / SUM(target / CASE month
-              WHEN 'Jan' THEN 31
-              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
-              WHEN 'Mar' THEN 31
-              WHEN 'Apr' THEN 30
-              WHEN 'May' THEN 31
-              WHEN 'Jun' THEN 30
-              WHEN 'Jul' THEN 31
-              WHEN 'Aug' THEN 31
-              WHEN 'Sep' THEN 30
-              WHEN 'Oct' THEN 31
-              WHEN 'Nov' THEN 30
-              WHEN 'Dec' THEN 31
-            END * days)) * 100 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement_percentage
       FROM revenue_data
@@ -379,21 +402,7 @@ class DataService {
         SUM(target) as target,
         SUM(cost) as cost,
         CASE 
-          WHEN SUM(target) > 0 THEN 
-            (SUM(revenue) / SUM(target / CASE month
-              WHEN 'Jan' THEN 31
-              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
-              WHEN 'Mar' THEN 31
-              WHEN 'Apr' THEN 30
-              WHEN 'May' THEN 31
-              WHEN 'Jun' THEN 30
-              WHEN 'Jul' THEN 31
-              WHEN 'Aug' THEN 31
-              WHEN 'Sep' THEN 30
-              WHEN 'Oct' THEN 31
-              WHEN 'Nov' THEN 30
-              WHEN 'Dec' THEN 31
-            END * days)) * 100 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement_percentage
       FROM revenue_data
@@ -452,21 +461,7 @@ class DataService {
         SUM(receivables_collected) as receivables,
         COUNT(DISTINCT customer) as customerCount,
         CASE 
-          WHEN SUM(target) > 0 THEN 
-            (SUM(revenue) / SUM(target / CASE month
-              WHEN 'Jan' THEN 31
-              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
-              WHEN 'Mar' THEN 31
-              WHEN 'Apr' THEN 30
-              WHEN 'May' THEN 31
-              WHEN 'Jun' THEN 30
-              WHEN 'Jul' THEN 31
-              WHEN 'Aug' THEN 31
-              WHEN 'Sep' THEN 30
-              WHEN 'Oct' THEN 31
-              WHEN 'Nov' THEN 30
-              WHEN 'Dec' THEN 31
-            END * days)) * 100 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement
       FROM revenue_data
@@ -510,21 +505,7 @@ class DataService {
         GROUP_CONCAT(DISTINCT service_type) as services,
         COUNT(DISTINCT service_type) as serviceCount,
         CASE 
-          WHEN SUM(target) > 0 THEN 
-            (SUM(revenue) / SUM(target / CASE month
-              WHEN 'Jan' THEN 31
-              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
-              WHEN 'Mar' THEN 31
-              WHEN 'Apr' THEN 30
-              WHEN 'May' THEN 31
-              WHEN 'Jun' THEN 30
-              WHEN 'Jul' THEN 31
-              WHEN 'Aug' THEN 31
-              WHEN 'Sep' THEN 30
-              WHEN 'Oct' THEN 31
-              WHEN 'Nov' THEN 30
-              WHEN 'Dec' THEN 31
-            END * days)) * 100 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement
       FROM revenue_data
@@ -570,21 +551,7 @@ class DataService {
         SUM(receivables_collected) as receivables,
         COUNT(DISTINCT customer) as customerCount,
         CASE 
-          WHEN SUM(target) > 0 THEN 
-            (SUM(revenue) / SUM(target / CASE month
-              WHEN 'Jan' THEN 31
-              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
-              WHEN 'Mar' THEN 31
-              WHEN 'Apr' THEN 30
-              WHEN 'May' THEN 31
-              WHEN 'Jun' THEN 30
-              WHEN 'Jul' THEN 31
-              WHEN 'Aug' THEN 31
-              WHEN 'Sep' THEN 30
-              WHEN 'Oct' THEN 31
-              WHEN 'Nov' THEN 30
-              WHEN 'Dec' THEN 31
-            END * days)) * 100 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement
       FROM revenue_data
@@ -632,21 +599,7 @@ class DataService {
         GROUP_CONCAT(DISTINCT service_type) as services,
         COUNT(DISTINCT service_type) as serviceCount,
         CASE 
-          WHEN SUM(target) > 0 THEN 
-            (SUM(revenue) / SUM(target / CASE month
-              WHEN 'Jan' THEN 31
-              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
-              WHEN 'Mar' THEN 31
-              WHEN 'Apr' THEN 30
-              WHEN 'May' THEN 31
-              WHEN 'Jun' THEN 30
-              WHEN 'Jul' THEN 31
-              WHEN 'Aug' THEN 31
-              WHEN 'Sep' THEN 30
-              WHEN 'Oct' THEN 31
-              WHEN 'Nov' THEN 30
-              WHEN 'Dec' THEN 31
-            END * days)) * 100 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement
       FROM revenue_data
@@ -728,7 +681,8 @@ class DataService {
   }
 
   async getCustomerAchievement(year, period, month = null, quarter = null) {
-    const months = this.getPeriodMonths(year, period, month, quarter);
+    const validatedData = await this.getValidatedPeriodMonths(year, period, month, quarter);
+    const months = validatedData.months;
     const placeholders = months.map(() => '?').join(',');
     
     const sql = `
@@ -738,21 +692,7 @@ class DataService {
         SUM(revenue) as revenue,
         SUM(target) as target,
         CASE 
-          WHEN SUM(target) > 0 THEN 
-            (SUM(revenue) / SUM(target / CASE month
-              WHEN 'Jan' THEN 31
-              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
-              WHEN 'Mar' THEN 31
-              WHEN 'Apr' THEN 30
-              WHEN 'May' THEN 31
-              WHEN 'Jun' THEN 30
-              WHEN 'Jul' THEN 31
-              WHEN 'Aug' THEN 31
-              WHEN 'Sep' THEN 30
-              WHEN 'Oct' THEN 31
-              WHEN 'Nov' THEN 30
-              WHEN 'Dec' THEN 31
-            END * days)) * 100 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement
       FROM revenue_data
@@ -795,7 +735,8 @@ class DataService {
   }
 
   async getCustomerServiceBreakdown(year, period, month = null, quarter = null) {
-    const months = this.getPeriodMonths(year, period, month, quarter);
+    const validatedData = await this.getValidatedPeriodMonths(year, period, month, quarter);
+    const months = validatedData.months;
     const placeholders = months.map(() => '?').join(',');
     
     const sql = `
@@ -875,21 +816,7 @@ class DataService {
         SUM(COALESCE(cost, 0)) as total_cost,
         SUM(COALESCE(target, 0)) as total_target,
         CASE 
-          WHEN SUM(target) > 0 THEN 
-            (SUM(revenue) / SUM(target / CASE month
-              WHEN 'Jan' THEN 31
-              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
-              WHEN 'Mar' THEN 31
-              WHEN 'Apr' THEN 30
-              WHEN 'May' THEN 31
-              WHEN 'Jun' THEN 30
-              WHEN 'Jul' THEN 31
-              WHEN 'Aug' THEN 31
-              WHEN 'Sep' THEN 30
-              WHEN 'Oct' THEN 31
-              WHEN 'Nov' THEN 30
-              WHEN 'Dec' THEN 31
-            END * days)) * 100 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement_percentage
       FROM revenue_data
@@ -912,21 +839,7 @@ class DataService {
           ELSE 0 
         END as profit_margin,
         CASE 
-          WHEN SUM(target) > 0 THEN 
-            (SUM(revenue) / SUM(target / CASE month
-              WHEN 'Jan' THEN 31
-              WHEN 'Feb' THEN CASE WHEN year % 4 = 0 AND (year % 100 != 0 OR year % 400 = 0) THEN 29 ELSE 28 END
-              WHEN 'Mar' THEN 31
-              WHEN 'Apr' THEN 30
-              WHEN 'May' THEN 31
-              WHEN 'Jun' THEN 30
-              WHEN 'Jul' THEN 31
-              WHEN 'Aug' THEN 31
-              WHEN 'Sep' THEN 30
-              WHEN 'Oct' THEN 31
-              WHEN 'Nov' THEN 30
-              WHEN 'Dec' THEN 31
-            END * days)) * 100 
+          WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement
       FROM revenue_data

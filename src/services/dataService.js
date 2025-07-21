@@ -28,9 +28,21 @@ class DataService {
       return cached.data;
     }
 
-    const data = await fetcher();
-    this.cache.set(key, { data, timestamp: Date.now() });
-    return data;
+    try {
+      const data = await fetcher();
+      this.cache.set(key, { data, timestamp: Date.now() });
+      return data;
+    } catch (error) {
+      console.error('Error fetching data:', error);
+      // Return empty arrays for list endpoints to prevent errors
+      if (key.includes('customers') || key.includes('businessUnits') || key.includes('trends') || 
+          key.includes('achievement') || key.includes('breakdown') || key.includes('opportunities') ||
+          key.includes('years')) {
+        return [];
+      }
+      // Return empty object for other endpoints
+      return {};
+    }
   }
 
   async getOverviewData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
@@ -133,13 +145,48 @@ class DataService {
   }
 
   // Get period months based on year, period type, and optional month/quarter
-  getPeriodMonths(year, period, month = null, quarter = null) {
+  // Updated to handle multi-select scenarios
+  getPeriodMonths(year, period, month = null, quarter = null, multiSelectData = null) {
     const monthMap = {
       'Jan': 1, 'Feb': 2, 'Mar': 3, 'Apr': 4,
       'May': 5, 'Jun': 6, 'Jul': 7, 'Aug': 8,
       'Sep': 9, 'Oct': 10, 'Nov': 11, 'Dec': 12
     };
     
+    // Handle multi-select mode
+    if (multiSelectData && multiSelectData.multiSelectMode) {
+      const months = [];
+      
+      // Handle multi-select quarters
+      if (multiSelectData.selectedQuarters && multiSelectData.selectedQuarters.length > 0) {
+        multiSelectData.selectedQuarters.forEach(q => {
+          const startMonth = (q - 1) * 3 + 1;
+          const endMonth = q * 3;
+          for (let m = startMonth; m <= endMonth; m++) {
+            const monthName = Object.entries(monthMap).find(([_, num]) => num === m)?.[0];
+            if (monthName && !months.includes(monthName)) {
+              months.push(monthName);
+            }
+          }
+        });
+        // Sort months chronologically
+        return months.sort((a, b) => monthMap[a] - monthMap[b]);
+      }
+      
+      // Handle multi-select months
+      if (multiSelectData.selectedMonths && multiSelectData.selectedMonths.length > 0) {
+        multiSelectData.selectedMonths.forEach(m => {
+          const monthName = Object.entries(monthMap).find(([_, num]) => num === m)?.[0];
+          if (monthName && !months.includes(monthName)) {
+            months.push(monthName);
+          }
+        });
+        // Sort months chronologically
+        return months.sort((a, b) => monthMap[a] - monthMap[b]);
+      }
+    }
+    
+    // Original logic for non-multi-select mode
     const currentDate = new Date();
     const currentMonth = currentDate.getMonth() + 1;
     const currentYear = currentDate.getFullYear();

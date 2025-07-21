@@ -303,7 +303,7 @@ const Overview = () => {
                     Monthly Avg
                   </span>
                   <span className="font-semibold text-neutral-dark">
-                    {formatCurrency(overview.target / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter).length)}
+                    {formatCurrency(overview.target / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter, periodFilter).length)}
                   </span>
                 </div>
                 {serviceBreakdown && serviceBreakdown.length > 0 && (
@@ -319,7 +319,7 @@ const Overview = () => {
                           {service.service_type} Avg
                         </span>
                         <span className="font-semibold text-neutral-dark">
-                          {formatCurrency(service.target / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter).length)}
+                          {formatCurrency(service.target / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter, periodFilter).length)}
                         </span>
                       </div>
                     ))}
@@ -376,7 +376,7 @@ const Overview = () => {
                           {service.service_type} Avg
                         </span>
                         <span className="font-semibold text-neutral-dark">
-                          {formatCurrency(service.revenue / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter).length)}
+                          {formatCurrency(service.revenue / dataService.getPeriodMonths(periodFilter.year, periodFilter.period, periodFilter.month, periodFilter.quarter, periodFilter).length)}
                         </span>
                       </div>
                     ))}
