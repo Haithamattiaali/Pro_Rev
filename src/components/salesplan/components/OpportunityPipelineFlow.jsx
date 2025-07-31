@@ -77,7 +77,19 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
       const currentStage = sortedPipeline.find(stage => 
         stage.projects?.some(p => p.project === opp.project)
       )
-      if (currentStage?.stage?.toLowerCase() !== filterStage) return false
+      
+      if (filterStage === 'no status') {
+        // For 'no status', check if the opportunity is NOT in any stage or explicitly has 'no status'
+        const isInAnyStage = sortedPipeline.some(stage => 
+          stage.projects?.some(p => p.project === opp.project)
+        )
+        // If it's in a stage, check if that stage is 'no status', otherwise it should not be in any stage
+        if (isInAnyStage && currentStage?.stage?.toLowerCase() !== 'no status') return false
+        if (!isInAnyStage && !opp.status && opp.status !== '') return true
+      } else {
+        // For other stages, check exact match
+        if (currentStage?.stage?.toLowerCase() !== filterStage) return false
+      }
     }
     
     // City filter
@@ -559,10 +571,19 @@ const OpportunityPipelineFlow = ({ pipeline }) => {
                 const Icon = style.icon
                 const stageName = stage.stage?.toLowerCase() || ''
                 const count = allOpportunities.filter(opp => {
-                  const oppStage = sortedPipeline.find(s => 
-                    s.projects?.some(p => p.project === opp.project)
-                  )
-                  return oppStage?.stage?.toLowerCase() === stageName
+                  if (stageName === 'no status') {
+                    // For 'no status', check if opportunity is not in any other stage or explicitly has 'no status'
+                    const oppStage = sortedPipeline.find(s => 
+                      s.projects?.some(p => p.project === opp.project)
+                    )
+                    if (!oppStage) return true // Not in any stage
+                    return oppStage.stage?.toLowerCase() === 'no status'
+                  } else {
+                    const oppStage = sortedPipeline.find(s => 
+                      s.projects?.some(p => p.project === opp.project)
+                    )
+                    return oppStage?.stage?.toLowerCase() === stageName
+                  }
                 }).length
                 
                 return (
