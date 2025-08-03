@@ -35,8 +35,6 @@ const QuickRangePresets = ({ value, onChange, presets, className = '' }) => {
                 : 'bg-white border border-neutral-light text-neutral-dark hover:border-primary/30 hover:text-primary'
               }
             `}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
           >
             <Icon className="w-3 h-3" />
             {preset.label}

@@ -91,8 +91,6 @@ const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, multiSele
             : 'bg-white border-neutral-light hover:border-neutral-mid text-neutral-dark'
           }
         `}
-        whileHover={isCompliant ? { scale: 1.01 } : {}}
-        whileTap={isCompliant ? { scale: 0.99 } : {}}
         title={!isCompliant ? 'This period has incomplete data' : ''}
       >
         <div className="flex items-center gap-1">
@@ -129,8 +127,6 @@ const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, multiSele
             : 'bg-white border-neutral-light hover:border-neutral-mid text-neutral-dark'
           }
         `}
-        whileHover={isCompliant ? { scale: 1.01 } : {}}
-        whileTap={isCompliant ? { scale: 0.99 } : {}}
         title={!isCompliant ? 'This period has incomplete data' : ''}
       >
         <div className="flex items-center gap-1">

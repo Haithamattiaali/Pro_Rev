@@ -91,8 +91,6 @@ const MonthSelector = ({ selections = [], onChange, disabled }) => {
                   : 'bg-white border-neutral-light hover:border-neutral-mid'
                 }
               `}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
             >
               <div className="flex items-center justify-between gap-1">
                 <span className="text-xs font-medium">{month.short}</span>
@@ -107,7 +105,7 @@ const MonthSelector = ({ selections = [], onChange, disabled }) => {
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      transition={{ duration: 0.15 }}
                     >
                       <Check className="w-2 h-2 text-white" strokeWidth={3} />
                     </motion.div>

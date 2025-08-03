@@ -53,9 +53,8 @@ const YearSelector = ({ selections = [], onChange }) => {
             <motion.button
               key={year}
               onClick={() => handleToggle(year)}
-              initial={{ opacity: 0, y: 5 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.02 }}
+              initial={false}
+              animate={{ opacity: 1 }}
               className={`
                 relative p-1.5 rounded-md border transition-all
                 ${isSelected
@@ -63,8 +62,6 @@ const YearSelector = ({ selections = [], onChange }) => {
                   : 'bg-white border-neutral-light hover:border-neutral-mid'
                 }
               `}
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
             >
               <div className="flex items-center justify-center gap-1">
                 <div className={`
@@ -78,7 +75,7 @@ const YearSelector = ({ selections = [], onChange }) => {
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      transition={{ duration: 0.15 }}
                     >
                       <Check className="w-2 h-2 text-white" strokeWidth={3} />
                     </motion.div>

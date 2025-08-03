@@ -1,0 +1,8 @@
+{
+    "id": "20250803-182829-remove-tab-animations",
+    "timestamp": "2025-08-03T18:28:29+03:00",
+    "epic": "smooth-filter-transitions",
+    "phase": 3,
+    "initialFeedback": "its not requiered that at filtering the part that show the tab name just under the currently showing part to vibrate or animate",
+    "status": "active"
+}

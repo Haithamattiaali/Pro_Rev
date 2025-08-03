@@ -27,8 +27,6 @@ const ViewModeToggle = ({ value, onChange, className = '' }) => {
                 : 'text-neutral-dark hover:text-primary'
               }
             `}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
           >
             {isActive && (
               <motion.div
@@ -36,9 +34,8 @@ const ViewModeToggle = ({ value, onChange, className = '' }) => {
                 className="absolute inset-0 bg-primary rounded-md shadow-sm"
                 initial={false}
                 transition={{
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 30
+                  duration: 0.2,
+                  ease: "easeInOut"
                 }}
               />
             )}
