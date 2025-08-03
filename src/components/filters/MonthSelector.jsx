@@ -54,7 +54,7 @@ const MonthSelector = ({ selections = [], onChange, disabled }) => {
   }
   
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" style={{ contain: 'layout style' }}>
       <div className="flex items-center justify-between">
         <h3 className="text-xs font-medium text-neutral-dark">Select Months</h3>
         <div className="flex gap-1">
@@ -82,9 +82,8 @@ const MonthSelector = ({ selections = [], onChange, disabled }) => {
             <motion.button
               key={month.value}
               onClick={() => handleToggle(month.value)}
-              initial={{ opacity: 0, scale: 0.9 }}
+              initial={false}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: index * 0.01 }}
               className={`
                 relative p-1 rounded border transition-all
                 ${isSelected

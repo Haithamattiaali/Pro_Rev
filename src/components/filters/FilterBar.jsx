@@ -45,10 +45,12 @@ const FilterBar = () => {
   // Update dropdown position when opening
   useEffect(() => {
     if (isOpen && buttonRef.current) {
-      const rect = buttonRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + 4,
-        left: rect.left
+      requestAnimationFrame(() => {
+        const rect = buttonRef.current.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + 4,
+          left: rect.left
+        });
       });
     }
   }, [isOpen]);
@@ -163,7 +165,7 @@ const FilterBar = () => {
   const ActivePanelComponent = panels[activePanel].component;
   
   return (
-    <div ref={dropdownRef} className="relative bg-white/95 backdrop-blur-xl p-1.5 rounded-xl shadow-sm border border-neutral-light/50">
+    <div ref={dropdownRef} className="relative bg-white/95 backdrop-blur-xl p-1.5 rounded-xl shadow-sm border border-neutral-light/50" style={{ contain: 'layout' }}>
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-1.5">
           {/* Panel Selector */}
@@ -240,16 +242,18 @@ const FilterBar = () => {
         <AnimatePresence>
           <motion.div
             data-dropdown-portal
-            initial={{ opacity: 0, scale: 0.95, y: -10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: -10 }}
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.15, ease: [0.4, 0, 0.2, 1] }}
             className="fixed p-1 bg-white backdrop-blur-xl rounded-lg shadow-xl border border-neutral-light overflow-hidden"
             style={{ 
               width: '280px', 
               zIndex: 99999,
-              top: `${dropdownPosition.top}px`,
-              left: `${dropdownPosition.left}px`
+              transform: `translate(${dropdownPosition.left}px, ${dropdownPosition.top}px)`,
+              top: 0,
+              left: 0,
+              contain: 'layout style'
             }}
           >
             <div className="max-h-[180px] overflow-y-auto">

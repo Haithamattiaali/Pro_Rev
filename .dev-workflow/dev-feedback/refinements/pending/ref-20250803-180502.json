@@ -1,0 +1,44 @@
+{
+  "id": "ref-20250803-180502",
+  "conversationId": "20250803-180502-jan-transition-cracky",
+  "epic": "smooth-filter-transitions",
+  "category": "bug-report",
+  "feedback": "the bad transition still hapening when i click letsay jan the currently shwing hilighted area jumpe from up to down in cracky way",
+  "analysis": {
+    "impact": "high",
+    "urgency": "high",
+    "scope": "component-level"
+  },
+  "tasks": [
+    {
+      "type": "fix",
+      "description": "Stabilize ActiveFiltersDisplay height to prevent jumping",
+      "status": "completed",
+      "changes": [
+        "Added min-height to compact mode display",
+        "Added flex layout for vertical centering"
+      ]
+    },
+    {
+      "type": "fix",
+      "description": "Optimize portal positioning to use transform",
+      "status": "completed",
+      "changes": [
+        "Changed from top/left to transform positioning",
+        "Added contain property for layout isolation",
+        "Added requestAnimationFrame for smooth updates"
+      ]
+    },
+    {
+      "type": "fix",
+      "description": "Stabilize MonthSelector animations",
+      "status": "completed",
+      "changes": [
+        "Removed initial animations that cause layout shifts",
+        "Added contain property to prevent cascading reflows",
+        "Simplified animation to prevent jumping"
+      ]
+    }
+  ],
+  "created": "2025-08-03T18:05:00+03:00"
+}
