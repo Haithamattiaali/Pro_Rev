@@ -2,6 +2,7 @@ import React from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useFilter } from '../../contexts/FilterContext';
 import companyLogo from '../../assets/logo.png';
+import TransitionWrapper from '../common/TransitionWrapper';
 
 const PeriodFilter = () => {
   const { periodFilter, handlePeriodChange } = useFilter();
@@ -41,7 +42,11 @@ const PeriodFilter = () => {
       month: period === 'MTD' ? selectedMonth : periodFilter.month,
       quarter: period === 'QTD' ? selectedQuarter : periodFilter.quarter
     };
-    handlePeriodChange(filterData);
+    
+    // Add a subtle delay to coordinate with animations
+    requestAnimationFrame(() => {
+      handlePeriodChange(filterData);
+    });
   };
 
   const handleMonthChange = (month) => {
@@ -74,40 +79,40 @@ const PeriodFilter = () => {
           <div className="flex space-x-1 sm:space-x-2">
             <button
               onClick={() => updatePeriod('MTD')}
-              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-150 transform active:scale-95 ${
                 selectedPeriod === 'MTD'
-                  ? 'bg-primary text-white'
-                  : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light hover:shadow-sm'
               }`}
             >
               MTD
             </button>
             <button
               onClick={() => updatePeriod('QTD')}
-              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-150 transform active:scale-95 ${
                 selectedPeriod === 'QTD'
-                  ? 'bg-primary text-white'
-                  : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light hover:shadow-sm'
               }`}
             >
               QTD
             </button>
             <button
               onClick={() => updatePeriod('YTD')}
-              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-150 transform active:scale-95 ${
                 selectedPeriod === 'YTD'
-                  ? 'bg-primary text-white'
-                  : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light hover:shadow-sm'
               }`}
             >
               YTD
             </button>
             <button
               onClick={() => updatePeriod('YEAR')}
-              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all duration-150 transform active:scale-95 ${
                 selectedPeriod === 'YEAR'
-                  ? 'bg-primary text-white'
-                  : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light'
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-secondary-pale text-neutral-dark hover:bg-secondary-light hover:shadow-sm'
               }`}
             >
               Year
@@ -115,7 +120,7 @@ const PeriodFilter = () => {
           </div>
 
         {/* Month Selector - Visible when MTD is selected */}
-        {selectedPeriod === 'MTD' && (
+        <TransitionWrapper show={selectedPeriod === 'MTD'} className="ml-2">
           <div className="relative">
             <select
               value={selectedMonth}
@@ -130,10 +135,10 @@ const PeriodFilter = () => {
             </select>
             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-mid pointer-events-none" />
           </div>
-        )}
+        </TransitionWrapper>
 
         {/* Quarter Selector - Visible when QTD is selected */}
-        {selectedPeriod === 'QTD' && (
+        <TransitionWrapper show={selectedPeriod === 'QTD'} className="ml-2">
           <div className="relative">
             <select
               value={selectedQuarter}
@@ -148,7 +153,7 @@ const PeriodFilter = () => {
             </select>
             <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-neutral-mid pointer-events-none" />
           </div>
-        )}
+        </TransitionWrapper>
 
           {/* Year Display */}
           <div className="text-xs sm:text-sm text-neutral-mid">
