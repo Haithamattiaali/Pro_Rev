@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { useHierarchicalFilter } from '../../contexts/HierarchicalFilterContext';
 import YearDropdown from './YearDropdown';
 import ViewModeToggle from './ViewModeToggle';
@@ -92,18 +91,13 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true, d
         
         {/* Quick Presets Row */}
         {showQuickPresets && (
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.15 }}
-            className="mt-2 pt-2 border-t border-neutral-light/50"
-          >
+          <div className="mt-2 pt-2 border-t border-neutral-light/50">
             <QuickRangePresets
               value={filterState.quickPreset}
               onChange={handleQuickPresetChange}
               presets={quickPresets}
             />
-          </motion.div>
+          </div>
         )}
       </div>
       
