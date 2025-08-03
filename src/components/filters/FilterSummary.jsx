@@ -109,7 +109,7 @@ const FilterSummary = ({ displayLabel, isPartialPeriod, dateRange, selectedPerio
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: "easeOut" }}
-      className={`bg-primary/5 border border-primary/20 rounded-xl p-3 transition-colors duration-200 ${className}`}
+      className={`bg-primary/5 border border-primary/20 rounded-xl p-3 transition-colors duration-200 will-change-transform ${className}`}
     >
       <div className="flex items-start gap-3">
         <div className="p-2 bg-white rounded-lg shadow-sm transition-all duration-200">

@@ -23,12 +23,22 @@
     {
       "type": "investigate",
       "description": "Check for parent component re-renders causing flicker",
-      "status": "pending"
+      "status": "completed",
+      "changes": [
+        "Added React.memo to StickyPeriodFilter to prevent re-renders",
+        "Added React.memo to FilterBar component",
+        "Investigated parent hierarchy from Overview -> StickyPeriodFilter -> FilterBar -> ActiveFiltersDisplay"
+      ]
     },
     {
       "type": "enhance",
       "description": "Consider adding will-change property for performance",
-      "status": "pending"
+      "status": "completed",
+      "changes": [
+        "Added will-change-transform to ActiveFiltersDisplay main container",
+        "Added will-change-transform to FilterSummary main container",
+        "Added will-change-auto to FilterBar selection display wrapper"
+      ]
     }
   ],
   "created": "2025-08-03T17:35:00+03:00"

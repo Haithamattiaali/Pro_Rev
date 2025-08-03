@@ -47,4 +47,4 @@ const StickyPeriodFilter = ({ useModular = true, useNewFilterBar = true, useHier
   );
 };
 
-export default StickyPeriodFilter;
+export default React.memo(StickyPeriodFilter);

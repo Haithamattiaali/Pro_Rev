@@ -54,7 +54,7 @@ const ActiveFiltersDisplay = ({ selections, compact = false }) => {
   
   // Full display with icon and styling
   return (
-    <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 transition-all duration-200 ease-out">
+    <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 transition-all duration-200 ease-out will-change-transform">
       <div className="flex items-start gap-3">
         <div className="p-2 bg-white rounded-lg shadow-sm transition-all duration-200">
           {months.length > 0 ? (

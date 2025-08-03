@@ -212,7 +212,7 @@ const FilterBar = () => {
               }
             `}
           >
-            <div className="flex-1 text-left truncate">
+            <div className="flex-1 text-left truncate will-change-auto">
               <ActiveFiltersDisplay 
                 selections={selections}
                 compact={true}
@@ -267,4 +267,4 @@ const FilterBar = () => {
   );
 };
 
-export default FilterBar;
+export default React.memo(FilterBar);
