@@ -1,0 +1,35 @@
+{
+  "id": "ref-20250803-173500",
+  "conversationId": "20250803-173500-transition-crackiness",
+  "epic": "smooth-filter-transitions",
+  "category": "bug-report",
+  "feedback": "The transition happens here document.querySelector(\"#root > div > div.flex-1.flex.flex-col > main > div > div > div:nth-child(1) > div > div > div.bg-primary\\\\/5.border.border-primary\\\\/20.rounded-xl.p-3\") which is cracky and needs improvement",
+  "analysis": {
+    "impact": "medium",
+    "urgency": "high",
+    "scope": "component-level"
+  },
+  "tasks": [
+    {
+      "type": "fix",
+      "description": "Add smooth transitions to ActiveFiltersDisplay component",
+      "status": "completed",
+      "changes": [
+        "Added transition-all duration-200 ease-out to main container",
+        "Added transition classes to icon container",
+        "Added transition classes to text elements"
+      ]
+    },
+    {
+      "type": "investigate",
+      "description": "Check for parent component re-renders causing flicker",
+      "status": "pending"
+    },
+    {
+      "type": "enhance",
+      "description": "Consider adding will-change property for performance",
+      "status": "pending"
+    }
+  ],
+  "created": "2025-08-03T17:35:00+03:00"
+}

@@ -54,25 +54,31 @@ const ActiveFiltersDisplay = ({ selections, compact = false }) => {
   
   // Full display with icon and styling
   return (
-    <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+    <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 transition-all duration-200 ease-out">
       <div className="flex items-start gap-3">
-        <div className="p-2 bg-white rounded-lg shadow-sm">
+        <div className="p-2 bg-white rounded-lg shadow-sm transition-all duration-200">
           {months.length > 0 ? (
-            <Calendar className="w-5 h-5 text-primary" />
+            <Calendar className="w-5 h-5 text-primary transition-all duration-150" />
           ) : quarters.length > 0 ? (
-            <BarChart3 className="w-5 h-5 text-primary" />
+            <BarChart3 className="w-5 h-5 text-primary transition-all duration-150" />
           ) : (
-            <TrendingUp className="w-5 h-5 text-primary" />
+            <TrendingUp className="w-5 h-5 text-primary transition-all duration-150" />
           )}
         </div>
         <div className="flex-1">
-          <h3 className="text-sm font-semibold text-neutral-dark">Currently Showing</h3>
-          <p className="text-lg font-bold text-primary mt-1">{primary}</p>
-          <p className="text-sm text-neutral-mid mt-1">{secondary}</p>
+          <h3 className="text-sm font-semibold text-neutral-dark transition-colors duration-200">Currently Showing</h3>
+          <p className="text-lg font-bold text-primary mt-1 transition-all duration-200">{primary}</p>
+          <p className="text-sm text-neutral-mid mt-1 transition-all duration-200">{secondary}</p>
         </div>
       </div>
     </div>
   );
 };
 
-export default ActiveFiltersDisplay;
+export default React.memo(ActiveFiltersDisplay, (prevProps, nextProps) => {
+  // Only re-render if selections actually change
+  return (
+    JSON.stringify(prevProps.selections) === JSON.stringify(nextProps.selections) &&
+    prevProps.compact === nextProps.compact
+  );
+});

@@ -108,17 +108,17 @@ const FilterSummary = ({ displayLabel, isPartialPeriod, dateRange, selectedPerio
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className={`bg-primary/5 border border-primary/20 rounded-xl p-3 ${className}`}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className={`bg-primary/5 border border-primary/20 rounded-xl p-3 transition-colors duration-200 ${className}`}
     >
       <div className="flex items-start gap-3">
-        <div className="p-2 bg-white rounded-lg shadow-sm">
-          <Calendar className="w-4 h-4 text-primary" />
+        <div className="p-2 bg-white rounded-lg shadow-sm transition-all duration-200">
+          <Calendar className="w-4 h-4 text-primary transition-colors duration-150" />
         </div>
         <div className="flex-1">
-          <h3 className="text-xs font-medium text-neutral-mid uppercase tracking-wide">Currently Showing</h3>
-          <p className="text-base font-semibold text-primary mt-0.5">{displayLabel}</p>
-          <p className="text-xs text-neutral-mid mt-1">
+          <h3 className="text-xs font-medium text-neutral-mid uppercase tracking-wide transition-colors duration-200">Currently Showing</h3>
+          <p className="text-base font-semibold text-primary mt-0.5 transition-all duration-200">{displayLabel}</p>
+          <p className="text-xs text-neutral-mid mt-1 transition-all duration-200">
             {formatDateRange()}
           </p>
         </div>
