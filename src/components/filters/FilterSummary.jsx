@@ -1,6 +1,5 @@
 import React from 'react';
 import { Calendar, AlertCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 const FilterSummary = ({ displayLabel, isPartialPeriod, dateRange, selectedPeriods, viewMode, className = '' }) => {
   const formatDate = (date) => {
@@ -105,25 +104,22 @@ const FilterSummary = ({ displayLabel, isPartialPeriod, dateRange, selectedPerio
   };
 
   return (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.2, ease: "easeOut" }}
-      className={`bg-primary/5 border border-primary/20 rounded-xl p-3 transition-colors duration-200 ${className}`}
+    <div
+      className={`bg-primary/5 border border-primary/20 rounded-xl p-3 ${className}`}
     >
       <div className="flex items-start gap-3">
-        <div className="p-2 bg-white rounded-lg shadow-sm transition-all duration-200">
-          <Calendar className="w-4 h-4 text-primary transition-colors duration-150" />
+        <div className="p-2 bg-white rounded-lg shadow-sm">
+          <Calendar className="w-4 h-4 text-primary" />
         </div>
         <div className="flex-1">
-          <h3 className="text-xs font-medium text-neutral-mid uppercase tracking-wide transition-colors duration-200">Currently Showing</h3>
-          <p className="text-base font-semibold text-primary mt-0.5 transition-all duration-200">{displayLabel}</p>
-          <p className="text-xs text-neutral-mid mt-1 transition-all duration-200">
+          <h3 className="text-xs font-medium text-neutral-mid uppercase tracking-wide">Currently Showing</h3>
+          <p className="text-base font-semibold text-primary mt-0.5">{displayLabel}</p>
+          <p className="text-xs text-neutral-mid mt-1">
             {formatDateRange()}
           </p>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
