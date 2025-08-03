@@ -1,0 +1,48 @@
+{
+    "id": "ref-20250731-192900",
+    "conversationId": "20250731-192856-test-report-feedback",
+    "epic": "test-improvement",
+    "category": "test-coverage",
+    "source": "test-report-analysis",
+    "priority": "high",
+    "tasks": [
+        {
+            "id": "verify-tests",
+            "type": "validation",
+            "description": "Run npm test and verify all generated tests pass",
+            "priority": "critical",
+            "status": "pending"
+        },
+        {
+            "id": "coverage-report",
+            "type": "analysis",
+            "description": "Generate coverage report with npm run test:coverage",
+            "priority": "high",
+            "status": "pending"
+        },
+        {
+            "id": "test-pages",
+            "type": "implementation",
+            "description": "Create tests for Overview.jsx page component",
+            "priority": "high",
+            "status": "pending",
+            "details": "Start with most critical page component"
+        },
+        {
+            "id": "test-contexts",
+            "type": "implementation", 
+            "description": "Add tests for FilterContext and DataRefreshContext",
+            "priority": "high",
+            "status": "pending",
+            "details": "These are architectural components that need coverage"
+        },
+        {
+            "id": "test-utilities",
+            "type": "implementation",
+            "description": "Create shared test utilities (renderWithProviders, etc)",
+            "priority": "medium",
+            "status": "pending"
+        }
+    ],
+    "created": "2025-07-31T19:29:00+03:00"
+}

@@ -1,0 +1,15 @@
+{
+  "auditId": "20250803-121426-custom",
+  "type": "custom",
+  "userPreferences": {
+    "focusDirectories": "all",
+    "excludePatterns": "none",
+    "includeThirdParty": "n",
+    "riskTolerance": "b",
+    "complianceRequirements": "none",
+    "reportDetail": "b",
+    "autoRemediation": "y",
+    "integrations": "y"
+  },
+  "timestamp": "2025-08-03T12:15:30+03:00"
+}

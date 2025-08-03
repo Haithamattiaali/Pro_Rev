@@ -1,0 +1,18 @@
+{
+  "activeAudits": [
+    {
+      "id": "20250803-121426-custom",
+      "type": "custom",
+      "status": "initializing",
+      "started": "2025-08-03T12:14:26+03:00"
+    }
+  ],
+  "completedAudits": [],
+  "totalFindings": {
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0
+  },
+  "lastAudit": null
+}

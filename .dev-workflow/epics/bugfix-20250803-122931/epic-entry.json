@@ -1,0 +1,11 @@
+{
+  "id": "bugfix-1722682171",
+  "name": "Fix: Multiple filter state management approaches causing conflicts between explicit period selection and implicit period derivation in FilterContext",
+  "type": "state_management",
+  "status": "planned",
+  "priority": "high",
+  "auto_mode": true,
+  "confidence": 90,
+  "session": ".dev-workflow/epics/bugfix-20250803-122931",
+  "source": "audit-20250803-121426-custom"
+}

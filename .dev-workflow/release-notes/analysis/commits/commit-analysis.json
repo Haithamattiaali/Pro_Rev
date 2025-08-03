@@ -1,0 +1,16 @@
+{
+  "total_commits": 1,
+  "categories": {
+    "features": [],
+    "fixes": [
+      {
+        "hash": "2cf44e5",
+        "message": "Fix 'no status' stage filtering in OpportunityPipelineFlow",
+        "author": "Haitham"
+      }
+    ],
+    "improvements": [],
+    "documentation": [],
+    "other": []
+  }
+}

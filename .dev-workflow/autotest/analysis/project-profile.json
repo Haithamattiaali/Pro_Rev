@@ -1,0 +1,19 @@
+{
+  "projectType": "javascript",
+  "buildSystem": "vite",
+  "testFramework": "vitest",
+  "testScripts": {
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest watch"
+  },
+  "languages": [
+    {"js":      221},
+    {"jsx":      120},
+    {"ts":       44},
+    {"tsx":       69}
+  ],
+  "totalFiles":      454,
+  "projectStructure": "React + Vite"
+}

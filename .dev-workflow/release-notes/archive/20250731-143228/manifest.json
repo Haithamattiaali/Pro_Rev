@@ -1,0 +1,16 @@
+{
+  "archive_id": "20250731-143228",
+  "session_period": "July 31, 2025",
+  "metrics": {
+    "commits": 1,
+    "features": 0,
+    "fixes": 1,
+    "tasks": 11
+  },
+  "format": "comprehensive",
+  "audience": "mixed",
+  "files_generated": [
+    "release-notes-email.html",
+    "release-notes-email.txt"
+  ]
+}

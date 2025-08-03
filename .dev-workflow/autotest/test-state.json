@@ -1,0 +1,14 @@
+{
+  "status": "initializing",
+  "phase": 1,
+  "currentLayer": null,
+  "layers": {
+    "unit": {"status": "pending", "coverage": 0, "tests": 0, "failures": 0},
+    "integration": {"status": "pending", "coverage": 0, "tests": 0, "failures": 0},
+    "e2e": {"status": "pending", "coverage": 0, "tests": 0, "failures": 0},
+    "performance": {"status": "pending", "metrics": {}},
+    "security": {"status": "pending", "vulnerabilities": 0}
+  },
+  "autoFixEnabled": true,
+  "timestamp": "2025-07-31T14:40:40+03:00"
+}

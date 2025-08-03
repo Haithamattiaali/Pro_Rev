@@ -15,9 +15,48 @@ export const FilterProvider = ({ children }) => {
   const currentYear = new Date().getFullYear();
   const currentMonth = new Date().getMonth() + 1;
   const currentQuarter = Math.ceil(currentMonth / 3);
+  
+  // State validation helper to ensure consistency
+  const validateFilterState = (state) => {
+    const validated = { ...state };
+    
+    // Ensure period type matches selections
+    switch (validated.period) {
+      case 'YTD':
+        // Year view should have no month/quarter selections
+        if (validated.selectedMonths?.length > 0 || validated.selectedQuarters?.length > 0) {
+          console.warn('📊 FilterContext: Invalid state - clearing selections for YTD');
+          validated.selectedMonths = [];
+          validated.selectedQuarters = [];
+          validated.month = null;
+          validated.quarter = null;
+        }
+        break;
+        
+      case 'QTD':
+        // Quarter view should have no month selections
+        if (validated.selectedMonths?.length > 0) {
+          console.warn('📊 FilterContext: Invalid state - clearing months for QTD');
+          validated.selectedMonths = [];
+          validated.month = null;
+        }
+        break;
+        
+      case 'MTD':
+        // Month view should have no quarter selections
+        if (validated.selectedQuarters?.length > 0) {
+          console.warn('📊 FilterContext: Invalid state - clearing quarters for MTD');
+          validated.selectedQuarters = [];
+          validated.quarter = null;
+        }
+        break;
+    }
+    
+    return validated;
+  };
 
   // Applied filter state (what's currently active)
-  const [periodFilter, setPeriodFilter] = useState({
+  const [periodFilter, setPeriodFilter] = useState(validateFilterState({
     // Multi-select arrays (new)
     selectedMonths: [],
     selectedQuarters: [],
@@ -34,7 +73,7 @@ export const FilterProvider = ({ children }) => {
     year: currentYear,
     month: null,
     quarter: null
-  });
+  }));
 
   // Pending filter state (user's selections before applying)
   const [pendingFilter, setPendingFilter] = useState({
@@ -84,7 +123,7 @@ export const FilterProvider = ({ children }) => {
 
     // Only update if something changed to avoid infinite loop
     if (JSON.stringify(updates) !== JSON.stringify(periodFilter)) {
-      setPeriodFilter(updates);
+      setPeriodFilter(validateFilterState(updates));
     }
   }, [periodFilter.selectedMonths, periodFilter.selectedQuarters, periodFilter.selectedYears]);
   */
@@ -177,7 +216,7 @@ export const FilterProvider = ({ children }) => {
       }
     });
     
-    setPeriodFilter(newFilter);
+    setPeriodFilter(validateFilterState(newFilter));
     setHasChanges(false);
   };
 
@@ -195,7 +234,7 @@ export const FilterProvider = ({ children }) => {
   // Track last cache clear to prevent duplicates
   const lastCacheClearRef = useRef(null);
   
-  // Legacy handlePeriodChange for backward compatibility
+  // Enhanced handlePeriodChange with Single Source of Truth pattern
   const handlePeriodChange = (filterConfig) => {
     // Create a cache key to prevent duplicate clears
     const cacheKey = `${filterConfig.year}-${filterConfig.period}-${filterConfig.month}-${filterConfig.quarter}`;
@@ -206,44 +245,95 @@ export const FilterProvider = ({ children }) => {
       dataService.clearCache();
     }
     
-    // Handle both new multi-select format and legacy format
-    if ('selectedMonths' in filterConfig || 'selectedQuarters' in filterConfig || 'selectedYears' in filterConfig || 'selectedPeriods' in filterConfig) {
-      // New format - directly use provided values including computed period
-      const newFilter = {
-        ...periodFilter,
-        ...filterConfig
-      };
+    // Single Source of Truth: Period type drives selections
+    if (filterConfig.period) {
+      const newFilter = { ...periodFilter };
       
-      // Check if anything actually changed to prevent unnecessary updates
-      const hasChanged = Object.keys(filterConfig).some(key => {
-        if (Array.isArray(filterConfig[key]) && Array.isArray(periodFilter[key])) {
-          return JSON.stringify(filterConfig[key]) !== JSON.stringify(periodFilter[key]);
+      // Update period type
+      newFilter.period = filterConfig.period;
+      
+      // Clear invalid selections based on new period type
+      switch (filterConfig.period) {
+        case 'YTD':
+          // Year view - clear month and quarter selections
+          newFilter.selectedMonths = [];
+          newFilter.selectedQuarters = [];
+          newFilter.month = null;
+          newFilter.quarter = null;
+          newFilter.activeMode = 'Y';
+          console.log('📊 FilterContext: Switched to YTD - cleared month/quarter selections');
+          break;
+          
+        case 'QTD':
+          // Quarter view - clear month selections, ensure quarter is set
+          newFilter.selectedMonths = [];
+          newFilter.month = null;
+          newFilter.activeMode = 'Q';
+          
+          // Set default quarter if none selected
+          if (!newFilter.selectedQuarters.length && !filterConfig.quarter) {
+            newFilter.selectedQuarters = [currentQuarter];
+            newFilter.quarter = currentQuarter;
+          } else if (filterConfig.quarter) {
+            newFilter.selectedQuarters = [filterConfig.quarter];
+            newFilter.quarter = filterConfig.quarter;
+          }
+          console.log('📊 FilterContext: Switched to QTD - cleared month selections');
+          break;
+          
+        case 'MTD':
+          // Month view - clear quarter selections, ensure month is set
+          newFilter.selectedQuarters = [];
+          newFilter.quarter = null;
+          newFilter.activeMode = 'M';
+          
+          // Set default month if none selected
+          if (!newFilter.selectedMonths.length && !filterConfig.month) {
+            newFilter.selectedMonths = [currentMonth];
+            newFilter.month = currentMonth;
+          } else if (filterConfig.month) {
+            newFilter.selectedMonths = [filterConfig.month];
+            newFilter.month = filterConfig.month;
+          }
+          console.log('📊 FilterContext: Switched to MTD - cleared quarter selections');
+          break;
+      }
+      
+      // Apply any other updates from filterConfig
+      Object.keys(filterConfig).forEach(key => {
+        if (key !== 'period' && filterConfig[key] !== undefined) {
+          newFilter[key] = filterConfig[key];
         }
-        return filterConfig[key] !== periodFilter[key];
       });
       
+      // Update year if provided
+      if (filterConfig.year) {
+        newFilter.year = filterConfig.year;
+        newFilter.selectedYears = [filterConfig.year];
+      }
+      
+      // Check if anything actually changed
+      const hasChanged = JSON.stringify(newFilter) !== JSON.stringify(periodFilter);
+      
       if (!hasChanged) {
-        // console.log('📊 FilterContext: No changes detected, skipping update');
+        console.log('📊 FilterContext: No changes detected, skipping update');
         return;
       }
       
-      // console.log('📊 FilterContext: handlePeriodChange received:', filterConfig);
-      // console.log('📊 Filter change (multi-select):', {
-      //   period: newFilter.period,
-      //   year: newFilter.year,
-      //   month: newFilter.month,
-      //   multiSelectMode: newFilter.multiSelectMode,
-      //   selectedPeriods: newFilter.selectedPeriods,
-      //   viewMode: newFilter.viewMode,
-      //   selections: { 
-      //     months: newFilter.selectedMonths, 
-      //     quarters: newFilter.selectedQuarters, 
-      //     years: newFilter.selectedYears 
-      //   },
-      //   filterConfig: filterConfig
-      // });
+      console.log('📊 FilterContext: State updated with validation:', {
+        period: newFilter.period,
+        year: newFilter.year,
+        month: newFilter.month,
+        quarter: newFilter.quarter,
+        activeMode: newFilter.activeMode,
+        selections: {
+          months: newFilter.selectedMonths,
+          quarters: newFilter.selectedQuarters,
+          years: newFilter.selectedYears
+        }
+      });
       
-      setPeriodFilter(newFilter);
+      setPeriodFilter(validateFilterState(newFilter));
       // Also update pending to keep in sync
       setPendingFilter(prev => ({
         ...prev,
@@ -279,7 +369,7 @@ export const FilterProvider = ({ children }) => {
         updates.selectedYears = [year];
       }
 
-      setPeriodFilter(updates);
+      setPeriodFilter(validateFilterState(updates));
       // Update pending to match
       setPendingFilter({
         selectedMonths: updates.selectedMonths,
