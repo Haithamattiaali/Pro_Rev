@@ -44,9 +44,9 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true, d
   }, [disableValidation, filterState.viewMode, availablePeriods]);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {/* Main Filter Bar */}
-      <div className="bg-white/95 backdrop-blur-xl p-2 rounded-xl shadow-sm border border-neutral-light/50">
+      <div className="bg-white/95 backdrop-blur-xl p-2 rounded-xl shadow-sm border border-neutral-light/50" style={{ contain: 'layout' }}>
         <div className="flex items-center justify-between gap-2 flex-wrap">
           {/* Left side - Primary filters */}
           <div className="flex items-center gap-2 flex-1">
@@ -93,9 +93,9 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true, d
         {/* Quick Presets Row */}
         {showQuickPresets && (
           <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            transition={{ duration: 0.2 }}
+            initial={false}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.15 }}
             className="mt-2 pt-2 border-t border-neutral-light/50"
           >
             <QuickRangePresets
@@ -108,13 +108,15 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true, d
       </div>
       
       {/* Filter Summary */}
-      <FilterSummary
-        displayLabel={displayLabel}
-        isPartialPeriod={isPartialPeriod}
-        dateRange={dateRange}
-        selectedPeriods={selectedPeriods}
-        viewMode={viewMode}
-      />
+      <div style={{ contain: 'layout style', minHeight: '60px' }}>
+        <FilterSummary
+          displayLabel={displayLabel}
+          isPartialPeriod={isPartialPeriod}
+          dateRange={dateRange}
+          selectedPeriods={selectedPeriods}
+          viewMode={viewMode}
+        />
+      </div>
       
       {/* Comparison Mode (Optional) */}
       {showComparison && (
@@ -128,4 +130,4 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true, d
   );
 };
 
-export default HierarchicalFilter;
+export default React.memo(HierarchicalFilter);
