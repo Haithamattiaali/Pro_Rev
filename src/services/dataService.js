@@ -252,7 +252,15 @@ class DataService {
 
   // Format percentage
   formatPercentage(value) {
-    return `${(value || 0).toFixed(1)}%`;
+    // Handle null, undefined, or non-numeric values consistently
+    const numValue = value == null ? 0 : Number(value);
+    
+    // Handle NaN and Infinity cases
+    if (!isFinite(numValue)) {
+      return '0.0%';
+    }
+    
+    return `${numValue.toFixed(1)}%`;
   }
 
   // Calculate achievement percentage

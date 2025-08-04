@@ -9,13 +9,14 @@ import ToolbarSection from '../components/layout/ToolbarSection'
 import BaseTable from '../components/common/BaseTable'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
+import { useOptimizedLoading } from '../hooks/useOptimizedLoading'
 import dataService from '../services/dataService'
 import exportService from '../services/exportService'
 
 const Customers = () => {
   const { periodFilter } = useFilter()
   const { refreshTrigger, triggerRefresh } = useDataRefresh()
-  const [loading, setLoading] = useState(true)
+  const { isLoading, showLoading, startLoading, stopLoading } = useOptimizedLoading(true)
   const [error, setError] = useState(null)
   const [customers, setCustomers] = useState([])
   const [customerAchievement, setCustomerAchievement] = useState([])
@@ -31,7 +32,7 @@ const Customers = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true)
+      startLoading()
       setError(null)
       
       try {
@@ -112,14 +113,14 @@ const Customers = () => {
         console.error('Error fetching customer data:', err)
         setError('Failed to load customer data. Please try again.')
       } finally {
-        setLoading(false)
+        stopLoading()
       }
     }
 
     fetchData()
   }, [periodFilter, refreshTrigger])
 
-  if (loading) {
+  if (showLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />

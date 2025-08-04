@@ -1,18 +1,47 @@
 export const formatCurrency = (value) => {
+  // Handle null, undefined, or non-numeric values
+  const numValue = value == null ? 0 : Number(value);
+  
+  // Handle NaN and Infinity cases
+  if (!isFinite(numValue)) {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'SAR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(0);
+  }
+  
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'SAR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(value)
+  }).format(numValue);
 }
 
 export const formatPercentage = (value) => {
-  return `${value.toFixed(1)}%`
+  // Handle null, undefined, or non-numeric values
+  const numValue = value == null ? 0 : Number(value);
+  
+  // Handle NaN and Infinity cases
+  if (!isFinite(numValue)) {
+    return '0.0%';
+  }
+  
+  return `${numValue.toFixed(1)}%`;
 }
 
 export const formatNumber = (value) => {
-  return new Intl.NumberFormat('en-US').format(value)
+  // Handle null, undefined, or non-numeric values
+  const numValue = value == null ? 0 : Number(value);
+  
+  // Handle NaN and Infinity cases
+  if (!isFinite(numValue)) {
+    return '0';
+  }
+  
+  return new Intl.NumberFormat('en-US').format(numValue);
 }
 
 export const getAchievementStatus = (percentage) => {

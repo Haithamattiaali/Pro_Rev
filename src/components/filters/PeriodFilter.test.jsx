@@ -83,9 +83,24 @@ describe('PeriodFilter', () => {
   it('renders company logo', () => {
     renderWithProvider(<PeriodFilter />)
     
-    const logo = screen.getByAltText('Company Logo')
+    const logo = screen.getByAltText('Proceed Company Logo')
     expect(logo).toBeInTheDocument()
     expect(logo).toHaveAttribute('src', '/logo.png')
+  })
+
+  it('handles logo load error gracefully', () => {
+    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    renderWithProvider(<PeriodFilter />)
+    
+    const logo = screen.getByAltText('Proceed Company Logo')
+    
+    // Simulate error event
+    fireEvent.error(logo)
+    
+    expect(consoleSpy).toHaveBeenCalledWith('Logo failed to load:', expect.any(Object))
+    expect(logo.style.display).toBe('none')
+    
+    consoleSpy.mockRestore()
   })
 
   it('handles keyboard navigation', async () => {

@@ -8,6 +8,7 @@ import { ExportButton } from '../components/export'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import ToolbarSection from '../components/layout/ToolbarSection'
 import RevenueTypeIndicator from '../components/indicators/RevenueTypeIndicator'
+import { useOptimizedLoading } from '../hooks/useOptimizedLoading'
 // Import chart components
 import GLChart from '../components/salesplan/charts/GLChart'
 import BusinessUnitChart from '../components/salesplan/charts/BusinessUnitChart'
@@ -22,7 +23,7 @@ import MonthlyTable from '../components/salesplan/tables/MonthlyTable'
 const SalesPlanContent = () => {
   const { periodFilter } = useFilter()
   const { setActualDateRange } = useSalesPlanData()
-  const [loading, setLoading] = useState(true)
+  const { isLoading, showLoading, startLoading, stopLoading } = useOptimizedLoading(true)
   const [activeTab, setActiveTab] = useState('gl')
   const dashboardRef = useRef(null)
   
@@ -36,7 +37,7 @@ const SalesPlanContent = () => {
   // Fetch all data
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true)
+      startLoading()
       
       // Clear cache when switching modes to ensure fresh data
       if (periodFilter.multiSelectMode) {
@@ -105,7 +106,7 @@ const SalesPlanContent = () => {
       } catch (error) {
         console.error('Error fetching sales plan data:', error)
       } finally {
-        setLoading(false)
+        stopLoading()
       }
     }
 
@@ -125,7 +126,7 @@ const SalesPlanContent = () => {
     }
   }
 
-  if (loading) {
+  if (showLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">

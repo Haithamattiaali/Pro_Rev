@@ -162,11 +162,16 @@ const PeriodFilter = () => {
         </div>
         
         {/* Company Logo */}
-        <div className="hidden sm:flex items-center">
+        <div className="flex items-center ml-auto">
           <img 
             src={companyLogo} 
-            alt="Company Logo" 
-            className="h-8 sm:h-10 w-auto object-contain"
+            alt="Proceed Company Logo" 
+            className="h-6 w-auto object-contain sm:h-8 md:h-10 opacity-90 hover:opacity-100 transition-opacity"
+            onError={(e) => {
+              console.warn('Logo failed to load:', e);
+              e.currentTarget.style.display = 'none';
+            }}
+            loading="lazy"
           />
         </div>
       </div>
