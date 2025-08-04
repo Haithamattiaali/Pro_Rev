@@ -1,0 +1,50 @@
+{
+  "transition_preferences": {
+    "fade_crossfade": "no",
+    "skeleton_loaders": "unsure",
+    "optimistic_ui": "no immediate update"
+  },
+  "loading_behavior": {
+    "individual_updates": "no all at once",
+    "progressive_loading": "ok",
+    "chart_animations": "ok"
+  },
+  "visual_feedback": {
+    "loading_indicators": "no loading indicators (seamless transition)"
+  },
+  "scope": {
+    "all_dashboard_pages": "yes",
+    "priority_components": "no",
+    "smooth_table_transitions": "yes"
+  },
+  "performance": {
+    "memory_cache": "no",
+    "prefetching": "no",
+    "instant_feedback": "unsure"
+  },
+  "user_experience": {
+    "transition_speed": "seamless quiet transitions",
+    "perceived_vs_actual": "yes (perceived more important)"
+  },
+  "technical": {
+    "animation_type": "use best practice",
+    "number_animations": "no",
+    "scroll_position": "use best practice"
+  },
+  "data_management": {
+    "cache_results": "no",
+    "stale_data": "no",
+    "debounce": "use best practice"
+  },
+  "rollout": {
+    "implementation": "all at once",
+    "priority_section": "all",
+    "demo_ready": "ready"
+  },
+  "design": {
+    "emulate_dashboards": "no",
+    "apple_style": "yes",
+    "maintain_design": "of course"
+  },
+  "preferred_option": "Option B - Morphing Data"
+}

@@ -1,5 +1,15 @@
 # Bug Fix Log
 
+## [2025-08-04 06:35] Console Bug Fix: Import Binding Error
+- Console Error: SyntaxError: Importing binding name 'api' is not found
+- Epic Directory: .dev-workflow/epics/console-bugfix-20250804-063455
+- Status: ✅ FIXED
+- Files Modified: 
+  - src/services/lastCompliantMonthService.js (import statement fixed)
+  - src/services/__tests__/dataService.test.js (import and mock updated)
+- Root Cause: Incorrect import syntax - trying to import named export from default export
+- Solution: Changed from `import { api }` to `import api`
+
 ## [2025-08-03] Bug Fix Initiated: Multiple filter state management approaches causing conflicts between explicit period selection and implicit period derivation in FilterContext
 - Type: state_management
 - Mode: Autonomous

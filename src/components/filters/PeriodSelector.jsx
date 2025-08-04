@@ -23,7 +23,7 @@ const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, multiSele
     return validationData[selectedYear].compliantMonths?.includes(monthName) ?? true;
   };
 
-  // Check if a quarter is compliant (all months in quarter must be compliant)
+  // Check if a quarter is compliant
   const isQuarterCompliant = (quarter) => {
     if (disableValidation) return true;
     if (!validationData || !validationData[selectedYear]) return true;
@@ -31,12 +31,22 @@ const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, multiSele
     const startMonth = (quarterNum - 1) * 3 + 1;
     const endMonth = quarterNum * 3;
     
+    // For partial quarters (like current quarter with incomplete data),
+    // allow selection if at least one month has data
+    let hasAnyCompliantMonth = false;
+    let hasAllCompliantMonths = true;
+    
     for (let month = startMonth; month <= endMonth; month++) {
-      if (!isMonthCompliant(String(month))) {
-        return false;
+      const monthCompliant = isMonthCompliant(String(month));
+      if (monthCompliant) {
+        hasAnyCompliantMonth = true;
+      } else {
+        hasAllCompliantMonths = false;
       }
     }
-    return true;
+    
+    // If it's a partial quarter (has some but not all months), still allow selection
+    return hasAnyCompliantMonth;
   };
 
   const handlePeriodClick = (period) => {
@@ -76,6 +86,18 @@ const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, multiSele
     const startMonth = (quarterNum - 1) * 3 + 1;
     const endMonth = quarterNum * 3;
     const monthRange = `${getMonthName(startMonth)}-${getMonthName(endMonth)}`;
+    
+    // Check if this is a partial quarter (has some but not all months)
+    let isPartialQuarter = false;
+    if (isCompliant && validationData && validationData[selectedYear]) {
+      let compliantCount = 0;
+      for (let month = startMonth; month <= endMonth; month++) {
+        if (isMonthCompliant(String(month))) {
+          compliantCount++;
+        }
+      }
+      isPartialQuarter = compliantCount > 0 && compliantCount < 3;
+    }
 
     return (
       <motion.button
@@ -91,11 +113,18 @@ const PeriodSelector = ({ viewMode, value, onChange, availablePeriods, multiSele
             : 'bg-white border-neutral-light hover:border-neutral-mid text-neutral-dark'
           }
         `}
-        title={!isCompliant ? 'This period has incomplete data' : ''}
+        title={
+          !isCompliant 
+            ? 'This period has no data' 
+            : isPartialQuarter 
+              ? 'This quarter has partial data' 
+              : ''
+        }
       >
         <div className="flex items-center gap-1">
           <div className="text-sm font-semibold">{quarter}</div>
           {!isCompliant && <AlertCircle className="w-3 h-3 text-amber-500" />}
+          {isPartialQuarter && <AlertCircle className="w-3 h-3 text-amber-400" />}
         </div>
         <div className="text-[10px] text-neutral-mid mt-0.5">{monthRange}</div>
         {isCurrent && isCompliant && (

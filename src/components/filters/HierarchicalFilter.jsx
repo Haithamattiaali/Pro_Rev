@@ -7,6 +7,7 @@ import QuickRangePresets from './QuickRangePresets';
 import FilterSummary from './FilterSummary';
 import ComparisonMode from './ComparisonMode';
 import MultiSelectToggle from './MultiSelectToggle';
+import DataAvailabilityIndicator from '../common/DataAvailabilityIndicator';
 import companyLogo from '../../assets/logo.png';
 
 const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true, disableValidation = false }) => {
@@ -15,6 +16,7 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true, d
     availableYears,
     availablePeriods,
     validationData,
+    dataAvailability,
     displayLabel,
     isPartialPeriod,
     dateRange,
@@ -96,10 +98,39 @@ const HierarchicalFilter = ({ showComparison = false, showQuickPresets = true, d
               value={filterState.quickPreset}
               onChange={handleQuickPresetChange}
               presets={quickPresets}
+              disabledPresets={
+                // Disable YTD/QTD/MTD for past years
+                filterState.selectedYear < new Date().getFullYear() 
+                  ? ['YTD', 'QTD', 'MTD'] 
+                  : !dataAvailability?.hasData 
+                    ? ['YTD', 'QTD', 'MTD']
+                    : []
+              }
+              disabledMessage={(preset) => {
+                if (filterState.selectedYear < new Date().getFullYear()) {
+                  return `${preset} is only available for the current year`;
+                }
+                if (!dataAvailability?.hasData) {
+                  return `No data available for ${filterState.selectedYear}`;
+                }
+                return 'This preset is not available';
+              }}
             />
           </div>
         )}
       </div>
+      
+      {/* Data Availability Indicator */}
+      {dataAvailability && dataAvailability.hasData && (
+        <div className="mt-2">
+          <DataAvailabilityIndicator
+            lastMonth={dataAvailability.lastMonth}
+            year={filterState.selectedYear}
+            hasData={dataAvailability.hasData}
+            isPartialQuarter={dataAvailability.isPartialQuarter}
+          />
+        </div>
+      )}
       
       {/* Filter Summary */}
       <div style={{ contain: 'layout style', minHeight: '60px' }}>

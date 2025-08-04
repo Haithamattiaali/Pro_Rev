@@ -1,1 +1,45 @@
-[]
+[
+  {
+    "id": "implement-ytd-qtd-mtd-data-aware",
+    "name": "Implement YTD/QTD/MTD Data-Aware Filters",
+    "description": "Complete the implementation of data-aware period filters that use last compliant month instead of system date",
+    "priority": "high",
+    "status": "ready",
+    "dependencies": [],
+    "existingWork": "enhance-20250804-0546"
+  },
+  {
+    "id": "implement-premium-transitions",
+    "name": "Implement Premium Dashboard Transitions",
+    "description": "Replace loading spinners with smooth morphing transitions for premium user experience",
+    "priority": "high",
+    "status": "ready",
+    "dependencies": [],
+    "existingWork": "enhance-20250804-0501"
+  },
+  {
+    "id": "fix-filter-state-conflicts",
+    "name": "Fix Filter State Management Conflicts",
+    "description": "Resolve the multiple filter state management approaches causing conflicts",
+    "priority": "high",
+    "status": "ready",
+    "dependencies": [],
+    "existingWork": "bugfix-20250803-122931"
+  },
+  {
+    "id": "complete-test-coverage",
+    "name": "Improve Test Coverage",
+    "description": "Add comprehensive tests for critical components to reach 80% coverage target",
+    "priority": "medium",
+    "status": "planned",
+    "dependencies": []
+  },
+  {
+    "id": "optimize-performance",
+    "name": "Performance Optimization",
+    "description": "Optimize dashboard loading, data fetching, and rendering performance",
+    "priority": "medium",
+    "status": "planned",
+    "dependencies": ["implement-premium-transitions"]
+  }
+]

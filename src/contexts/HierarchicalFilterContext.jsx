@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback, use
 import { useLocation } from 'react-router-dom';
 import dataService from '../services/dataService';
 import { useSalesPlanData } from './SalesPlanContext';
+import { useDataRefresh } from './DataRefreshContext';
 
 const HierarchicalFilterContext = createContext();
 
@@ -27,6 +28,19 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
   
   // Get sales plan data if available
   const { actualDateRange } = useSalesPlanData();
+  
+  // Get refresh trigger to know when data is updated
+  const { refreshTrigger } = useDataRefresh();
+
+  // Data availability state
+  const [lastCompliantMonth, setLastCompliantMonth] = useState(null);
+  const [dataAvailability, setDataAvailability] = useState({
+    hasData: false,
+    lastMonth: null,
+    lastMonthNumber: null,
+    isPartialQuarter: false,
+    compliantMonths: []
+  });
 
   // Core filter state
   const [filterState, setFilterState] = useState({
@@ -76,23 +90,62 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
         ? filterState.selectedYears 
         : [filterState.selectedYear];
       
+      // Clear validation data on refresh to force re-fetch
+      if (refreshTrigger > 0) {
+        setValidationData({});
+      }
+      
       for (const year of yearsToValidate) {
-        if (!validationData[year]) {
-          try {
-            const validation = await dataService.getAnalysisPeriodValidation(year);
-            setValidationData(prev => ({
-              ...prev,
-              [year]: validation
-            }));
-          } catch (error) {
-            console.error(`Failed to fetch validation for year ${year}:`, error);
-          }
+        try {
+          const validation = await dataService.getAnalysisPeriodValidation(year);
+          setValidationData(prev => ({
+            ...prev,
+            [year]: validation
+          }));
+        } catch (error) {
+          console.error(`Failed to fetch validation for year ${year}:`, error);
         }
       }
     };
     
     fetchValidation();
-  }, [filterState.selectedYear, filterState.selectedYears, filterState.multiSelectMode, validationData]);
+  }, [filterState.selectedYear, filterState.selectedYears, filterState.multiSelectMode, refreshTrigger]);
+
+  // Fetch last compliant month data
+  useEffect(() => {
+    const fetchLastCompliantMonth = async () => {
+      const yearToCheck = filterState.multiSelectMode 
+        ? Math.max(...filterState.selectedYears)
+        : filterState.selectedYear;
+      
+      try {
+        const monthData = await dataService.getLastCompliantMonth(yearToCheck);
+        setLastCompliantMonth(monthData);
+        
+        // Also get display information
+        const displayInfo = await dataService.getDataAvailabilityDisplay(yearToCheck);
+        setDataAvailability({
+          hasData: monthData.hasData,
+          lastMonth: monthData.month,
+          lastMonthNumber: monthData.monthNumber,
+          isPartialQuarter: displayInfo.isPartialQuarter || false,
+          compliantMonths: monthData.compliantMonths || [],
+          display: displayInfo
+        });
+      } catch (error) {
+        console.error('Failed to fetch last compliant month:', error);
+        setDataAvailability({
+          hasData: false,
+          lastMonth: null,
+          lastMonthNumber: null,
+          isPartialQuarter: false,
+          compliantMonths: []
+        });
+      }
+    };
+    
+    fetchLastCompliantMonth();
+  }, [filterState.selectedYear, filterState.selectedYears, filterState.multiSelectMode, refreshTrigger]);
 
   // Compute derived values
   const derivedValues = useMemo(() => {
@@ -355,45 +408,65 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
             }
             isPartialPeriod = false; // Not partial for forecast data
           } else {
-            // Default behavior for other pages
-            startDate = new Date(currentYear, 0, 1);
-            endDate = today;
-            if (currentMonth === 12) {
-              displayLabel = `Full Year ${currentYear}`;
+            // Use data-aware logic for YTD
+            if (dataAvailability.hasData && dataAvailability.lastMonthNumber) {
+              startDate = new Date(currentYear, 0, 1);
+              endDate = new Date(currentYear, dataAvailability.lastMonthNumber - 1, 31);
+              displayLabel = `${currentYear} (Jan-${dataAvailability.lastMonth})`;
+              isPartialPeriod = dataAvailability.lastMonthNumber < 12;
             } else {
-              displayLabel = `${currentYear} (Jan-${ytdMonthNames[currentMonth - 1]})`;
+              // No data available
+              startDate = new Date(currentYear, 0, 1);
+              endDate = new Date(currentYear, 0, 31);
+              displayLabel = `${currentYear} (No Data)`;
+              isPartialPeriod = false;
             }
-            isPartialPeriod = true; // Always partial for current year YTD
           }
           periodType = 'YTD';
           break;
           
         case 'QTD':
-          // Always use current quarter for QTD
-          startDate = new Date(currentYear, (currentQuarter - 1) * 3, 1);
-          endDate = today;
-          const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-          const qStartMonth = (currentQuarter - 1) * 3;
-          const qEndMonth = Math.min(currentQuarter * 3 - 1, currentMonth - 1);
-          displayLabel = `Q${currentQuarter} ${currentYear} (${monthNames[qStartMonth]}-${monthNames[qEndMonth]})`;
-          isPartialPeriod = true;
+          // Use data-aware quarter calculation
+          if (dataAvailability.hasData && dataAvailability.lastMonthNumber) {
+            const dataQuarter = Math.ceil(dataAvailability.lastMonthNumber / 3);
+            startDate = new Date(currentYear, (dataQuarter - 1) * 3, 1);
+            endDate = new Date(currentYear, dataAvailability.lastMonthNumber - 1, 31);
+            
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const qStartMonth = (dataQuarter - 1) * 3;
+            const qEndMonth = dataAvailability.lastMonthNumber - 1;
+            
+            // Check if it's a partial quarter
+            const quarterEndMonth = dataQuarter * 3 - 1;
+            isPartialPeriod = qEndMonth < quarterEndMonth;
+            
+            displayLabel = `Q${dataQuarter} ${currentYear} (${monthNames[qStartMonth]}-${monthNames[qEndMonth]})`;
+            if (isPartialPeriod) {
+              displayLabel += ' - Partial';
+            }
+          } else {
+            // No data available
+            startDate = new Date(currentYear, 0, 1);
+            endDate = new Date(currentYear, 0, 31);
+            displayLabel = `Q1 ${currentYear} (No Data)`;
+            isPartialPeriod = false;
+          }
           periodType = 'QTD';
           break;
           
         case 'MTD':
-          // Check if current month is compliant
-          if (isMonthCompliant(currentMonth - 1)) {
-            startDate = new Date(currentYear, currentMonth - 1, 1);
-            endDate = today;
-            displayLabel = `Month to Date (${today.toLocaleString('en-US', { month: 'long' })} ${currentYear})`;
-            isPartialPeriod = true;
-          } else {
-            // Fall back to last compliant month
-            const lastCompliantMonth = getLastCompliantMonth();
-            startDate = new Date(currentYear, lastCompliantMonth, 1);
-            endDate = new Date(currentYear, lastCompliantMonth + 1, 0);
-            const monthName = new Date(currentYear, lastCompliantMonth, 1).toLocaleString('en-US', { month: 'long' });
+          // Use last compliant month as "current" month
+          if (dataAvailability.hasData && dataAvailability.lastMonthNumber) {
+            startDate = new Date(currentYear, dataAvailability.lastMonthNumber - 1, 1);
+            endDate = new Date(currentYear, dataAvailability.lastMonthNumber, 0); // Last day of month
+            const monthName = new Date(currentYear, dataAvailability.lastMonthNumber - 1, 1).toLocaleString('en-US', { month: 'long' });
             displayLabel = `${monthName} ${currentYear}`;
+            isPartialPeriod = false; // Full month data
+          } else {
+            // No data available
+            startDate = new Date(currentYear, 0, 1);
+            endDate = new Date(currentYear, 0, 31);
+            displayLabel = `January ${currentYear} (No Data)`;
             isPartialPeriod = false;
           }
           periodType = 'MTD';
@@ -585,13 +658,26 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
           break;
         case 'QTD':
           updates.viewMode = 'quarterly';
-          updates.selectedPeriod = `Q${currentQuarter}`;
-          updates.selectedPeriods = [`Q${currentQuarter}`];
+          // Use data-aware quarter
+          if (dataAvailability.hasData && dataAvailability.lastMonthNumber) {
+            const dataQuarter = Math.ceil(dataAvailability.lastMonthNumber / 3);
+            updates.selectedPeriod = `Q${dataQuarter}`;
+            updates.selectedPeriods = [`Q${dataQuarter}`];
+          } else {
+            updates.selectedPeriod = 'Q1';
+            updates.selectedPeriods = ['Q1'];
+          }
           break;
         case 'MTD':
           updates.viewMode = 'monthly';
-          updates.selectedPeriod = String(currentMonth);
-          updates.selectedPeriods = [String(currentMonth)];
+          // Use data-aware month
+          if (dataAvailability.hasData && dataAvailability.lastMonthNumber) {
+            updates.selectedPeriod = String(dataAvailability.lastMonthNumber);
+            updates.selectedPeriods = [String(dataAvailability.lastMonthNumber)];
+          } else {
+            updates.selectedPeriod = '1';
+            updates.selectedPeriods = ['1'];
+          }
           break;
       }
       
@@ -599,7 +685,7 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
     });
     
     // Cache clearing is handled by FilterContext to prevent multiple clears
-  }, [currentYear, currentQuarter, currentMonth]);
+  }, [currentYear, dataAvailability]);
 
   // Handle comparison mode
   const handleComparisonModeChange = useCallback((mode, period = null) => {
@@ -658,6 +744,8 @@ export const HierarchicalFilterProvider = ({ children, isForecastData = false })
     availableYears,
     availablePeriods: getAvailablePeriods(),
     validationData, // Add validation data
+    dataAvailability, // Data availability info
+    lastCompliantMonth, // Last compliant month data
     
     // Derived values
     ...derivedValues,

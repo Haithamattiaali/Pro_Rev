@@ -1,0 +1,23 @@
+{
+  "last_available_month_detection": "last compliant month as per current compliance logic",
+  "handling_data_gaps": {
+    "show_warning": true,
+    "prevent_during_upload": true
+  },
+  "multi_year_scenarios": "disable quick presets for past years",
+  "ytd_behavior": "show Jan-Jul data only (up to last compliant month)",
+  "qtd_edge_cases": "show Q3 partial - July only",
+  "mtd_definition": "partial current month based on days column in calculations",
+  "compliance_integration": "only show compliant periods",
+  "validation_warnings": "only on upload page",
+  "animation_removal": {
+    "remove_currently_showing": true,
+    "keep_subtle_transitions": true,
+    "remove_all_except_morphing": true
+  },
+  "visual_feedback": "all options - display prominently, calendar icon, tooltips",
+  "data_source": "database based on excel upload",
+  "performance": "use best practice for caching",
+  "no_data_scenario": "disable YTD/QTD/MTD buttons",
+  "future_month_selection": "months with no data or non-compliant will not be shown - all operations are file upload based"
+}

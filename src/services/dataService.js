@@ -1,4 +1,5 @@
 import apiService from './api.service';
+import { lastCompliantMonthService } from './lastCompliantMonthService';
 
 class DataService {
   constructor() {
@@ -9,6 +10,8 @@ class DataService {
   clearCache() {
     console.log('🗑️ DataService: Clearing all cached data');
     this.cache.clear();
+    // Also clear the last compliant month cache
+    lastCompliantMonthService.clearCache();
   }
 
   getCacheKey(method, ...args) {
@@ -379,6 +382,29 @@ class DataService {
   async getAnalysisPeriodValidation(year) {
     const key = this.getCacheKey('validation', year);
     return this.getCachedData(key, () => apiService.getAnalysisPeriodValidation(year));
+  }
+
+  // Wrapper methods for lastCompliantMonthService
+  async getLastCompliantMonth(year) {
+    return lastCompliantMonthService.getLastCompliantMonth(year);
+  }
+
+  async getDataAvailabilityDisplay(year) {
+    return lastCompliantMonthService.getDataAvailabilityDisplay(year);
+  }
+
+  clearCacheForYear(year) {
+    // Clear dataService cache for year
+    const keysToDelete = [];
+    for (const [key, value] of this.cache.entries()) {
+      if (key.includes(`_${year}_`) || key.endsWith(`_${year}`)) {
+        keysToDelete.push(key);
+      }
+    }
+    keysToDelete.forEach(key => this.cache.delete(key));
+    
+    // Also clear last compliant month cache for year
+    lastCompliantMonthService.clearCacheForYear(year);
   }
 }
 
