@@ -4,12 +4,20 @@ import { lastCompliantMonthService } from './lastCompliantMonthService';
 class DataService {
   constructor() {
     this.cache = new Map();
-    this.cacheTimeout = 5 * 60 * 1000; // 5 minutes
+    this.cacheTimeout = 30 * 60 * 1000; // 30 minutes (increased from 5)
+    this.staleTimeout = 60 * 60 * 1000; // 1 hour - data is considered stale but usable
+    this.prefetchQueue = new Set();
+    this.loadingStates = new Map(); // Track loading states per endpoint
+    this.cacheStats = { hits: 0, misses: 0, staleServed: 0 };
+    
+    // Initialize cache warming on startup
+    setTimeout(() => this.warmCache(), 1000);
   }
 
   clearCache() {
     console.log('🗑️ DataService: Clearing all cached data');
     this.cache.clear();
+    this.loadingStates.clear();
     // Also clear the last compliant month cache
     lastCompliantMonthService.clearCache();
   }
@@ -25,18 +33,69 @@ class DataService {
     return `${method}_${processedArgs.join('_')}`;
   }
 
-  async getCachedData(key, fetcher) {
+  // Enhanced cache with stale-while-revalidate pattern
+  async getCachedData(key, fetcher, options = {}) {
     const cached = this.cache.get(key);
-    if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
+    const now = Date.now();
+    
+    // Check if we have fresh cached data
+    if (cached && (now - cached.timestamp < this.cacheTimeout)) {
+      this.cacheStats.hits++;
+      console.log(`✅ Cache hit for ${key}`);
       return cached.data;
     }
-
+    
+    // Check if we have stale but usable data
+    if (cached && (now - cached.timestamp < this.staleTimeout) && !options.forceFresh) {
+      this.cacheStats.staleServed++;
+      console.log(`♻️ Serving stale data for ${key}, refreshing in background`);
+      
+      // Return stale data immediately
+      const staleData = cached.data;
+      
+      // Refresh in background without blocking
+      this.refreshInBackground(key, fetcher);
+      
+      return staleData;
+    }
+    
+    // No cache or too stale - need to fetch
+    this.cacheStats.misses++;
+    console.log(`❌ Cache miss for ${key}`);
+    
+    // Check if already loading this endpoint
+    if (this.loadingStates.has(key)) {
+      console.log(`⏳ Already loading ${key}, waiting...`);
+      return this.loadingStates.get(key);
+    }
+    
+    // Create loading promise
+    const loadingPromise = this.fetchWithRetry(key, fetcher);
+    this.loadingStates.set(key, loadingPromise);
+    
+    try {
+      const data = await loadingPromise;
+      return data;
+    } finally {
+      this.loadingStates.delete(key);
+    }
+  }
+  
+  async fetchWithRetry(key, fetcher) {
     try {
       const data = await fetcher();
       this.cache.set(key, { data, timestamp: Date.now() });
       return data;
     } catch (error) {
       console.error('Error fetching data:', error);
+      
+      // If we have any cached data (even very stale), return it
+      const cached = this.cache.get(key);
+      if (cached) {
+        console.log(`🔄 Returning stale cache due to error for ${key}`);
+        return cached.data;
+      }
+      
       // Return empty arrays for list endpoints to prevent errors
       if (key.includes('customers') || key.includes('businessUnits') || key.includes('trends') || 
           key.includes('achievement') || key.includes('breakdown') || key.includes('opportunities') ||
@@ -46,6 +105,98 @@ class DataService {
       // Return empty object for other endpoints
       return {};
     }
+  }
+  
+  async refreshInBackground(key, fetcher) {
+    try {
+      const data = await fetcher();
+      this.cache.set(key, { data, timestamp: Date.now() });
+      console.log(`✅ Background refresh completed for ${key}`);
+    } catch (error) {
+      console.error(`Background refresh failed for ${key}:`, error);
+    }
+  }
+  
+  // Warm cache with commonly accessed data
+  async warmCache() {
+    console.log('🔥 Warming cache with common data...');
+    const currentYear = new Date().getFullYear();
+    
+    try {
+      // Prefetch common data patterns
+      const warmupPromises = [
+        // Overview data for current year
+        this.getOverviewData(currentYear, 'YTD'),
+        this.getOverviewData(currentYear, 'QTD'),
+        this.getOverviewData(currentYear, 'MTD'),
+        
+        // Business unit data
+        this.getBusinessUnitData(currentYear, 'YTD'),
+        
+        // Customer data
+        this.getCustomerData(currentYear, 'YTD'),
+        
+        // Available years
+        this.getAvailableYears(),
+        
+        // Monthly trends
+        this.getMonthlyTrends(currentYear)
+      ];
+      
+      await Promise.all(warmupPromises);
+      console.log('✅ Cache warming completed');
+    } catch (error) {
+      console.error('Cache warming failed:', error);
+    }
+  }
+  
+  // Get cache statistics
+  getCacheStats() {
+    const totalRequests = this.cacheStats.hits + this.cacheStats.misses;
+    const hitRate = totalRequests > 0 ? (this.cacheStats.hits / totalRequests * 100).toFixed(1) : 0;
+    return {
+      ...this.cacheStats,
+      hitRate: `${hitRate}%`,
+      cacheSize: this.cache.size
+    };
+  }
+  
+  // Prefetch data for adjacent periods
+  async prefetchAdjacentPeriods(year, period, month, quarter) {
+    console.log('🔮 Prefetching adjacent periods...');
+    
+    const prefetchPromises = [];
+    
+    // Prefetch adjacent months for MTD
+    if (period === 'MTD' && month) {
+      if (month > 1) {
+        prefetchPromises.push(this.getOverviewData(year, 'MTD', month - 1));
+      }
+      if (month < 12) {
+        prefetchPromises.push(this.getOverviewData(year, 'MTD', month + 1));
+      }
+    }
+    
+    // Prefetch adjacent quarters for QTD
+    if (period === 'QTD' && quarter) {
+      if (quarter > 1) {
+        prefetchPromises.push(this.getOverviewData(year, 'QTD', null, quarter - 1));
+      }
+      if (quarter < 4) {
+        prefetchPromises.push(this.getOverviewData(year, 'QTD', null, quarter + 1));
+      }
+    }
+    
+    // Always prefetch other period types
+    const periods = ['MTD', 'QTD', 'YTD'].filter(p => p !== period);
+    periods.forEach(p => {
+      prefetchPromises.push(this.getOverviewData(year, p));
+    });
+    
+    // Execute prefetch in background
+    Promise.all(prefetchPromises).catch(err => {
+      console.error('Prefetch error:', err);
+    });
   }
 
   async getOverviewData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {

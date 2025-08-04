@@ -41,5 +41,14 @@
     "priority": "medium",
     "status": "planned",
     "dependencies": ["implement-premium-transitions"]
+  },
+  {
+    "id": "automated-parallel-deployment",
+    "name": "Automated Parallel Deployment System",
+    "description": "Implement GitHub Actions workflow for parallel frontend/backend deployment, eliminating manual deployment steps",
+    "priority": "high",
+    "status": "ready",
+    "dependencies": [],
+    "existingWork": "extra-epic-20250804-0710"
   }
 ]

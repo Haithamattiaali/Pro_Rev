@@ -11,28 +11,31 @@ import { FilterProvider } from './contexts/FilterContext'
 import { DataRefreshProvider } from './contexts/DataRefreshContext'
 import { HierarchicalFilterProvider } from './contexts/HierarchicalFilterContext'
 import { ExportProvider } from './contexts/ExportContext'
+import { CacheProvider } from './contexts/CacheContext'
 
 function App() {
   return (
-    <DataRefreshProvider>
-      <FilterProvider>
-        <HierarchicalFilterProvider>
-          <ExportProvider>
-            <Routes>
-          <Route path="/" element={<DashboardLayout />}>
-            <Route index element={<Navigate to="/overview" replace />} />
-            <Route path="overview" element={<Overview />} />
-            <Route path="business-units" element={<BusinessUnits />} />
-            <Route path="customers" element={<Customers />} />
-            {/* <Route path="forecast" element={<Forecast />} /> */} {/* Commented out as requested */}
-            <Route path="sales-plan" element={<SalesPlan />} />
-            <Route path="upload" element={<Upload />} />
-          </Route>
-        </Routes>
-          </ExportProvider>
-        </HierarchicalFilterProvider>
-      </FilterProvider>
-    </DataRefreshProvider>
+    <CacheProvider>
+      <DataRefreshProvider>
+        <FilterProvider>
+          <HierarchicalFilterProvider>
+            <ExportProvider>
+              <Routes>
+            <Route path="/" element={<DashboardLayout />}>
+              <Route index element={<Navigate to="/overview" replace />} />
+              <Route path="overview" element={<Overview />} />
+              <Route path="business-units" element={<BusinessUnits />} />
+              <Route path="customers" element={<Customers />} />
+              {/* <Route path="forecast" element={<Forecast />} /> */} {/* Commented out as requested */}
+              <Route path="sales-plan" element={<SalesPlan />} />
+              <Route path="upload" element={<Upload />} />
+            </Route>
+          </Routes>
+            </ExportProvider>
+          </HierarchicalFilterProvider>
+        </FilterProvider>
+      </DataRefreshProvider>
+    </CacheProvider>
   )
 }
 

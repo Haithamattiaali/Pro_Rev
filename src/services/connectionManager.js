@@ -107,13 +107,19 @@ class ConnectionManager {
 
   // Ensure connection before making requests
   async ensureConnection() {
-    if (!this.isConnected || Date.now() - this.lastHealthCheck > 60000) {
+    // Skip health check if we recently checked (within last 5 minutes)
+    if (this.isConnected && this.lastHealthCheck && Date.now() - this.lastHealthCheck < 300000) {
+      return; // Connection is probably still good
+    }
+    
+    // Only do health check if connection is lost or it's been too long
+    if (!this.isConnected || !this.lastHealthCheck || Date.now() - this.lastHealthCheck > 300000) {
       const isHealthy = await this.checkHealth();
       if (!isHealthy) {
         console.warn('Backend health check failed, but proceeding anyway...');
         // Don't throw error in production - let the actual request fail if needed
         if (import.meta.env.DEV) {
-          throw new Error('Backend connection is not available');
+          console.warn('Backend connection is not available - development mode');
         }
       }
     }
