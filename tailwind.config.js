@@ -4,6 +4,22 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  safelist: [
+    'transition-opacity',
+    'opacity-90',
+    'opacity-100',
+    'hover:opacity-100',
+    'transition-all',
+    'transition-transform',
+    'duration-150',
+    'duration-200',
+    'duration-300',
+    'ease-in-out',
+    'transform',
+    'scale-95',
+    'scale-100',
+    'active:scale-95',
+  ],
   theme: {
     extend: {
       colors: {
