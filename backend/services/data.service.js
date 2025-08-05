@@ -1,4 +1,5 @@
 const db = require('../database/db-wrapper');
+const { calculateGrossProfit, calculateGrossProfitMargin } = require('../utils/profitCalculations');
 
 class DataService {
   constructor() {
@@ -315,10 +316,11 @@ class DataService {
         achievement: overview.achievement_percentage || 0,
         customerCount: overview.customer_count || 0,
         serviceCount: overview.service_count || 0,
-        profit: (overview.total_target || 0) - (overview.total_cost || 0),
-        profitMargin: overview.total_target > 0 
-          ? (((overview.total_target || 0) - (overview.total_cost || 0)) / overview.total_target) * 100 
-          : 0
+        profit: calculateGrossProfit(overview.total_revenue || 0, overview.total_target || 0, overview.total_cost || 0),
+        profitMargin: calculateGrossProfitMargin(
+          calculateGrossProfit(overview.total_revenue || 0, overview.total_target || 0, overview.total_cost || 0),
+          overview.total_revenue || 0
+        )
       },
       serviceBreakdown
     };
@@ -424,10 +426,11 @@ class DataService {
         achievement: overview.achievement_percentage || 0,
         customerCount: overview.customer_count || 0,
         serviceCount: overview.service_count || 0,
-        profit: (overview.total_target || 0) - (overview.total_cost || 0),
-        profitMargin: overview.total_target > 0 
-          ? (((overview.total_target || 0) - (overview.total_cost || 0)) / overview.total_target) * 100 
-          : 0
+        profit: calculateGrossProfit(overview.total_revenue || 0, overview.total_target || 0, overview.total_cost || 0),
+        profitMargin: calculateGrossProfitMargin(
+          calculateGrossProfit(overview.total_revenue || 0, overview.total_target || 0, overview.total_cost || 0),
+          overview.total_revenue || 0
+        )
       },
       serviceBreakdown
     };
@@ -474,8 +477,11 @@ class DataService {
     
     return data.map(unit => ({
       ...unit,
-      profit: unit.target - unit.cost,
-      profitMargin: unit.target > 0 ? ((unit.target - unit.cost) / unit.target) * 100 : 0
+      profit: calculateGrossProfit(unit.revenue || 0, unit.target || 0, unit.cost || 0),
+      profitMargin: calculateGrossProfitMargin(
+        calculateGrossProfit(unit.revenue || 0, unit.target || 0, unit.cost || 0),
+        unit.revenue || 0
+      )
     }));
   }
 
@@ -518,8 +524,11 @@ class DataService {
     
     return data.map(customer => ({
       ...customer,
-      profit: customer.target - customer.cost,
-      profitMargin: customer.target > 0 ? ((customer.target - customer.cost) / customer.target) * 100 : 0,
+      profit: calculateGrossProfit(customer.revenue || 0, customer.target || 0, customer.cost || 0),
+      profitMargin: calculateGrossProfitMargin(
+        calculateGrossProfit(customer.revenue || 0, customer.target || 0, customer.cost || 0),
+        customer.revenue || 0
+      ),
       services: customer.services ? customer.services.split(',') : []
     }));
   }
@@ -850,11 +859,19 @@ class DataService {
     
     const serviceBreakdown = await db.all(serviceBreakdownSql, [year, ...months]);
     
-    // Calculate gross profit
-    const grossProfit = (data.total_target || 0) - (data.total_cost || 0);
-    const profitMargin = data.total_target > 0 
-      ? (grossProfit / data.total_target) * 100 
-      : 0;
+    // Update service breakdown with new profit calculation
+    const processedServiceBreakdown = serviceBreakdown.map(service => ({
+      ...service,
+      profit: calculateGrossProfit(service.revenue || 0, service.target || 0, service.cost || 0),
+      profit_margin: calculateGrossProfitMargin(
+        calculateGrossProfit(service.revenue || 0, service.target || 0, service.cost || 0),
+        service.revenue || 0
+      )
+    }));
+    
+    // Calculate gross profit with new formula
+    const grossProfit = calculateGrossProfit(data.total_revenue || 0, data.total_target || 0, data.total_cost || 0);
+    const profitMargin = calculateGrossProfitMargin(grossProfit, data.total_revenue || 0);
     
     return {
       period,
@@ -865,7 +882,7 @@ class DataService {
       target: data.total_target || 0,
       achievement: data.achievement_percentage || 0,
       profitMargin,
-      serviceBreakdown
+      serviceBreakdown: processedServiceBreakdown
     };
   }
 

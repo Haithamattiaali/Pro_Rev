@@ -14,6 +14,7 @@ import { useDataRefresh } from '../contexts/DataRefreshContext'
 import { useOptimizedLoading } from '../hooks/useOptimizedLoading'
 import dataService from '../services/dataService'
 import exportService from '../services/exportService'
+import { calculateGrossProfit, calculateGrossProfitMargin } from '../utils/profitCalculations'
 
 const BusinessUnits = () => {
   const [selectedUnit, setSelectedUnit] = useState('Transportation')
@@ -147,8 +148,11 @@ const BusinessUnits = () => {
     .map(month => ({
       ...month,
       achievement: month.target > 0 ? (month.revenue / month.target) * 100 : 0,
-      grossProfit: month.target - month.cost, // GP based on target
-      grossProfitMargin: month.target > 0 ? ((month.target - month.cost) / month.target) * 100 : 0 // GP% based on target
+      grossProfit: calculateGrossProfit(month.revenue || 0, month.target || 0, month.cost || 0),
+      grossProfitMargin: calculateGrossProfitMargin(
+        calculateGrossProfit(month.revenue || 0, month.target || 0, month.cost || 0),
+        month.revenue || 0
+      )
     }))
 
   // Check if no year is selected
@@ -235,16 +239,25 @@ const BusinessUnits = () => {
               <>
                 <div className="text-center p-4 bg-secondary-pale rounded-lg">
                   <p className="metric-label">Gross Profit</p>
-                  <p className="text-xl font-bold text-accent-blue mt-1">{formatCurrency(selectedUnitData.target - selectedUnitData.cost)}</p>
+                  <p className="text-xl font-bold text-accent-blue mt-1">{formatCurrency(calculateGrossProfit(selectedUnitData.revenue || 0, selectedUnitData.target || 0, selectedUnitData.cost || 0))}</p>
                 </div>
                 <div className="text-center p-4 bg-secondary-pale rounded-lg">
                   <p className="metric-label">GP Margin</p>
                   <p className={`text-xl font-bold mt-1 ${
-                    getGrossProfitStatus(((selectedUnitData.target - selectedUnitData.cost) / selectedUnitData.target) * 100) === 'high' ? 'text-green-600' :
-                    getGrossProfitStatus(((selectedUnitData.target - selectedUnitData.cost) / selectedUnitData.target) * 100) === 'medium' ? 'text-yellow-600' :
+                    getGrossProfitStatus(calculateGrossProfitMargin(
+                      calculateGrossProfit(selectedUnitData.revenue || 0, selectedUnitData.target || 0, selectedUnitData.cost || 0),
+                      selectedUnitData.revenue || 0
+                    )) === 'high' ? 'text-green-600' :
+                    getGrossProfitStatus(calculateGrossProfitMargin(
+                      calculateGrossProfit(selectedUnitData.revenue || 0, selectedUnitData.target || 0, selectedUnitData.cost || 0),
+                      selectedUnitData.revenue || 0
+                    )) === 'medium' ? 'text-yellow-600' :
                     'text-red-600'
                   }`}>
-                    {formatPercentage(((selectedUnitData.target - selectedUnitData.cost) / selectedUnitData.target) * 100)}
+                    {formatPercentage(calculateGrossProfitMargin(
+                      calculateGrossProfit(selectedUnitData.revenue || 0, selectedUnitData.target || 0, selectedUnitData.cost || 0),
+                      selectedUnitData.revenue || 0
+                    ))}
                   </p>
                 </div>
               </>
@@ -346,11 +359,20 @@ const BusinessUnits = () => {
               </BaseTable.Cell>
               <BaseTable.Cell align="right" variant="footer">
                 <span className={cn(
-                  getGrossProfitStatus(((selectedUnitData?.target - selectedUnitData?.cost) / selectedUnitData?.target) * 100 || 0) === 'high' ? 'text-green-600' :
-                  getGrossProfitStatus(((selectedUnitData?.target - selectedUnitData?.cost) / selectedUnitData?.target) * 100 || 0) === 'medium' ? 'text-yellow-600' :
+                  getGrossProfitStatus(calculateGrossProfitMargin(
+                    calculateGrossProfit(selectedUnitData?.revenue || 0, selectedUnitData?.target || 0, selectedUnitData?.cost || 0),
+                    selectedUnitData?.revenue || 0
+                  )) === 'high' ? 'text-green-600' :
+                  getGrossProfitStatus(calculateGrossProfitMargin(
+                    calculateGrossProfit(selectedUnitData?.revenue || 0, selectedUnitData?.target || 0, selectedUnitData?.cost || 0),
+                    selectedUnitData?.revenue || 0
+                  )) === 'medium' ? 'text-yellow-600' :
                   'text-red-600'
                 )}>
-                  {formatPercentage(((selectedUnitData?.target - selectedUnitData?.cost) / selectedUnitData?.target) * 100 || 0)}
+                  {formatPercentage(calculateGrossProfitMargin(
+                    calculateGrossProfit(selectedUnitData?.revenue || 0, selectedUnitData?.target || 0, selectedUnitData?.cost || 0),
+                    selectedUnitData?.revenue || 0
+                  ))}
                 </span>
               </BaseTable.Cell>
             </BaseTable.Row>

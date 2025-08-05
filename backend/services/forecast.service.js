@@ -1,4 +1,5 @@
 const persistentDb = require('../database/persistent-db');
+const { calculateGrossProfit, calculateGrossProfitMargin } = require('../utils/profitCalculations');
 
 class ForecastService {
   getDb() {
@@ -81,18 +82,32 @@ class ForecastService {
           WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
         END as achievement,
-        SUM(revenue) - SUM(cost) as grossProfit,
-        CASE 
-          WHEN SUM(revenue) > 0 THEN ((SUM(revenue) - SUM(cost)) / SUM(revenue)) * 100
-          ELSE 0
-        END as grossMargin
+        SUM(revenue) as grossProfitRevenue,
+        SUM(target) as grossProfitTarget,
+        SUM(cost) as grossProfitCost
       FROM revenue_data
       WHERE year = ?
       GROUP BY customer
       ORDER BY totalRevenue DESC
     `;
     
-    return this.getDb().prepare(query).all(year);
+    const results = this.getDb().prepare(query).all(year);
+    
+    // Calculate gross profit and margin using the new formula
+    return results.map(row => {
+      const grossProfit = calculateGrossProfit(row.grossProfitRevenue, row.grossProfitTarget, row.grossProfitCost);
+      const grossMargin = calculateGrossProfitMargin(grossProfit, row.grossProfitRevenue);
+      
+      return {
+        ...row,
+        grossProfit,
+        grossMargin,
+        // Remove the temporary fields
+        grossProfitRevenue: undefined,
+        grossProfitTarget: undefined,
+        grossProfitCost: undefined
+      };
+    });
   }
 
   // Generate forecast with flexible date ranges and methods

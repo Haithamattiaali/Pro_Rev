@@ -1,4 +1,5 @@
 const XLSX = require('xlsx');
+const { calculateGrossProfit, calculateGrossProfitMargin } = require('../utils/profitCalculations');
 
 class ExcelExportService {
   constructor() {
@@ -57,8 +58,11 @@ class ExcelExportService {
           this.formatCurrency(service.target),
           `${this.formatPercentage(service.achievement_percentage)}%`,
           this.formatCurrency(service.cost),
-          this.formatCurrency(service.target - service.cost),
-          `${this.formatPercentage(service.target > 0 ? ((service.target - service.cost) / service.target) * 100 : 0)}%`
+          this.formatCurrency(calculateGrossProfit(service.revenue || 0, service.target || 0, service.cost || 0)),
+          `${this.formatPercentage(calculateGrossProfitMargin(
+            calculateGrossProfit(service.revenue || 0, service.target || 0, service.cost || 0),
+            service.revenue || 0
+          ))}%`
         ]);
       });
     }
@@ -406,7 +410,7 @@ class ExcelExportService {
           this.formatCurrency(service.target),
           `${this.formatPercentage(service.achievement_percentage)}%`,
           this.formatCurrency(service.cost),
-          this.formatCurrency(service.target - service.cost)
+          this.formatCurrency(calculateGrossProfit(service.revenue || 0, service.target || 0, service.cost || 0))
         ]);
       });
       
@@ -621,8 +625,8 @@ class ExcelExportService {
     
     forecastData.historical.forEach(month => {
       const achievement = month.target > 0 ? (month.revenue / month.target) * 100 : 0;
-      const grossProfit = month.revenue - month.cost;
-      const margin = month.revenue > 0 ? (grossProfit / month.revenue) * 100 : 0;
+      const grossProfit = calculateGrossProfit(month.revenue || 0, month.target || 0, month.cost || 0);
+      const margin = calculateGrossProfitMargin(grossProfit, month.revenue || 0);
       
       historicalData.push([
         month.month,
