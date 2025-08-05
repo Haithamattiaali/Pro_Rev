@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import dataService from '../services/dataService';
+import logger from '../utils/debugLogger';
 
 const FilterContext = createContext();
 
@@ -25,6 +26,10 @@ export const FilterProvider = ({ children }) => {
       case 'YTD':
         // Year view should have no month/quarter selections
         if (validated.selectedMonths?.length > 0 || validated.selectedQuarters?.length > 0) {
+          logger.warn('FilterContext', 'Invalid state - clearing selections for YTD', {
+            selectedMonths: validated.selectedMonths,
+            selectedQuarters: validated.selectedQuarters
+          });
           console.warn('📊 FilterContext: Invalid state - clearing selections for YTD');
           validated.selectedMonths = [];
           validated.selectedQuarters = [];
@@ -236,12 +241,16 @@ export const FilterProvider = ({ children }) => {
   
   // Enhanced handlePeriodChange with Single Source of Truth pattern
   const handlePeriodChange = (filterConfig) => {
+    logger.state('FilterContext', 'filterChange', periodFilter, filterConfig);
+    logger.debug('FilterContext', 'handlePeriodChange called', filterConfig);
+    
     // Create a cache key to prevent duplicate clears
     const cacheKey = `${filterConfig.year}-${filterConfig.period}-${filterConfig.month}-${filterConfig.quarter}`;
     
     // Only clear cache if the key has changed
     if (lastCacheClearRef.current !== cacheKey) {
       lastCacheClearRef.current = cacheKey;
+      logger.info('FilterContext', 'Clearing cache for new filter', { cacheKey });
       dataService.clearCache();
     }
     

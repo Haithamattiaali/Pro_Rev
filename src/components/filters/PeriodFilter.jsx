@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useFilter } from '../../contexts/FilterContext';
 import companyLogo from '../../assets/logo.png';
 import TransitionWrapper from '../common/TransitionWrapper';
+import logger from '../../utils/debugLogger';
 
 const PeriodFilter = () => {
   const { periodFilter, handlePeriodChange } = useFilter();
@@ -10,6 +11,16 @@ const PeriodFilter = () => {
   const selectedMonth = periodFilter.month;
   const selectedQuarter = periodFilter.quarter;
   const selectedYear = periodFilter.year;
+
+  useEffect(() => {
+    logger.info('PeriodFilter', 'Component mounted', {
+      selectedPeriod,
+      selectedMonth,
+      selectedQuarter,
+      selectedYear,
+      logoPath: companyLogo
+    });
+  }, []);
 
   const months = [
     { value: 1, label: 'January' },
@@ -43,8 +54,12 @@ const PeriodFilter = () => {
       quarter: period === 'QTD' ? selectedQuarter : periodFilter.quarter
     };
     
+    logger.state('PeriodFilter', 'period', selectedPeriod, period);
+    logger.debug('PeriodFilter', 'Updating period', filterData);
+    
     // Add a subtle delay to coordinate with animations
     requestAnimationFrame(() => {
+      logger.transition('PeriodFilter', 'animation-frame', { period });
       handlePeriodChange(filterData);
     });
   };
@@ -167,13 +182,28 @@ const PeriodFilter = () => {
             src={companyLogo} 
             alt="Proceed Company Logo" 
             className="h-6 w-auto object-contain sm:h-8 md:h-10 opacity-90 hover:opacity-100 transition-opacity"
+            onLoad={(e) => {
+              logger.asset(companyLogo, 'loaded', {
+                naturalWidth: e.currentTarget.naturalWidth,
+                naturalHeight: e.currentTarget.naturalHeight,
+                currentSrc: e.currentTarget.currentSrc,
+                complete: e.currentTarget.complete
+              });
+            }}
             onError={(e) => {
-              console.error('Logo failed to load:', {
+              const errorDetails = {
                 src: e.currentTarget.src,
+                currentSrc: e.currentTarget.currentSrc,
                 baseURI: document.baseURI,
                 environment: import.meta.env.MODE,
-                error: e
-              });
+                error: e.type,
+                networkState: e.currentTarget.networkState,
+                readyState: e.currentTarget.readyState
+              };
+              
+              logger.error('PeriodFilter', 'Logo failed to load', errorDetails);
+              console.error('Logo failed to load:', errorDetails);
+              
               // Instead of hiding, show a placeholder
               e.currentTarget.style.opacity = '0.3';
               e.currentTarget.style.border = '1px dashed #ccc';

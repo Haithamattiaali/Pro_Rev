@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import DashboardLayout from './components/layout/DashboardLayout'
 import Overview from './pages/Overview'
@@ -12,8 +12,25 @@ import { DataRefreshProvider } from './contexts/DataRefreshContext'
 import { HierarchicalFilterProvider } from './contexts/HierarchicalFilterContext'
 import { ExportProvider } from './contexts/ExportContext'
 import { CacheProvider } from './contexts/CacheContext'
+import logger from './utils/debugLogger'
 
 function App() {
+  useEffect(() => {
+    logger.info('App', 'Application initialized', {
+      environment: import.meta.env.MODE,
+      baseURL: import.meta.env.BASE_URL,
+      apiURL: import.meta.env.VITE_API_URL,
+      userAgent: navigator.userAgent,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Log help message in production
+    if (import.meta.env.PROD) {
+      console.log('%c🔍 Debug Mode Available', 'color: #9e1f63; font-weight: bold; font-size: 14px');
+      console.log('To enable debug logging, type: __debugHelp()');
+    }
+  }, []);
+
   return (
     <CacheProvider>
       <DataRefreshProvider>

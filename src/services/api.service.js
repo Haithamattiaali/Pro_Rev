@@ -1,4 +1,5 @@
 import connectionManager from './connectionManager';
+import logger from '../utils/debugLogger';
 
 class ApiService {
   constructor() {
@@ -7,13 +8,30 @@ class ApiService {
   }
 
   async request(endpoint, options = {}) {
+    const startTime = performance.now();
+    const method = options.method || 'GET';
+    
     try {
+      logger.api(method, endpoint, 'started', { options });
+      
       // Ensure connection before making request
       await connectionManager.ensureConnection();
       
       // Use connection manager for requests with retry logic
-      return await connectionManager.requestWithRetry(endpoint, options);
+      const response = await connectionManager.requestWithRetry(endpoint, options);
+      
+      const duration = performance.now() - startTime;
+      logger.api(method, endpoint, 'success', { duration });
+      logger.performance(`API ${method} ${endpoint}`, duration);
+      
+      return response;
     } catch (error) {
+      const duration = performance.now() - startTime;
+      logger.api(method, endpoint, 'error', { 
+        error: error.message, 
+        duration,
+        stack: error.stack 
+      });
       console.error('API Request Error:', error);
       throw error;
     }
@@ -22,6 +40,15 @@ class ApiService {
   // Overview data
   async getOverviewData(year, period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
     // If multiSelectParams provided, use multi-select endpoint
+    logger.debug('API', 'getOverviewData called', {
+      year,
+      period,
+      month,
+      quarter,
+      multiSelectParams,
+      hasMultiSelect: !!multiSelectParams,
+      periodsLength: multiSelectParams?.periods?.length
+    });
     console.log('🌐 API: getOverviewData called with:', {
       year,
       period,

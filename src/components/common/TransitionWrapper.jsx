@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import logger from '../../utils/debugLogger';
 
 const TransitionWrapper = ({ 
   show, 
@@ -15,6 +16,7 @@ const TransitionWrapper = ({
   
   useEffect(() => {
     if (show) {
+      logger.transition('TransitionWrapper', 'show-trigger', { show, className });
       setShouldRender(true);
     }
   }, [show]);
@@ -29,18 +31,33 @@ const TransitionWrapper = ({
     
     if (show) {
       // Use requestAnimationFrame for smoother transitions
+      const startTime = performance.now();
       frameRef.current = requestAnimationFrame(() => {
         if (contentRef.current) {
           const contentHeight = contentRef.current.scrollHeight;
+          logger.transition('TransitionWrapper', 'expanding', {
+            height: contentHeight,
+            className,
+            frameTime: performance.now() - startTime
+          });
           setHeight(contentHeight);
           setIsTransitioning(true);
         }
       });
     } else {
+      const startTime = performance.now();
+      logger.transition('TransitionWrapper', 'collapsing', {
+        className,
+        duration
+      });
       setHeight(0);
       setIsTransitioning(true);
       // Delay unmounting until transition completes
       const timer = setTimeout(() => {
+        logger.transition('TransitionWrapper', 'collapsed', {
+          className,
+          totalTime: performance.now() - startTime
+        });
         setShouldRender(false);
         setIsTransitioning(false);
       }, duration);
