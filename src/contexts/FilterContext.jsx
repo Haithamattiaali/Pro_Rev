@@ -168,8 +168,8 @@ export const FilterProvider = ({ children }) => {
 
   // Apply pending changes to active filters
   const applyFilters = () => {
-    // Clear the data cache to ensure fresh data is fetched
-    dataService.clearCache();
+    // NOTE: Cache clearing removed - dataService uses unique cache keys per filter combination
+    // so different filters automatically get their own cached data
     
     const newFilter = {
       ...periodFilter,
@@ -244,14 +244,25 @@ export const FilterProvider = ({ children }) => {
     logger.state('FilterContext', 'filterChange', periodFilter, filterConfig);
     logger.debug('FilterContext', 'handlePeriodChange called', filterConfig);
     
-    // Create a cache key to prevent duplicate clears
-    const cacheKey = `${filterConfig.year}-${filterConfig.period}-${filterConfig.month}-${filterConfig.quarter}`;
+    // Only clear cache when year changes (significant data change)
+    // Period changes (MTD/QTD/YTD) don't need cache clearing as dataService
+    // uses unique cache keys for each filter combination
+    const yearKey = `year-${filterConfig.year || periodFilter.year}`;
     
-    // Only clear cache if the key has changed
-    if (lastCacheClearRef.current !== cacheKey) {
-      lastCacheClearRef.current = cacheKey;
-      logger.info('FilterContext', 'Clearing cache for new filter', { cacheKey });
-      dataService.clearCache();
+    if (filterConfig.year && lastCacheClearRef.current !== yearKey) {
+      lastCacheClearRef.current = yearKey;
+      logger.info('FilterContext', 'Year changed - clearing cache for new year', { 
+        oldYear: periodFilter.year, 
+        newYear: filterConfig.year 
+      });
+      dataService.clearCacheForYear(periodFilter.year); // Clear old year's cache
+    } else if (import.meta.env.PROD) {
+      console.log('[FilterContext] Period change without year change - cache preserved', {
+        period: filterConfig.period,
+        month: filterConfig.month,
+        quarter: filterConfig.quarter,
+        cachePreserved: true
+      });
     }
     
     // Single Source of Truth: Period type drives selections
