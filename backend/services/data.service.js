@@ -581,8 +581,13 @@ class DataService {
       filters,
       businessUnits: data.map(unit => ({
         ...unit,
-        profit: unit.target - unit.cost,
-        profitMargin: unit.target > 0 ? ((unit.target - unit.cost) / unit.target) * 100 : 0
+        cost: calculatePerformanceCost(unit.revenue || 0, unit.target || 0, unit.cost || 0),
+        originalCost: unit.cost || 0,
+        profit: calculateGrossProfit(unit.revenue || 0, unit.target || 0, unit.cost || 0),
+        profitMargin: calculateGrossProfitMargin(
+          calculateGrossProfit(unit.revenue || 0, unit.target || 0, unit.cost || 0),
+          unit.revenue || 0
+        )
       }))
     };
   }
@@ -629,8 +634,13 @@ class DataService {
       filters,
       customers: data.map(customer => ({
         ...customer,
-        profit: customer.target - customer.cost,
-        profitMargin: customer.target > 0 ? ((customer.target - customer.cost) / customer.target) * 100 : 0,
+        cost: calculatePerformanceCost(customer.revenue || 0, customer.target || 0, customer.cost || 0),
+        originalCost: customer.cost || 0,
+        profit: calculateGrossProfit(customer.revenue || 0, customer.target || 0, customer.cost || 0),
+        profitMargin: calculateGrossProfitMargin(
+          calculateGrossProfit(customer.revenue || 0, customer.target || 0, customer.cost || 0),
+          customer.revenue || 0
+        ),
         services: customer.services ? customer.services.split(',') : []
       }))
     };
@@ -847,12 +857,6 @@ class DataService {
         SUM(revenue) as revenue,
         SUM(COALESCE(original_cost, cost, 0)) as cost,
         SUM(target) as target,
-        SUM(target) - SUM(COALESCE(original_cost, cost, 0)) as profit,
-        CASE 
-          WHEN SUM(target) > 0 
-          THEN ((SUM(target) - SUM(COALESCE(original_cost, cost, 0))) / SUM(target)) * 100 
-          ELSE 0 
-        END as profit_margin,
         CASE 
           WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
