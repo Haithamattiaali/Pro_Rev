@@ -706,6 +706,16 @@ app.post('/api/export/custom/customers', async (req, res) => {
   }
 });
 
+// Deployment test endpoint
+app.get('/api/deployment-test', (req, res) => {
+  res.json({ 
+    message: 'Performance cost fix deployed!',
+    version: '1.0.3-fix',
+    timestamp: new Date().toISOString(),
+    fix: 'Gross profit calculation now uses performance-adjusted costs'
+  });
+});
+
 // Health check
 app.get('/api/health', async (req, res) => {
   try {
