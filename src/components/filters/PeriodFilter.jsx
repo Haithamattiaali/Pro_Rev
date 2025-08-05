@@ -1,7 +1,7 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ChevronDown } from 'lucide-react';
 import { useFilter } from '../../contexts/FilterContext';
-import companyLogo from '../../assets/logo.png';
+import companyLogoImport from '../../assets/logo.png';
 import TransitionWrapper from '../common/TransitionWrapper';
 import logger from '../../utils/debugLogger';
 
@@ -11,6 +11,7 @@ const PeriodFilter = () => {
   const selectedMonth = periodFilter.month;
   const selectedQuarter = periodFilter.quarter;
   const selectedYear = periodFilter.year;
+  const [logoSrc, setLogoSrc] = useState(companyLogoImport);
 
   useEffect(() => {
     logger.info('PeriodFilter', 'Component mounted', {
@@ -18,7 +19,8 @@ const PeriodFilter = () => {
       selectedMonth,
       selectedQuarter,
       selectedYear,
-      logoPath: companyLogo
+      logoPath: companyLogoImport,
+      fallbackPath: '/logo.png'
     });
   }, []);
 
@@ -179,11 +181,11 @@ const PeriodFilter = () => {
         {/* Company Logo */}
         <div className="flex items-center ml-auto">
           <img 
-            src={companyLogo} 
+            src={logoSrc} 
             alt="Proceed Company Logo" 
             className="h-6 w-auto object-contain sm:h-8 md:h-10 opacity-90 hover:opacity-100 transition-opacity"
             onLoad={(e) => {
-              logger.asset(companyLogo, 'loaded', {
+              logger.asset(logoSrc, 'loaded', {
                 naturalWidth: e.currentTarget.naturalWidth,
                 naturalHeight: e.currentTarget.naturalHeight,
                 currentSrc: e.currentTarget.currentSrc,
@@ -198,15 +200,22 @@ const PeriodFilter = () => {
                 environment: import.meta.env.MODE,
                 error: e.type,
                 networkState: e.currentTarget.networkState,
-                readyState: e.currentTarget.readyState
+                readyState: e.currentTarget.readyState,
+                attemptedSrc: logoSrc
               };
               
-              logger.error('PeriodFilter', 'Logo failed to load', errorDetails);
+              logger.error('PeriodFilter', 'Logo failed to load, trying fallback', errorDetails);
               console.error('Logo failed to load:', errorDetails);
               
-              // Instead of hiding, show a placeholder
-              e.currentTarget.style.opacity = '0.3';
-              e.currentTarget.style.border = '1px dashed #ccc';
+              // Try fallback to public directory
+              if (logoSrc !== '/logo.png') {
+                logger.info('PeriodFilter', 'Attempting fallback to public logo');
+                setLogoSrc('/logo.png');
+              } else {
+                // Both attempts failed, show placeholder
+                e.currentTarget.style.opacity = '0.3';
+                e.currentTarget.style.border = '1px dashed #ccc';
+              }
             }}
             loading="eager"
           />
