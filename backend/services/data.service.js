@@ -422,7 +422,8 @@ class DataService {
       overview: {
         revenue: overview.total_revenue || 0,
         target: overview.total_target || 0,
-        cost: overview.total_cost || 0,
+        cost: calculatePerformanceCost(overview.total_revenue || 0, overview.total_target || 0, overview.total_cost || 0),
+        originalCost: overview.total_cost || 0, // Keep original for reference
         receivables: overview.total_receivables || 0,
         achievement: overview.achievement_percentage || 0,
         customerCount: overview.customer_count || 0,

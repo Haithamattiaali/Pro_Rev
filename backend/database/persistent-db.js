@@ -126,15 +126,7 @@ class PersistentDatabase {
         }
       }
       
-      // Check if we need to drop the old columns
-      const hasOriginalTarget = revenueColumns.some(col => col.name === 'original_target');
-      const hasAnalysisDate = revenueColumns.some(col => col.name === 'analysis_date');
-      const hasOriginalCost = revenueColumns.some(col => col.name === 'original_cost');
-      
-      if (hasOriginalTarget || hasAnalysisDate || hasOriginalCost) {
-        console.log('Note: Pro-rating columns still exist in database. They will be ignored.');
-        // SQLite doesn't support dropping columns easily, so we'll just ignore them
-      }
+      // Pro-rating columns have been removed - no need to check for them anymore
       
       console.log('Migrations completed');
     } catch (error) {
