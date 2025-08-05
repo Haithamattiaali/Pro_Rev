@@ -1,0 +1,5 @@
+backend/utils/profitCalculations.js
+backend/services/data.service.js
+src/utils/profitCalculations.js
+backend/server.js
+backend/scripts/debug_january_profit.js

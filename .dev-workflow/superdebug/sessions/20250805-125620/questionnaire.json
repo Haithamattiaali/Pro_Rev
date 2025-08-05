@@ -1,0 +1,79 @@
+{
+  "title": "Bug Analysis Questionnaire",
+  "generated": "2025-08-05T13:02:00+03:00",
+  "bug_hint": "Production shows SAR 1,288,208 but dev shows SAR 1,197,662 for gross profit",
+  "questions": [
+    {
+      "id": 1,
+      "category": "reproduction",
+      "question": "Can you provide exact steps to reproduce this bug?",
+      "type": "text",
+      "required": true
+    },
+    {
+      "id": 2,
+      "category": "frequency",
+      "question": "How often does this bug occur?",
+      "type": "choice",
+      "options": ["Always", "Often", "Sometimes", "Rarely"],
+      "required": true
+    },
+    {
+      "id": 3,
+      "category": "impact",
+      "question": "What is the impact when this bug occurs?",
+      "type": "text",
+      "required": true
+    },
+    {
+      "id": 4,
+      "category": "timeline",
+      "question": "When did you first notice this bug?",
+      "type": "text",
+      "required": false
+    },
+    {
+      "id": 5,
+      "category": "environment",
+      "question": "In which environment(s) does this occur?",
+      "type": "multiselect",
+      "options": ["Development", "Staging", "Production", "Local"],
+      "required": true
+    },
+    {
+      "id": 6,
+      "category": "errors",
+      "question": "Are there any error messages? If yes, please provide them.",
+      "type": "text",
+      "required": false
+    },
+    {
+      "id": 7,
+      "category": "workaround",
+      "question": "Have you found any workarounds?",
+      "type": "text",
+      "required": false
+    },
+    {
+      "id": 8,
+      "category": "changes",
+      "question": "What recent changes might be related to this bug?",
+      "type": "text",
+      "required": false
+    },
+    {
+      "id": 9,
+      "category": "logs",
+      "question": "Can you provide relevant log entries?",
+      "type": "text",
+      "required": false
+    },
+    {
+      "id": 10,
+      "category": "expectations",
+      "question": "What is the expected behavior?",
+      "type": "text",
+      "required": true
+    }
+  ]
+}

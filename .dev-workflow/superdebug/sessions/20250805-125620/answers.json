@@ -1,0 +1,50 @@
+{
+  "mode": "auto",
+  "timestamp": "2025-08-05T13:03:00+03:00",
+  "answers": [
+    {
+      "id": 1,
+      "answer": "1. Navigate to the Overview page in production. 2. Check January 2025 MTD data. 3. Note the Gross Profit value shows SAR 1,288,208. 4. Perform the same steps in development environment. 5. Note the Gross Profit shows SAR 1,197,662. The difference is SAR 90,546."
+    },
+    {
+      "id": 2,
+      "answer": "Always",
+      "reasoning": "The calculation difference is consistent and deterministic based on the formula being used"
+    },
+    {
+      "id": 3,
+      "answer": "Financial reporting discrepancy of SAR 90,546. This affects executive dashboards and financial accuracy. The production value is 7.6% higher than the correct development value."
+    },
+    {
+      "id": 4,
+      "answer": "Likely noticed after recent deployment when comparing production and development values"
+    },
+    {
+      "id": 5,
+      "answer": ["Production"],
+      "reasoning": "Only production shows the incorrect higher value; development shows the correct calculation"
+    },
+    {
+      "id": 6,
+      "answer": "No explicit error messages. The application runs without errors but shows incorrect calculated values."
+    },
+    {
+      "id": 7,
+      "answer": "No workarounds identified. Manual recalculation confirms development value is correct."
+    },
+    {
+      "id": 8,
+      "answer": "Recent changes include: 1. Updated gross profit calculation formula from simple (target - cost) to performance-based (revenue - (revenue/target) * cost). 2. Removed pro-rated columns from database. 3. Fixed calculation inconsistencies between single and multi-select modes."
+    },
+    {
+      "id": 9,
+      "answer": "Production appears to be using an older calculation method. The SAR 1,288,208 value suggests it might be using a simple subtraction rather than the performance-based formula."
+    },
+    {
+      "id": 10,
+      "answer": "Expected behavior: Production should show SAR 1,197,662 for gross profit (matching development). The calculation should use the formula: revenue - (revenue/target) * cost, not the old formula."
+    }
+  ],
+  "confidence": 0.95,
+  "reasoning": "High confidence based on: 1. Clear numerical discrepancy matching old vs new calculation methods. 2. Legacy function exists in codebase. 3. Recent formula changes implemented. 4. Production likely has cached/old JavaScript bundle."
+}

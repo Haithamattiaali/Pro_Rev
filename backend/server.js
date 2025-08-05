@@ -1288,8 +1288,8 @@ app.use((err, req, res, next) => {
 // Start server only if not in test environment
 let server;
 if (process.env.NODE_ENV !== 'test') {
-  server = app.listen(PORT, () => {
-    console.log(`Backend server running on port ${PORT}`);
+  server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Backend server running on http://0.0.0.0:${PORT}`);
   });
 }
 
