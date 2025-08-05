@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Users, Award, TrendingUp, Loader2, Trophy, Star, Crown } from 'lucide-react'
 import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils/formatters'
+import { calculatePerformanceCost } from '../utils/profitCalculations'
 import { cn } from '../utils/cn'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import { ExportButton } from '../components/export'
@@ -412,7 +413,7 @@ const Customers = () => {
             <div className="text-center p-4 bg-secondary-pale rounded-lg">
               <p className="metric-label">Cost</p>
               <p className="text-xl font-bold text-accent-coral mt-1">
-                {formatCurrency(selectedCustomerData.cost)}
+                {formatCurrency(calculatePerformanceCost(selectedCustomerData.revenue || 0, selectedCustomerData.target || 0, selectedCustomerData.cost || 0))}
               </p>
             </div>
             {selectedCustomerData.revenue > 0 && (

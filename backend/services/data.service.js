@@ -1,5 +1,5 @@
 const db = require('../database/db-wrapper');
-const { calculateGrossProfit, calculateGrossProfitMargin } = require('../utils/profitCalculations');
+const { calculateGrossProfit, calculateGrossProfitMargin, calculatePerformanceCost } = require('../utils/profitCalculations');
 
 class DataService {
   constructor() {
@@ -311,7 +311,8 @@ class DataService {
       overview: {
         revenue: overview.total_revenue || 0,
         target: overview.total_target || 0,
-        cost: overview.total_cost || 0,
+        cost: calculatePerformanceCost(overview.total_revenue || 0, overview.total_target || 0, overview.total_cost || 0),
+        originalCost: overview.total_cost || 0, // Keep original for reference
         receivables: overview.total_receivables || 0,
         achievement: overview.achievement_percentage || 0,
         customerCount: overview.customer_count || 0,
@@ -477,6 +478,8 @@ class DataService {
     
     return data.map(unit => ({
       ...unit,
+      cost: calculatePerformanceCost(unit.revenue || 0, unit.target || 0, unit.cost || 0),
+      originalCost: unit.cost || 0, // Keep original for reference
       profit: calculateGrossProfit(unit.revenue || 0, unit.target || 0, unit.cost || 0),
       profitMargin: calculateGrossProfitMargin(
         calculateGrossProfit(unit.revenue || 0, unit.target || 0, unit.cost || 0),
@@ -524,6 +527,8 @@ class DataService {
     
     return data.map(customer => ({
       ...customer,
+      cost: calculatePerformanceCost(customer.revenue || 0, customer.target || 0, customer.cost || 0),
+      originalCost: customer.cost || 0, // Keep original for reference
       profit: calculateGrossProfit(customer.revenue || 0, customer.target || 0, customer.cost || 0),
       profitMargin: calculateGrossProfitMargin(
         calculateGrossProfit(customer.revenue || 0, customer.target || 0, customer.cost || 0),
@@ -859,9 +864,11 @@ class DataService {
     
     const serviceBreakdown = await db.all(serviceBreakdownSql, [year, ...months]);
     
-    // Update service breakdown with new profit calculation
+    // Update service breakdown with new profit calculation and performance costs
     const processedServiceBreakdown = serviceBreakdown.map(service => ({
       ...service,
+      cost: calculatePerformanceCost(service.revenue || 0, service.target || 0, service.cost || 0),
+      originalCost: service.cost || 0, // Keep original for reference
       profit: calculateGrossProfit(service.revenue || 0, service.target || 0, service.cost || 0),
       profit_margin: calculateGrossProfitMargin(
         calculateGrossProfit(service.revenue || 0, service.target || 0, service.cost || 0),

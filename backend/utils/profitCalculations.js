@@ -35,7 +35,26 @@ function calculateGrossProfitMargin(grossProfit, revenue) {
   return (grossProfit / revenue) * 100;
 }
 
+/**
+ * Calculate performance-adjusted cost based on achievement ratio
+ * @param {number} revenue - Actual revenue
+ * @param {number} target - Target revenue
+ * @param {number} originalCost - Original/raw cost
+ * @returns {number} Performance-adjusted cost
+ */
+function calculatePerformanceCost(revenue, target, originalCost) {
+  // Handle edge cases
+  if (!originalCost || originalCost === 0) return 0;
+  if (!target || target === 0) return originalCost;
+  if (!revenue || revenue === 0) return 0;
+  
+  // Formula: (revenue/target) * originalCost
+  const achievementRatio = revenue / target;
+  return achievementRatio * originalCost;
+}
+
 module.exports = {
   calculateGrossProfit,
-  calculateGrossProfitMargin
+  calculateGrossProfitMargin,
+  calculatePerformanceCost
 };

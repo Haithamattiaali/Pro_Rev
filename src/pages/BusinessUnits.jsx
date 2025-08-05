@@ -14,7 +14,7 @@ import { useDataRefresh } from '../contexts/DataRefreshContext'
 import { useOptimizedLoading } from '../hooks/useOptimizedLoading'
 import dataService from '../services/dataService'
 import exportService from '../services/exportService'
-import { calculateGrossProfit, calculateGrossProfitMargin } from '../utils/profitCalculations'
+import { calculateGrossProfit, calculateGrossProfitMargin, calculatePerformanceCost } from '../utils/profitCalculations'
 
 const BusinessUnits = () => {
   const [selectedUnit, setSelectedUnit] = useState('Transportation')
@@ -145,15 +145,18 @@ const BusinessUnits = () => {
   
   const unitMonthlyData = monthlyTrends
     .filter(month => periodMonths.includes(month.month))
-    .map(month => ({
-      ...month,
-      achievement: month.target > 0 ? (month.revenue / month.target) * 100 : 0,
-      grossProfit: calculateGrossProfit(month.revenue || 0, month.target || 0, month.cost || 0),
-      grossProfitMargin: calculateGrossProfitMargin(
-        calculateGrossProfit(month.revenue || 0, month.target || 0, month.cost || 0),
-        month.revenue || 0
-      )
-    }))
+    .map(month => {
+      const performanceCost = calculatePerformanceCost(month.revenue || 0, month.target || 0, month.cost || 0);
+      const grossProfit = calculateGrossProfit(month.revenue || 0, month.target || 0, month.cost || 0);
+      return {
+        ...month,
+        cost: performanceCost, // Replace with performance cost
+        originalCost: month.cost, // Keep original for reference if needed
+        achievement: month.target > 0 ? (month.revenue / month.target) * 100 : 0,
+        grossProfit: grossProfit,
+        grossProfitMargin: calculateGrossProfitMargin(grossProfit, month.revenue || 0)
+      };
+    })
 
   // Check if no year is selected
   if (!periodFilter.year || periodFilter.period === 'NONE') {
@@ -223,7 +226,7 @@ const BusinessUnits = () => {
             </div>
             <div className="text-center p-4 bg-secondary-pale rounded-lg">
               <p className="metric-label">Cost</p>
-              <p className="text-xl font-bold text-accent-coral mt-1">{formatCurrency(selectedUnitData.cost)}</p>
+              <p className="text-xl font-bold text-accent-coral mt-1">{formatCurrency(calculatePerformanceCost(selectedUnitData.revenue || 0, selectedUnitData.target || 0, selectedUnitData.cost || 0))}</p>
             </div>
             <div className="text-center p-4 bg-secondary-pale rounded-lg">
               <p className="metric-label">Achievement</p>
