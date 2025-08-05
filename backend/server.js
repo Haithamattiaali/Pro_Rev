@@ -715,9 +715,13 @@ app.get('/api/health', async (req, res) => {
       status: 'OK', 
       timestamp: new Date().toISOString(),
       database: 'connected',
-      version: '1.0.2', // Updated for deployment test after repo fix
+      version: '1.0.3-performance-cost-fix',
       deploymentTest: true,
-      autoDeployment: 'working'
+      autoDeployment: 'working',
+      features: {
+        performanceCost: true,
+        originalCostField: true
+      }
     });
   } catch (error) {
     res.status(500).json({ 
