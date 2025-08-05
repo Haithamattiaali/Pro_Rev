@@ -1,5 +1,6 @@
 const db = require('../database/db-wrapper');
 const dataService = require('../services/data.service');
+const { calculateGrossProfit, calculatePerformanceCost } = require('../utils/profitCalculations');
 
 async function testGrossProfitCalculations() {
   console.log('=== Testing Gross Profit Calculations ===\n');
@@ -8,12 +9,15 @@ async function testGrossProfitCalculations() {
     // Test historical month (June 2025)
     console.log('1. Testing Historical Month (June 2025):');
     const historicalData = await dataService.getOverviewData(2025, 'MTD', 6);
+    console.log(`   - Revenue: ${historicalData.overview.revenue}`);
     console.log(`   - Target: ${historicalData.overview.target}`);
-    console.log(`   - Cost: ${historicalData.overview.cost}`);
+    console.log(`   - Original Cost: ${historicalData.overview.originalCost}`);
+    console.log(`   - Performance Cost: ${historicalData.overview.cost}`);
     console.log(`   - Gross Profit: ${historicalData.overview.profit}`);
     console.log(`   - Gross Profit Margin: ${historicalData.overview.profitMargin.toFixed(2)}%`);
-    console.log(`   - Expected Profit: ${historicalData.overview.target - historicalData.overview.cost}`);
-    console.log(`   - Calculation Correct: ${historicalData.overview.profit === (historicalData.overview.target - historicalData.overview.cost) ? '✓' : '✗'}`);
+    const expectedProfit = calculateGrossProfit(historicalData.overview.revenue, historicalData.overview.target, historicalData.overview.originalCost);
+    console.log(`   - Expected Profit: ${expectedProfit}`);
+    console.log(`   - Calculation Correct: ${Math.abs(historicalData.overview.profit - expectedProfit) < 1 ? '✓' : '✗'}`);
     
     // Test current month (July 2025)
     console.log('\n2. Testing Current Month (July 2025):');
@@ -37,16 +41,18 @@ async function testGrossProfitCalculations() {
     console.log(`   - Original Cost: ${rawData.original_cost}`);
     console.log(`   - Gross Profit (pro-rated): ${currentData.overview.profit}`);
     console.log(`   - Gross Profit Margin: ${currentData.overview.profitMargin.toFixed(2)}%`);
-    console.log(`   - Expected Margin: ${((rawData.original_target - rawData.original_cost) / rawData.original_target * 100).toFixed(2)}%`);
-    console.log(`   - Margin uses full month values: ${Math.abs(currentData.overview.profitMargin - ((rawData.original_target - rawData.original_cost) / rawData.original_target * 100)) < 0.01 ? '✓' : '✗'}`);
+    const expectedMargin = (calculateGrossProfit(currentData.overview.revenue, rawData.original_target, rawData.original_cost) / currentData.overview.revenue * 100);
+    console.log(`   - Expected Margin: ${expectedMargin.toFixed(2)}%`);
+    console.log(`   - Margin calculation correct: ${Math.abs(currentData.overview.profitMargin - expectedMargin) < 0.01 ? '✓' : '✗'}`);
     
     // Test service breakdown
     console.log('\n3. Testing Service Breakdown:');
     if (currentData.serviceBreakdown && currentData.serviceBreakdown.length > 0) {
       currentData.serviceBreakdown.forEach(service => {
         console.log(`   ${service.service_type}:`);
-        console.log(`     - Target: ${service.target}, Cost: ${service.cost}`);
-        console.log(`     - Expected Profit: ${service.target - service.cost}`);
+        console.log(`     - Revenue: ${service.revenue}, Target: ${service.target}`);
+        console.log(`     - Original Cost: ${service.originalCost}, Performance Cost: ${service.cost}`);
+        console.log(`     - Profit: ${service.profit}`);
       });
     }
     
