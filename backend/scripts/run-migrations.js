@@ -7,10 +7,9 @@ try {
   const columns = db.db.prepare("PRAGMA table_info(revenue_data)").all();
   console.log('Current columns:', columns.map(c => c.name).join(', '));
   
-  //   const hasOriginalTarget = columns.some(col => col.name === 'original_target'); // REMOVED: Pro-rating no longer used
-  //   const hasAnalysisDate = columns.some(col => col.name === 'analysis_date'); // REMOVED: Pro-rating no longer used
-  //   const hasOriginalCost = columns.some(col => col.name === 'original_cost'); // REMOVED: Pro-rating no longer used
-  //    // REMOVED: Pro-rating no longer used
+  const hasOriginalTarget = columns.some(col => col.name === 'original_target');
+  const hasAnalysisDate = columns.some(col => col.name === 'analysis_date');
+  const hasOriginalCost = columns.some(col => col.name === 'original_cost');
   //   if (!hasOriginalTarget) { // REMOVED: Pro-rating no longer used
   //     console.log('Adding original_target column...'); // REMOVED: Pro-rating no longer used
   //     db.db.prepare('ALTER TABLE revenue_data ADD COLUMN original_target REAL DEFAULT 0').run(); // REMOVED: Pro-rating no longer used
@@ -31,14 +30,14 @@ try {
   //     console.log('✓ analysis_date column already exists'); // REMOVED: Pro-rating no longer used
   //   } // REMOVED: Pro-rating no longer used
   
-  //   if (!hasOriginalCost) { // REMOVED: Pro-rating no longer used
-  //     console.log('Adding original_cost column...'); // REMOVED: Pro-rating no longer used
-  //     db.db.prepare('ALTER TABLE revenue_data ADD COLUMN original_cost REAL DEFAULT 0').run(); // REMOVED: Pro-rating no longer used
-  //     db.db.prepare('UPDATE revenue_data SET original_cost = cost WHERE original_cost = 0').run(); // REMOVED: Pro-rating no longer used
-  //     console.log('✓ Added original_cost column'); // REMOVED: Pro-rating no longer used
-  //   } else { // REMOVED: Pro-rating no longer used
-  //     console.log('✓ original_cost column already exists'); // REMOVED: Pro-rating no longer used
-  //   } // REMOVED: Pro-rating no longer used
+  if (!hasOriginalCost) {
+    console.log('Adding original_cost column...');
+    db.db.prepare('ALTER TABLE revenue_data ADD COLUMN original_cost REAL DEFAULT 0').run();
+    db.db.prepare('UPDATE revenue_data SET original_cost = cost WHERE original_cost = 0').run();
+    console.log('✓ Added original_cost column');
+  } else {
+    console.log('✓ original_cost column already exists');
+  }
   
   // Verify columns were added
   const newColumns = db.db.prepare("PRAGMA table_info(revenue_data)").all();
