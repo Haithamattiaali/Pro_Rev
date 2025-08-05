@@ -1,7 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import { LayoutDashboard, Building2, Users, TrendingUp, Upload, FileSpreadsheet } from 'lucide-react'
 import { useFilter } from '../../contexts/FilterContext'
+import companyLogo from '../../assets/logo.png'
 
 const navItems = [
   { path: '/overview', label: 'Executive Overview', icon: LayoutDashboard },
@@ -17,6 +18,17 @@ const utilityItems = [
 
 const Sidebar = ({ onCloseMobile }) => {
   const { periodFilter } = useFilter()
+  const [logoSrc, setLogoSrc] = useState(companyLogo)
+  const [logoError, setLogoError] = useState(false)
+  
+  const handleLogoError = () => {
+    console.warn('Sidebar: Logo failed to load, attempting fallback')
+    if (logoSrc !== '/logo.png') {
+      setLogoSrc('/logo.png')
+    } else {
+      setLogoError(true)
+    }
+  }
   
   // Create dynamic period prefix
   const getPeriodPrefix = () => {
@@ -59,11 +71,18 @@ const Sidebar = ({ onCloseMobile }) => {
       {/* Header - matching main header height */}
       <div className="bg-white border-b border-secondary-pale relative z-10">
         <div className="px-6 py-4 h-[89px] flex items-center justify-center">
-          <img 
-            src="/src/assets/logo.png" 
-            alt="Company Logo" 
-            className="h-12 w-auto object-contain"
-          />
+          {!logoError ? (
+            <img 
+              src={logoSrc}
+              alt="Company Logo" 
+              className="h-12 w-auto object-contain"
+              onError={handleLogoError}
+            />
+          ) : (
+            <div className="text-xs text-neutral-mid text-center">
+              <p>Logo unavailable</p>
+            </div>
+          )}
         </div>
       </div>
       
