@@ -239,7 +239,7 @@ class DataService {
       SELECT 
         SUM(revenue) as total_revenue,
         SUM(COALESCE(target, 0)) as total_target,
-        SUM(COALESCE(cost, 0)) as total_cost,
+        SUM(COALESCE(original_cost, cost, 0)) as total_cost,
         SUM(receivables_collected) as total_receivables,
         COUNT(DISTINCT customer) as customer_count,
         COUNT(DISTINCT service_type) as service_count,
@@ -266,7 +266,7 @@ class DataService {
         service_type,
         SUM(revenue) as revenue,
         SUM(target) as target,
-        SUM(cost) as cost,
+        SUM(COALESCE(original_cost, cost, 0)) as cost,
         CASE 
           WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
@@ -382,7 +382,7 @@ class DataService {
       SELECT 
         SUM(revenue) as total_revenue,
         SUM(COALESCE(target, 0)) as total_target,
-        SUM(COALESCE(cost, 0)) as total_cost,
+        SUM(COALESCE(original_cost, cost, 0)) as total_cost,
         SUM(receivables_collected) as total_receivables,
         COUNT(DISTINCT customer) as customer_count,
         COUNT(DISTINCT service_type) as service_count,
@@ -403,7 +403,7 @@ class DataService {
         service_type,
         SUM(revenue) as revenue,
         SUM(target) as target,
-        SUM(cost) as cost,
+        SUM(COALESCE(original_cost, cost, 0)) as cost,
         CASE 
           WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
@@ -462,7 +462,7 @@ class DataService {
         service_type as businessUnit,
         SUM(revenue) as revenue,
         SUM(target) as target,
-        SUM(cost) as cost,
+        SUM(COALESCE(original_cost, cost, 0)) as cost,
         SUM(receivables_collected) as receivables,
         COUNT(DISTINCT customer) as customerCount,
         CASE 
@@ -510,7 +510,7 @@ class DataService {
         customer,
         SUM(revenue) as revenue,
         SUM(target) as target,
-        SUM(cost) as cost,
+        SUM(COALESCE(original_cost, cost, 0)) as cost,
         SUM(receivables_collected) as receivables,
         GROUP_CONCAT(DISTINCT service_type) as services,
         COUNT(DISTINCT service_type) as serviceCount,
@@ -562,7 +562,7 @@ class DataService {
         service_type as businessUnit,
         SUM(revenue) as revenue,
         SUM(target) as target,
-        SUM(cost) as cost,
+        SUM(COALESCE(original_cost, cost, 0)) as cost,
         SUM(receivables_collected) as receivables,
         COUNT(DISTINCT customer) as customerCount,
         CASE 
@@ -609,7 +609,7 @@ class DataService {
         customer,
         SUM(revenue) as revenue,
         SUM(target) as target,
-        SUM(cost) as cost,
+        SUM(COALESCE(original_cost, cost, 0)) as cost,
         SUM(receivables_collected) as receivables,
         GROUP_CONCAT(DISTINCT service_type) as services,
         COUNT(DISTINCT service_type) as serviceCount,
@@ -657,7 +657,7 @@ class DataService {
           month,
           SUM(revenue) as revenue,
           SUM(target) as target,
-          SUM(cost) as cost,
+          SUM(COALESCE(original_cost, cost, 0)) as cost,
           SUM(receivables_collected) as receivables
         FROM revenue_data
         WHERE year = ? AND month IN (${monthPlaceholders}) AND service_type = ?
@@ -677,7 +677,7 @@ class DataService {
           month,
           SUM(revenue) as revenue,
           SUM(target) as target,
-          SUM(cost) as cost,
+          SUM(COALESCE(original_cost, cost, 0)) as cost,
           SUM(receivables_collected) as receivables
         FROM revenue_data
         WHERE year = ? AND month IN (${monthPlaceholders})
@@ -828,7 +828,7 @@ class DataService {
     const sql = `
       SELECT 
         SUM(revenue) as total_revenue,
-        SUM(COALESCE(cost, 0)) as total_cost,
+        SUM(COALESCE(original_cost, cost, 0)) as total_cost,
         SUM(COALESCE(target, 0)) as total_target,
         CASE 
           WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
@@ -845,12 +845,12 @@ class DataService {
       SELECT 
         service_type,
         SUM(revenue) as revenue,
-        SUM(cost) as cost,
+        SUM(COALESCE(original_cost, cost, 0)) as cost,
         SUM(target) as target,
-        SUM(target) - SUM(cost) as profit,
+        SUM(target) - SUM(COALESCE(original_cost, cost, 0)) as profit,
         CASE 
           WHEN SUM(target) > 0 
-          THEN ((SUM(target) - SUM(cost)) / SUM(target)) * 100 
+          THEN ((SUM(target) - SUM(COALESCE(original_cost, cost, 0))) / SUM(target)) * 100 
           ELSE 0 
         END as profit_margin,
         CASE 
