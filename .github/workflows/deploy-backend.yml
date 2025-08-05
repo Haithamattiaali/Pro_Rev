@@ -1,0 +1,60 @@
+name: Deploy Backend to Render
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+
+jobs:
+  deploy:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Deploy to Render
+        env:
+          deploy_url: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$deploy_url" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL secret is not set!"
+            exit 1
+          fi
+          curl -X POST "$deploy_url"
+          echo "✅ Deployment triggered!"
+      
+      - name: Wait for deployment to start
+        run: |
+          echo "Waiting 30 seconds for deployment to start..."
+          sleep 30
+      
+      - name: Backend health check
+        run: |
+          echo "Checking backend health..."
+          # Replace with your actual backend URL
+          BACKEND_URL="${{ secrets.BACKEND_URL }}"
+          if [ -z "$BACKEND_URL" ]; then
+            BACKEND_URL="https://proceed-dashboard-backend.onrender.com"
+          fi
+          
+          # Try health check with retries
+          MAX_RETRIES=5
+          RETRY_COUNT=0
+          
+          while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+            if curl -f "$BACKEND_URL/api/health" -m 10; then
+              echo "✅ Backend is healthy!"
+              exit 0
+            else
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              echo "Health check failed. Retry $RETRY_COUNT of $MAX_RETRIES..."
+              sleep 30
+            fi
+          done
+          
+          echo "❌ Backend health check failed after $MAX_RETRIES attempts"
+          exit 1

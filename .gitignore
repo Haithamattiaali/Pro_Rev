@@ -26,7 +26,7 @@ render.yaml
 .netlify/
 *backup*/
 DEPLOY*.md
-*DEPLOYMENT*.md
+# *DEPLOYMENT*.md  # Commented out to allow deployment guides
 
 # Platform-specific
 .vercel/
@@ -34,14 +34,13 @@ DEPLOY*.md
 .render/
 
 # GitHub-specific
-.github/
-*.yml
-*.yaml
+# .github/  # Commented out to allow GitHub Actions workflows
+# *.yml     # Commented out to allow workflow files
+# *.yaml    # Commented out to allow workflow files
 CONTRIBUTING.md
 PULL_REQUEST_TEMPLATE.md
 CODE_OF_CONDUCT.md
 SECURITY.md
-.github/
 dependabot.yml
 
 # Database files
