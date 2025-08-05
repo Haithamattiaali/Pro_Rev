@@ -41,7 +41,11 @@
     "lint:fix": "eslint . --ext js,jsx --fix",
     "quality": "npm run lint && npm run format:check && npm run test",
     "watch": "node watch-dev.js",
-    "dev:all": "node watch-dev.js"
+    "dev:all": "node watch-dev.js",
+    "clear-cache": "node clear-cache.js",
+    "clean": "node clear-cache.js",
+    "clean:all": "sh clear-node-cache.sh",
+    "fresh-install": "node clear-cache.js && npm install"
   },
   "devDependencies": {
     "@playwright/test": "^1.54.1",

@@ -17,6 +17,33 @@ dist-ssr
 .env.local
 .env.production
 
+# Deployment files and archives
+*.zip
+deploy*.sh
+*deploy*.py
+netlify.toml
+render.yaml
+.netlify/
+*backup*/
+DEPLOY*.md
+*DEPLOYMENT*.md
+
+# Platform-specific
+.vercel/
+.heroku/
+.render/
+
+# GitHub-specific
+.github/
+*.yml
+*.yaml
+CONTRIBUTING.md
+PULL_REQUEST_TEMPLATE.md
+CODE_OF_CONDUCT.md
+SECURITY.md
+.github/
+dependabot.yml
+
 # Database files
 *.db
 *.db-shm
