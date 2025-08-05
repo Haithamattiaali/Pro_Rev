@@ -168,10 +168,17 @@ const PeriodFilter = () => {
             alt="Proceed Company Logo" 
             className="h-6 w-auto object-contain sm:h-8 md:h-10 opacity-90 hover:opacity-100 transition-opacity"
             onError={(e) => {
-              console.warn('Logo failed to load:', e);
-              e.currentTarget.style.display = 'none';
+              console.error('Logo failed to load:', {
+                src: e.currentTarget.src,
+                baseURI: document.baseURI,
+                environment: import.meta.env.MODE,
+                error: e
+              });
+              // Instead of hiding, show a placeholder
+              e.currentTarget.style.opacity = '0.3';
+              e.currentTarget.style.border = '1px dashed #ccc';
             }}
-            loading="lazy"
+            loading="eager"
           />
         </div>
       </div>

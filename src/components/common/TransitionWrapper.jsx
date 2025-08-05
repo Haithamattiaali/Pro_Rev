@@ -7,9 +7,11 @@ const TransitionWrapper = ({
   easing = 'ease-out',
   className = '' 
 }) => {
-  const [height, setHeight] = useState(0);
+  const [height, setHeight] = useState(show ? 'auto' : 0);
   const [shouldRender, setShouldRender] = useState(show);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const contentRef = useRef(null);
+  const frameRef = useRef(null);
   
   useEffect(() => {
     if (show) {
@@ -20,18 +22,36 @@ const TransitionWrapper = ({
   useEffect(() => {
     if (!contentRef.current) return;
     
+    // Cancel any pending animation frame
+    if (frameRef.current) {
+      cancelAnimationFrame(frameRef.current);
+    }
+    
     if (show) {
-      // Force a reflow to ensure the element is rendered before measuring
-      const contentHeight = contentRef.current.scrollHeight;
-      setHeight(contentHeight);
+      // Use requestAnimationFrame for smoother transitions
+      frameRef.current = requestAnimationFrame(() => {
+        if (contentRef.current) {
+          const contentHeight = contentRef.current.scrollHeight;
+          setHeight(contentHeight);
+          setIsTransitioning(true);
+        }
+      });
     } else {
       setHeight(0);
+      setIsTransitioning(true);
       // Delay unmounting until transition completes
       const timer = setTimeout(() => {
         setShouldRender(false);
+        setIsTransitioning(false);
       }, duration);
       return () => clearTimeout(timer);
     }
+    
+    return () => {
+      if (frameRef.current) {
+        cancelAnimationFrame(frameRef.current);
+      }
+    };
   }, [show, duration]);
   
   // Check for reduced motion preference
@@ -42,12 +62,14 @@ const TransitionWrapper = ({
   
   return (
     <div 
-      className={`overflow-hidden transition-all ${className}`}
+      className={`overflow-hidden ${isTransitioning ? 'transition-all' : ''} ${className}`}
       style={{ 
         height: show ? height : 0,
         opacity: show ? 1 : 0,
+        transform: show ? 'translateY(0)' : 'translateY(-4px)',
         transitionDuration: `${transitionDuration}ms`,
-        transitionTimingFunction: easing
+        transitionTimingFunction: easing,
+        willChange: isTransitioning ? 'height, opacity, transform' : 'auto'
       }}
     >
       <div ref={contentRef}>
