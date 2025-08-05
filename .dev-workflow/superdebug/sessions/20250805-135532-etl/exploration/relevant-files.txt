@@ -1,0 +1,7 @@
+backend/services/etl.service.js
+backend/services/etl.service.test.js
+backend/server.js
+backend/services/data.service.js
+backend/utils/profitCalculations.js
+backend/database/db-wrapper.js
+src/pages/Upload.jsx

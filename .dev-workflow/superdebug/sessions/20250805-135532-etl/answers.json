@@ -1,0 +1,58 @@
+{
+  "mode": "auto",
+  "timestamp": "2025-08-05T14:00:00+03:00",
+  "answers": [
+    {
+      "id": 1,
+      "answer": "1. Access production dashboard 2. Navigate to Overview page 3. Check gross profit value - shows SAR 1,288,208 instead of SAR 1,197,662",
+      "reasoning": "Based on previous debugging sessions and current issue description"
+    },
+    {
+      "id": 2,
+      "answer": "Always",
+      "reasoning": "Database schema issue affects all queries consistently"
+    },
+    {
+      "id": 3,
+      "answer": "Gross profit calculations are incorrect by SAR 90,546, showing original cost instead of performance-adjusted cost. Financial reporting accuracy compromised.",
+      "reasoning": "Difference between correct (1,197,662) and displayed (1,288,208) values"
+    },
+    {
+      "id": 4,
+      "answer": "Issue discovered during recent debugging session on August 5, 2025",
+      "reasoning": "Based on current debugging context"
+    },
+    {
+      "id": 5,
+      "answer": ["Production"],
+      "reasoning": "Local development shows correct values, only production affected"
+    },
+    {
+      "id": 6,
+      "answer": "original_cost column migration was commented out with note 'REMOVED: Pro-rating no longer used'",
+      "reasoning": "Found in run-migrations.js line 36"
+    },
+    {
+      "id": 7,
+      "answer": "Multiple deployment attempts today (August 5, 2025) but backend not updating",
+      "reasoning": "GitHub Actions shows deployments at 10:49, 10:40, 10:02"
+    },
+    {
+      "id": 8,
+      "answer": "Yes, new performance-based cost formula implemented: revenue - (revenue/target) * cost",
+      "reasoning": "Found in backend/utils/profitCalculations.js"
+    },
+    {
+      "id": 9,
+      "answer": "Issue affects all records - systematic database schema problem",
+      "reasoning": "Missing column affects all queries uniformly"
+    },
+    {
+      "id": 10,
+      "answer": "Expected: SAR 1,197,662 (with performance cost 2,484,582). Actual: SAR 1,288,208 (using original cost 2,672,422)",
+      "reasoning": "API responses show wrong cost field value"
+    }
+  ],
+  "confidence": 0.95,
+  "reasoning": "High confidence based on code analysis finding commented migration and missing original_cost column"
+}

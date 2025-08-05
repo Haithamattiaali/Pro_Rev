@@ -1,0 +1,79 @@
+{
+  "title": "Bug Analysis Questionnaire - ETL/Database Issue",
+  "generated": "2025-08-05T13:59:00+03:00",
+  "bug_hint": "may be the etl",
+  "questions": [
+    {
+      "id": 1,
+      "category": "reproduction",
+      "question": "Can you provide exact steps to reproduce this bug?",
+      "type": "text",
+      "required": true
+    },
+    {
+      "id": 2,
+      "category": "frequency",
+      "question": "How often does this bug occur?",
+      "type": "choice",
+      "options": ["Always", "Often", "Sometimes", "Rarely"],
+      "required": true
+    },
+    {
+      "id": 3,
+      "category": "impact",
+      "question": "What is the impact when this bug occurs?",
+      "type": "text",
+      "required": true
+    },
+    {
+      "id": 4,
+      "category": "timeline",
+      "question": "When did you first notice this bug?",
+      "type": "text",
+      "required": false
+    },
+    {
+      "id": 5,
+      "category": "environment",
+      "question": "In which environment(s) does this occur?",
+      "type": "multiselect",
+      "options": ["Development", "Staging", "Production", "Local"],
+      "required": true
+    },
+    {
+      "id": 6,
+      "category": "database",
+      "question": "Have any database migrations been run recently?",
+      "type": "text",
+      "required": false
+    },
+    {
+      "id": 7,
+      "category": "deployment",
+      "question": "When was the last production deployment?",
+      "type": "text",
+      "required": false
+    },
+    {
+      "id": 8,
+      "category": "changes",
+      "question": "Were there any recent changes to calculation formulas?",
+      "type": "text",
+      "required": false
+    },
+    {
+      "id": 9,
+      "category": "data",
+      "question": "Is the issue consistent across all data or specific records?",
+      "type": "text",
+      "required": false
+    },
+    {
+      "id": 10,
+      "category": "expectations",
+      "question": "What is the expected vs actual gross profit value?",
+      "type": "text",
+      "required": true
+    }
+  ]
+}

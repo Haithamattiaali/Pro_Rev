@@ -706,31 +706,68 @@ app.post('/api/export/custom/customers', async (req, res) => {
   }
 });
 
-// Deployment test endpoint
+// Deployment test endpoint - VERSION 1.0.5-AUGUST-5-FIX
 app.get('/api/deployment-test', (req, res) => {
   res.json({ 
     message: 'Performance cost fix deployed!',
-    version: '1.0.3-fix',
+    version: '1.0.5-august-5-fix',
     timestamp: new Date().toISOString(),
-    fix: 'Gross profit calculation now uses performance-adjusted costs'
+    fix: 'Gross profit calculation now uses performance-adjusted costs',
+    deployId: process.env.RENDER_DEPLOY_ID || 'local',
+    deploymentDate: '2025-08-05',
+    fixApplied: true
   });
 });
 
-// Health check
+// Debug schema endpoint with migration status
+app.get('/api/debug/schema', async (req, res) => {
+  try {
+    const columns = await db.all("PRAGMA table_info(revenue_data)");
+    const hasOriginalCost = columns.some(col => col.name === 'original_cost');
+    
+    // Check if we have data with original_cost populated
+    let sampleData = null;
+    if (hasOriginalCost) {
+      sampleData = await db.get("SELECT cost, original_cost FROM revenue_data WHERE year = 2025 AND month = 1 LIMIT 1");
+    }
+    
+    res.json({ 
+      columns: columns.map(c => c.name),
+      hasOriginalCost,
+      migrationStatus: hasOriginalCost ? 'completed' : 'pending',
+      sampleData,
+      timestamp: new Date().toISOString(),
+      version: '1.0.5-august-5-fix'
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Health check with enhanced diagnostics
 app.get('/api/health', async (req, res) => {
   try {
-    // Test database connection
+    // Test database connection and check schema
     await db.get('SELECT 1 as test');
+    const columns = await db.all("PRAGMA table_info(revenue_data)");
+    const hasOriginalCost = columns.some(col => col.name === 'original_cost');
+    
     res.json({ 
       status: 'OK', 
       timestamp: new Date().toISOString(),
       database: 'connected',
-      version: '1.0.3-performance-cost-fix',
+      version: '1.0.5-august-5-fix',
       deploymentTest: true,
       autoDeployment: 'working',
       features: {
         performanceCost: true,
-        originalCostField: true
+        originalCostField: hasOriginalCost,
+        migrationStatus: hasOriginalCost ? 'completed' : 'pending'
+      },
+      render: {
+        deployId: process.env.RENDER_DEPLOY_ID || 'none',
+        serviceId: process.env.RENDER_SERVICE_ID || 'none',
+        gitCommit: process.env.RENDER_GIT_COMMIT || 'none'
       }
     });
   } catch (error) {
@@ -1339,3 +1376,4 @@ if (server) {
 // Export app for testing
 module.exports = app;// Auto-deploy test: Fri Jul 18 08:39:27 +03 2025
 // Auto-deploy verification: Fri Jul 18 09:37:59 +03 2025
+// Force deployment: August 5, 2025 - Fix gross profit calculation with performance-based costs

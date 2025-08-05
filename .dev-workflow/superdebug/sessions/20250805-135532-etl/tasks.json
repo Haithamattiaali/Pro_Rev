@@ -1,0 +1,61 @@
+{
+  "created": "2025-08-05T14:03:00+03:00",
+  "tasks": [
+    {
+      "id": "1",
+      "content": "Uncomment original_cost migration in run-migrations.js",
+      "priority": "high",
+      "status": "pending",
+      "estimate": "5 minutes"
+    },
+    {
+      "id": "2", 
+      "content": "Test migration locally to verify it works",
+      "priority": "high",
+      "status": "pending",
+      "estimate": "10 minutes"
+    },
+    {
+      "id": "3",
+      "content": "Commit and push migration fix to trigger deployment",
+      "priority": "high",
+      "status": "pending",
+      "estimate": "5 minutes"
+    },
+    {
+      "id": "4",
+      "content": "Run migration on production database",
+      "priority": "high",
+      "status": "pending",
+      "estimate": "15 minutes"
+    },
+    {
+      "id": "5",
+      "content": "Verify API returns correct cost calculations",
+      "priority": "high",
+      "status": "pending",
+      "estimate": "10 minutes"
+    },
+    {
+      "id": "6",
+      "content": "Add schema validation to backend startup",
+      "priority": "medium",
+      "status": "pending",
+      "estimate": "30 minutes"
+    },
+    {
+      "id": "7",
+      "content": "Create test for database schema requirements",
+      "priority": "medium",
+      "status": "pending",
+      "estimate": "20 minutes"
+    },
+    {
+      "id": "8",
+      "content": "Document performance calculation requirements",
+      "priority": "low",
+      "status": "pending",
+      "estimate": "15 minutes"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+DEPLOYMENT TRIGGER FILE
+=======================
+
+This file is used to force new deployments when code changes might not be detected.
+
+Deployment History:
+- August 5, 2025 14:30 EAT: Force deployment to fix gross profit calculation
+  - Issue: API returning original_cost instead of performance-adjusted cost
+  - Fix: Ensure original_cost migration runs on production
+  - Version: 1.0.5-august-5-fix
+
+IMPORTANT: The original_cost column migration must run for correct calculations.
