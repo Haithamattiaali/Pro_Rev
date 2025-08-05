@@ -10,6 +10,14 @@ class DataService {
     this.loadingStates = new Map(); // Track loading states per endpoint
     this.cacheStats = { hits: 0, misses: 0, staleServed: 0 };
     
+    // Log cache initialization
+    console.log('🗄️ DataService: Cache initialized', {
+      environment: import.meta.env.MODE,
+      cacheTimeout: '30 minutes',
+      staleTimeout: '60 minutes',
+      timestamp: new Date().toISOString()
+    });
+    
     // Initialize cache warming on startup
     setTimeout(() => this.warmCache(), 1000);
   }
@@ -28,9 +36,20 @@ class DataService {
       if (Array.isArray(arg)) {
         return arg.sort().join(',');
       }
+      if (typeof arg === 'object' && arg !== null) {
+        // Normalize object keys to ensure consistent serialization
+        return JSON.stringify(arg, Object.keys(arg).sort());
+      }
       return arg;
     });
-    return `${method}_${processedArgs.join('_')}`;
+    const key = `${method}_${processedArgs.join('_')}`;
+    
+    // Debug logging in production
+    if (import.meta.env.PROD) {
+      console.log(`[Cache] Generated key: ${key.substring(0, 50)}...`);
+    }
+    
+    return key;
   }
 
   // Enhanced cache with stale-while-revalidate pattern
@@ -42,6 +61,14 @@ class DataService {
     if (cached && (now - cached.timestamp < this.cacheTimeout)) {
       this.cacheStats.hits++;
       console.log(`✅ Cache hit for ${key}`);
+      if (import.meta.env.PROD) {
+        console.log(`[Cache] Hit stats:`, {
+          key: key.substring(0, 30),
+          age: Math.round((now - cached.timestamp) / 1000) + 's',
+          totalHits: this.cacheStats.hits,
+          hitRate: this.getCacheStats().hitRate
+        });
+      }
       return cached.data;
     }
     
@@ -62,6 +89,14 @@ class DataService {
     // No cache or too stale - need to fetch
     this.cacheStats.misses++;
     console.log(`❌ Cache miss for ${key}`);
+    if (import.meta.env.PROD) {
+      console.log(`[Cache] Miss stats:`, {
+        key: key.substring(0, 30),
+        cacheSize: this.cache.size,
+        totalMisses: this.cacheStats.misses,
+        hitRate: this.getCacheStats().hitRate
+      });
+    }
     
     // Check if already loading this endpoint
     if (this.loadingStates.has(key)) {
@@ -200,6 +235,13 @@ class DataService {
   }
 
   async getOverviewData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
+    if (import.meta.env.PROD) {
+      console.log('[DataService] getOverviewData called:', {
+        year, period, month, quarter,
+        hasMultiSelect: !!multiSelectParams,
+        multiSelectParams: multiSelectParams ? JSON.stringify(multiSelectParams).substring(0, 100) : null
+      });
+    }
     const key = multiSelectParams 
       ? this.getCacheKey('overview', multiSelectParams.years, multiSelectParams.periods, multiSelectParams.viewMode)
       : this.getCacheKey('overview', year, period, month, quarter);
