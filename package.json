@@ -1,6 +1,6 @@
 {
   "name": "proceed-revenue-dashboard",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Professional revenue dashboard for Proceed logistics",
   "private": true,
   "type": "module",
