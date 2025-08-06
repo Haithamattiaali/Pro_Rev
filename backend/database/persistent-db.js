@@ -126,7 +126,19 @@ class PersistentDatabase {
         }
       }
       
-      // Pro-rating columns have been removed - no need to check for them anymore
+      // Check for original_cost and original_target columns
+      const hasOriginalCost = revenueColumns.some(col => col.name === 'original_cost');
+      const hasOriginalTarget = revenueColumns.some(col => col.name === 'original_target');
+      
+      if (!hasOriginalCost) {
+        console.log('Adding original_cost column to revenue_data...');
+        this.db.prepare('ALTER TABLE revenue_data ADD COLUMN original_cost REAL DEFAULT 0').run();
+      }
+      
+      if (!hasOriginalTarget) {
+        console.log('Adding original_target column to revenue_data...');
+        this.db.prepare('ALTER TABLE revenue_data ADD COLUMN original_target REAL DEFAULT 0').run();
+      }
       
       console.log('Migrations completed');
     } catch (error) {
