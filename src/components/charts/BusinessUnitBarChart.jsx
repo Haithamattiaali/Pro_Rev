@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo, useMemo, useCallback } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { formatCurrency, formatPercentage } from '../../utils/formatters';
 
-const BusinessUnitBarChart = ({ data, title = 'Monthly Performance' }) => {
+// Custom hook for window dimensions
+const useWindowWidth = () => {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth)
   
   useEffect(() => {
@@ -14,11 +15,17 @@ const BusinessUnitBarChart = ({ data, title = 'Monthly Performance' }) => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
   
-  const getChartHeight = () => {
+  return windowWidth
+}
+
+const BusinessUnitBarChart = memo(({ data, title = 'Monthly Performance' }) => {
+  const windowWidth = useWindowWidth()
+  
+  const chartHeight = useMemo(() => {
     if (windowWidth < 640) return 300
     if (windowWidth < 1024) return 350
     return 400
-  }
+  }, [windowWidth])
   // Custom tooltip to show formatted values
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
@@ -240,6 +247,8 @@ const BusinessUnitBarChart = ({ data, title = 'Monthly Performance' }) => {
       </div>
     </div>
   );
-};
+});
+
+BusinessUnitBarChart.displayName = 'BusinessUnitBarChart';
 
 export default BusinessUnitBarChart;

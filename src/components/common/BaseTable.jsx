@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { cn } from '../../utils/cn';
 
-const BaseTable = ({ 
+const BaseTable = memo(({ 
   children, 
   className = '',
   variant = 'default',
@@ -40,9 +40,11 @@ const BaseTable = ({
       </table>
     </div>
   );
-};
+});
 
-const TableHeader = ({ children, className = '', sticky = false, variant = 'default' }) => {
+BaseTable.displayName = 'BaseTable';
+
+const TableHeader = memo(({ children, className = '', sticky = false, variant = 'default' }) => {
   const variantStyles = {
     default: 'bg-gradient-to-r from-primary to-primary-dark text-white',
     subtle: 'bg-gradient-to-r from-secondary-pale/20 to-secondary-pale/10 text-secondary',
@@ -59,9 +61,11 @@ const TableHeader = ({ children, className = '', sticky = false, variant = 'defa
       {children}
     </thead>
   );
-};
+});
 
-const TableBody = ({ children, className = '', striped = true, hoverable = true }) => {
+TableHeader.displayName = 'TableHeader';
+
+const TableBody = memo(({ children, className = '', striped = true, hoverable = true }) => {
   return (
     <tbody className={cn(
       'divide-y divide-secondary-pale/10',
@@ -72,9 +76,11 @@ const TableBody = ({ children, className = '', striped = true, hoverable = true 
       {children}
     </tbody>
   );
-};
+});
 
-const TableRow = ({ children, className = '', clickable = false, onClick, selected = false }) => {
+TableBody.displayName = 'TableBody';
+
+const TableRow = memo(({ children, className = '', clickable = false, onClick, selected = false }) => {
   return (
     <tr 
       className={cn(
@@ -88,9 +94,11 @@ const TableRow = ({ children, className = '', clickable = false, onClick, select
       {children}
     </tr>
   );
-};
+});
 
-const TableHead = ({ children, className = '', align = 'left', sortable = false, sorted = null, ...props }) => {
+TableRow.displayName = 'TableRow';
+
+const TableHead = memo(({ children, className = '', align = 'left', sortable = false, sorted = null, ...props }) => {
   const alignStyles = {
     left: 'text-left',
     center: 'text-center',
@@ -138,9 +146,11 @@ const TableHead = ({ children, className = '', align = 'left', sortable = false,
       </div>
     </th>
   );
-};
+});
 
-const TableCell = ({ children, className = '', align = 'left', numeric = false, variant = '', highlight = false, ...props }) => {
+TableHead.displayName = 'TableHead';
+
+const TableCell = memo(({ children, className = '', align = 'left', numeric = false, variant = '', highlight = false, ...props }) => {
   const alignStyles = {
     left: 'text-left',
     center: 'text-center',
@@ -173,9 +183,11 @@ const TableCell = ({ children, className = '', align = 'left', numeric = false, 
       {children}
     </Component>
   );
-};
+});
 
-const TableFooter = ({ children, className = '', variant = 'default' }) => {
+TableCell.displayName = 'TableCell';
+
+const TableFooter = memo(({ children, className = '', variant = 'default' }) => {
   const variantStyles = {
     default: 'bg-gradient-to-r from-secondary-pale/20 to-secondary-pale/10 border-t-2 border-secondary-pale/30',
     primary: 'bg-gradient-to-r from-primary-light/20 to-primary-light/10 border-t-2 border-primary-light/30',
@@ -191,10 +203,12 @@ const TableFooter = ({ children, className = '', variant = 'default' }) => {
       {children}
     </tfoot>
   );
-};
+});
+
+TableFooter.displayName = 'TableFooter';
 
 // Empty state component
-const TableEmpty = ({ message = 'No data available', icon: Icon, className = '' }) => {
+const TableEmpty = memo(({ message = 'No data available', icon: Icon, className = '' }) => {
   return (
     <tr>
       <td colSpan="100%" className="text-center py-12">
@@ -205,10 +219,12 @@ const TableEmpty = ({ message = 'No data available', icon: Icon, className = '' 
       </td>
     </tr>
   );
-};
+});
+
+TableEmpty.displayName = 'TableEmpty';
 
 // Loading state component
-const TableLoading = ({ rows = 5, columns = 4, className = '' }) => {
+const TableLoading = memo(({ rows = 5, columns = 4, className = '' }) => {
   return (
     <>
       {[...Array(rows)].map((_, rowIndex) => (
@@ -226,10 +242,12 @@ const TableLoading = ({ rows = 5, columns = 4, className = '' }) => {
       ))}
     </>
   );
-};
+});
+
+TableLoading.displayName = 'TableLoading';
 
 // Action button component
-const TableAction = ({ onClick, icon: Icon, label, variant = 'default', className = '' }) => {
+const TableAction = memo(({ onClick, icon: Icon, label, variant = 'default', className = '' }) => {
   const variantStyles = {
     default: 'text-secondary hover:text-primary',
     edit: 'text-accent-blue hover:text-accent-blue/80',
@@ -250,7 +268,9 @@ const TableAction = ({ onClick, icon: Icon, label, variant = 'default', classNam
       <Icon className="w-4 h-4" />
     </button>
   );
-};
+});
+
+TableAction.displayName = 'TableAction';
 
 BaseTable.Header = TableHeader;
 BaseTable.Body = TableBody;

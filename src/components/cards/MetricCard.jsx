@@ -1,9 +1,9 @@
-import React from 'react'
+import React, { memo } from 'react'
 import { TrendingUp, TrendingDown } from 'lucide-react'
 import { formatCurrency, formatPercentage } from '../../utils/formatters'
 import BaseCard from '../common/BaseCard'
 
-const MetricCard = ({ title, subtitle, value, format = 'currency', trend, trendValue, icon: Icon, iconColor = 'primary' }) => {
+const MetricCard = memo(({ title, subtitle, value, format = 'currency', trend, trendValue, icon: Icon, iconColor = 'primary' }) => {
   const formatValue = (val) => {
     switch (format) {
       case 'currency':
@@ -73,6 +73,8 @@ const MetricCard = ({ title, subtitle, value, format = 'currency', trend, trendV
       </div>
     </BaseCard>
   )
-}
+})
+
+MetricCard.displayName = 'MetricCard'
 
 export default MetricCard

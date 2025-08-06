@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, memo, useMemo } from 'react'
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts'
 import { formatPercentage, formatCurrency } from '../../utils/formatters'
 
-const GaugeChart = ({ value, title, targetAmount = 0, currentAmount = 0 }) => {
+// Custom hook for responsive behavior
+const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false)
   
   useEffect(() => {
@@ -15,16 +16,25 @@ const GaugeChart = ({ value, title, targetAmount = 0, currentAmount = 0 }) => {
     
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
-  const data = [
+  
+  return isMobile
+}
+
+const GaugeChart = memo(({ value, title, targetAmount = 0, currentAmount = 0 }) => {
+  const isMobile = useIsMobile()
+  
+  // Memoize data array to prevent recreation on every render
+  const data = useMemo(() => [
     { value: Math.min(value, 100) },
     { value: Math.max(0, 100 - value) }
-  ]
+  ], [value])
 
-  const getColor = () => {
+  // Memoize color calculation
+  const chartColor = useMemo(() => {
     if (value >= 100) return '#10b981' // green
     if (value >= 80) return '#f59e0b' // yellow
     return '#ef4444' // red
-  }
+  }, [value])
 
   return (
     <div className="text-center">
@@ -40,7 +50,7 @@ const GaugeChart = ({ value, title, targetAmount = 0, currentAmount = 0 }) => {
             outerRadius={80}
             dataKey="value"
           >
-            <Cell fill={getColor()} />
+            <Cell fill={chartColor} />
             <Cell fill="#e2e1e6" />
           </Pie>
         </PieChart>
@@ -66,6 +76,8 @@ const GaugeChart = ({ value, title, targetAmount = 0, currentAmount = 0 }) => {
       </div>
     </div>
   )
-}
+})
+
+GaugeChart.displayName = 'GaugeChart'
 
 export default GaugeChart
