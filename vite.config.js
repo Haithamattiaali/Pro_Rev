@@ -3,6 +3,10 @@ import react from '@vitejs/plugin-react'
 import circleDependency from 'vite-plugin-circular-dependency'
 
 export default defineConfig({
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react-router-dom'],
+    force: true
+  },
   plugins: [
     react(),
     circleDependency({
@@ -31,17 +35,8 @@ export default defineConfig({
   build: {
     assetsDir: 'assets',
     target: 'es2015',
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: false, // Keep console logs for debugging
-        drop_debugger: true,
-        keep_fnames: true // Keep function names for better debugging
-      },
-      mangle: {
-        keep_fnames: true // Keep function names
-      }
-    },
+    minify: 'esbuild', // Use esbuild instead of terser
+    sourcemap: true, // Enable source maps for debugging
     rollupOptions: {
       output: {
         assetFileNames: (assetInfo) => {
@@ -51,12 +46,8 @@ export default defineConfig({
           }
           return 'assets/[name]-[hash][extname]';
         },
-        // Manual chunks to prevent initialization issues
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          charts: ['recharts'],
-          utils: ['xlsx', 'html2canvas', 'jspdf']
-        }
+        // Let Vite handle chunking automatically to avoid initialization issues
+        // manualChunks: undefined
       }
     }
   },
