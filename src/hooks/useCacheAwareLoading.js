@@ -27,12 +27,12 @@ export const useCacheAwareLoading = (initialDelay = 300) => {
       
       // Only show loading indicator after delay
       loadingTimerRef.current = setTimeout(() => {
-        if (isMountedRef.current && isLoading) {
+        if (isMountedRef.current) {
           setShowLoading(true);
         }
       }, initialDelay);
     }
-  }, [initialDelay, isLoading]);
+  }, [initialDelay]);
 
   const stopLoading = useCallback(() => {
     setIsLoading(false);

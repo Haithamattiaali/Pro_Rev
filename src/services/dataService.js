@@ -70,10 +70,16 @@ class DataService {
         });
       }
       
-      // Emit cache hit event
-      window.dispatchEvent(new CustomEvent('cacheEvent', {
-        detail: { type: 'hit', key, isHit: true, age: 0 }
-      }));
+      // Emit cache hit event (only in development)
+      if (import.meta.env.DEV) {
+        try {
+          window.dispatchEvent(new CustomEvent('cacheEvent', {
+            detail: { type: 'hit', key, isHit: true, age: 0 }
+          }));
+        } catch (e) {
+          // Ignore errors in production
+        }
+      }
       
       return {
         data: cached.data,
@@ -91,10 +97,16 @@ class DataService {
       // Refresh in background without blocking
       this.refreshInBackground(key, fetcher);
       
-      // Emit stale hit event
-      window.dispatchEvent(new CustomEvent('cacheEvent', {
-        detail: { type: 'stale', key, isHit: true, age: now - cached.timestamp }
-      }));
+      // Emit stale hit event (only in development)
+      if (import.meta.env.DEV) {
+        try {
+          window.dispatchEvent(new CustomEvent('cacheEvent', {
+            detail: { type: 'stale', key, isHit: true, age: now - cached.timestamp }
+          }));
+        } catch (e) {
+          // Ignore errors in production
+        }
+      }
       
       return {
         data: cached.data,
@@ -116,10 +128,16 @@ class DataService {
       });
     }
     
-    // Emit cache miss event
-    window.dispatchEvent(new CustomEvent('cacheEvent', {
-      detail: { type: 'miss', key, isHit: false, age: 0 }
-    }));
+    // Emit cache miss event (only in development)
+    if (import.meta.env.DEV) {
+      try {
+        window.dispatchEvent(new CustomEvent('cacheEvent', {
+          detail: { type: 'miss', key, isHit: false, age: 0 }
+        }));
+      } catch (e) {
+        // Ignore errors in production
+      }
+    }
     
     // Check if already loading this endpoint
     if (this.loadingStates.has(key)) {
