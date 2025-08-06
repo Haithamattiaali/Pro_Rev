@@ -7,6 +7,7 @@ import Customers from './pages/Customers'
 // import Forecast from './pages/Forecast' // Commented out as requested
 import Upload from './pages/Upload'
 import SalesPlan from './pages/SalesPlan'
+import Forecast from './pages/Forecast'
 import { FilterProvider } from './contexts/FilterContext'
 import { DataRefreshProvider } from './contexts/DataRefreshContext'
 import { HierarchicalFilterProvider } from './contexts/HierarchicalFilterContext'
@@ -43,7 +44,7 @@ function App() {
               <Route path="overview" element={<Overview />} />
               <Route path="business-units" element={<BusinessUnits />} />
               <Route path="customers" element={<Customers />} />
-              {/* <Route path="forecast" element={<Forecast />} /> */} {/* Commented out as requested */}
+              <Route path="forecast" element={<Forecast />} />
               <Route path="sales-plan" element={<SalesPlan />} />
               <Route path="upload" element={<Upload />} />
             </Route>
