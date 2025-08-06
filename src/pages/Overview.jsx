@@ -11,14 +11,14 @@ import { formatCurrency, formatPercentage, getAchievementStatus } from '../utils
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
 import { useHierarchicalFilter } from '../contexts/HierarchicalFilterContext'
-import { useOptimizedLoading } from '../hooks/useOptimizedLoading'
+import { useCacheAwareLoading } from '../hooks/useCacheAwareLoading'
 import dataService from '../services/dataService'
 
 const Overview = () => {
   const { periodFilter } = useFilter();
   const { validationData } = useHierarchicalFilter();
   const { refreshTrigger, triggerRefresh } = useDataRefresh();
-  const { isLoading, showLoading, startLoading, stopLoading } = useOptimizedLoading(true);
+  const { isLoading, showLoading, startLoading, stopLoading, handleCacheResult } = useCacheAwareLoading(true);
   const [error, setError] = useState(null);
   const [overviewData, setOverviewData] = useState(null);
   const dashboardRef = useRef(null);
@@ -32,7 +32,6 @@ const Overview = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      startLoading();
       setError(null);
       
       console.log('📊 Overview: Fetching data with filters:', {
@@ -93,19 +92,28 @@ const Overview = () => {
           }
         });
         
-        const data = await dataService.getOverviewData(
+        const result = await dataService.getOverviewDataWithCache(
           periodFilter.year, 
           periodFilter.period,
           periodFilter.month,
           periodFilter.quarter,
           multiSelectParams
         );
+        
+        // Only show loading for network requests
+        if (!result.isFromCache) {
+          startLoading();
+        }
+        
         console.log('📊 Overview: Received data:', {
-          revenue: data.overview?.revenue,
-          target: data.overview?.target,
-          serviceBreakdownCount: data.serviceBreakdown?.length
+          revenue: result.data.overview?.revenue,
+          target: result.data.overview?.target,
+          serviceBreakdownCount: result.data.serviceBreakdown?.length,
+          isFromCache: result.isFromCache,
+          isFresh: result.isFresh,
+          cacheAge: result.age ? `${Math.round(result.age / 1000)}s` : '0s'
         });
-        setOverviewData(data);
+        setOverviewData(result.data);
         
         // Prefetch adjacent periods in background
         if (!multiSelectParams) {

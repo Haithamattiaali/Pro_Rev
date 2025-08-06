@@ -52,7 +52,7 @@ class DataService {
     return key;
   }
 
-  // Enhanced cache with stale-while-revalidate pattern
+  // Enhanced cache with stale-while-revalidate pattern - now returns metadata
   async getCachedData(key, fetcher, options = {}) {
     const cached = this.cache.get(key);
     const now = Date.now();
@@ -69,7 +69,12 @@ class DataService {
           hitRate: this.getCacheStats().hitRate
         });
       }
-      return cached.data;
+      return {
+        data: cached.data,
+        isFromCache: true,
+        isFresh: true,
+        age: now - cached.timestamp
+      };
     }
     
     // Check if we have stale but usable data
@@ -77,13 +82,15 @@ class DataService {
       this.cacheStats.staleServed++;
       console.log(`♻️ Serving stale data for ${key}, refreshing in background`);
       
-      // Return stale data immediately
-      const staleData = cached.data;
-      
       // Refresh in background without blocking
       this.refreshInBackground(key, fetcher);
       
-      return staleData;
+      return {
+        data: cached.data,
+        isFromCache: true,
+        isFresh: false,
+        age: now - cached.timestamp
+      };
     }
     
     // No cache or too stale - need to fetch
@@ -101,7 +108,23 @@ class DataService {
     // Check if already loading this endpoint
     if (this.loadingStates.has(key)) {
       console.log(`⏳ Already loading ${key}, waiting...`);
-      return this.loadingStates.get(key);
+      const data = await this.loadingStates.get(key);
+      // Check if data was cached while we were waiting
+      const newCached = this.cache.get(key);
+      if (newCached) {
+        return {
+          data,
+          isFromCache: true,
+          isFresh: true,
+          age: Date.now() - newCached.timestamp
+        };
+      }
+      return {
+        data,
+        isFromCache: false,
+        isFresh: true,
+        age: 0
+      };
     }
     
     // Create loading promise
@@ -110,7 +133,12 @@ class DataService {
     
     try {
       const data = await loadingPromise;
-      return data;
+      return {
+        data,
+        isFromCache: false,
+        isFresh: true,
+        age: 0
+      };
     } finally {
       this.loadingStates.delete(key);
     }
@@ -234,9 +262,10 @@ class DataService {
     });
   }
 
-  async getOverviewData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
+  // New method that returns cache metadata along with data
+  async getOverviewDataWithCache(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
     if (import.meta.env.PROD) {
-      console.log('[DataService] getOverviewData called:', {
+      console.log('[DataService] getOverviewDataWithCache called:', {
         year, period, month, quarter,
         hasMultiSelect: !!multiSelectParams,
         multiSelectParams: multiSelectParams ? JSON.stringify(multiSelectParams).substring(0, 100) : null
@@ -246,6 +275,12 @@ class DataService {
       ? this.getCacheKey('overview', multiSelectParams.years, multiSelectParams.periods, multiSelectParams.viewMode)
       : this.getCacheKey('overview', year, period, month, quarter);
     return this.getCachedData(key, () => apiService.getOverviewData(year, period, month, quarter, multiSelectParams));
+  }
+
+  // Original method for backward compatibility
+  async getOverviewData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
+    const result = await this.getOverviewDataWithCache(year, period, month, quarter, multiSelectParams);
+    return result.data;
   }
 
   async getBusinessUnitData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {

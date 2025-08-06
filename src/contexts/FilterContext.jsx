@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import dataService from '../services/dataService';
 import logger from '../utils/debugLogger';
+import { debounce } from '../utils/debounce';
 
 const FilterContext = createContext();
 
@@ -144,7 +145,7 @@ export const FilterProvider = ({ children }) => {
   }, [pendingFilter, periodFilter]);
 
   // Handle pending changes (before applying)
-  const handlePendingChange = (filterConfig) => {
+  const handlePendingChange = useCallback((filterConfig) => {
     console.log('🔍 FilterContext: handlePendingChange called with:', filterConfig);
     setPendingFilter(prev => {
       const newFilter = {
@@ -164,10 +165,19 @@ export const FilterProvider = ({ children }) => {
       console.log('🔍 FilterContext: New pending filter state:', newFilter);
       return newFilter;
     });
-  };
+    
+    // Auto-apply with debounce for multi-select operations
+    const isMultiSelect = (filterConfig.selectedMonths && filterConfig.selectedMonths.length > 1) ||
+                        (filterConfig.selectedQuarters && filterConfig.selectedQuarters.length > 1) ||
+                        (filterConfig.selectedYears && filterConfig.selectedYears.length > 1);
+    
+    if (isMultiSelect) {
+      debouncedApplyFilters();
+    }
+  }, [debouncedApplyFilters]);
 
   // Apply pending changes to active filters
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
     // NOTE: Cache clearing removed - dataService uses unique cache keys per filter combination
     // so different filters automatically get their own cached data
     
@@ -223,7 +233,13 @@ export const FilterProvider = ({ children }) => {
     
     setPeriodFilter(validateFilterState(newFilter));
     setHasChanges(false);
-  };
+  }, [periodFilter, pendingFilter]);
+
+  // Debounced version for multi-select operations
+  const debouncedApplyFilters = useMemo(
+    () => debounce(applyFilters, 300, { leading: false, trailing: true }),
+    [applyFilters]
+  );
 
   // Reset pending changes to current applied filters
   const resetFilters = () => {
