@@ -10,14 +10,14 @@ import ToolbarSection from '../components/layout/ToolbarSection'
 import BaseTable from '../components/common/BaseTable'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
-import { useOptimizedLoading } from '../hooks/useOptimizedLoading'
+import { useCacheAwareLoading } from '../hooks/useCacheAwareLoading'
 import dataService from '../services/dataService'
 import exportService from '../services/exportService'
 
 const Customers = () => {
   const { periodFilter } = useFilter()
   const { refreshTrigger, triggerRefresh } = useDataRefresh()
-  const { isLoading, showLoading, startLoading, stopLoading } = useOptimizedLoading(true)
+  const { isLoading, showLoading, startLoading, stopLoading } = useCacheAwareLoading(true)
   const [error, setError] = useState(null)
   const [customers, setCustomers] = useState([])
   const [customerAchievement, setCustomerAchievement] = useState([])
@@ -33,7 +33,6 @@ const Customers = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      startLoading()
       setError(null)
       
       try {
@@ -64,27 +63,36 @@ const Customers = () => {
           };
         }
         
-        const [customersResponse, achievementData, breakdownData] = await Promise.all([
-          dataService.getCustomerData(
+        const [customersResult, achievementResult, breakdownResult] = await Promise.all([
+          dataService.getCustomerDataWithCache(
             periodFilter.year, 
             periodFilter.period,
             periodFilter.month,
             periodFilter.quarter,
             multiSelectParams
           ),
-          dataService.getCustomerAchievement(
+          dataService.getCustomerAchievementWithCache(
             periodFilter.year, 
             periodFilter.period,
             periodFilter.month,
             periodFilter.quarter
           ),
-          dataService.getCustomerServiceBreakdown(
+          dataService.getCustomerServiceBreakdownWithCache(
             periodFilter.year, 
             periodFilter.period,
             periodFilter.month,
             periodFilter.quarter
           )
         ])
+        
+        // Only show loading if any request is from network
+        if (!customersResult.isFromCache || !achievementResult.isFromCache || !breakdownResult.isFromCache) {
+          startLoading();
+        }
+        
+        const customersResponse = customersResult.data;
+        const achievementData = achievementResult.data;
+        const breakdownData = breakdownResult.data;
         
         // Handle both response formats (array for regular, object with customers for multi-select)
         let customersData = customersResponse;

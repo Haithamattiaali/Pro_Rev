@@ -8,7 +8,7 @@ import { ExportButton } from '../components/export'
 import StickyPeriodFilter from '../components/filters/StickyPeriodFilter'
 import ToolbarSection from '../components/layout/ToolbarSection'
 import RevenueTypeIndicator from '../components/indicators/RevenueTypeIndicator'
-import { useOptimizedLoading } from '../hooks/useOptimizedLoading'
+import { useCacheAwareLoading } from '../hooks/useCacheAwareLoading'
 // Import chart components
 import GLChart from '../components/salesplan/charts/GLChart'
 import BusinessUnitChart from '../components/salesplan/charts/BusinessUnitChart'
@@ -23,7 +23,7 @@ import MonthlyTable from '../components/salesplan/tables/MonthlyTable'
 const SalesPlanContent = () => {
   const { periodFilter } = useFilter()
   const { setActualDateRange } = useSalesPlanData()
-  const { isLoading, showLoading, startLoading, stopLoading } = useOptimizedLoading(true)
+  const { isLoading, showLoading, startLoading, stopLoading } = useCacheAwareLoading(true)
   const [activeTab, setActiveTab] = useState('gl')
   const dashboardRef = useRef(null)
   
@@ -37,12 +37,7 @@ const SalesPlanContent = () => {
   // Fetch all data
   useEffect(() => {
     const fetchData = async () => {
-      startLoading()
-      
-      // Clear cache when switching modes to ensure fresh data
-      if (periodFilter.multiSelectMode) {
-        dataService.clearCache();
-      }
+      // Don't need to clear cache anymore - each filter combination has unique cache key
       
       try {
         const { year, period, month, quarter } = periodFilter
@@ -80,28 +75,32 @@ const SalesPlanContent = () => {
           };
         }
         
-        // Fetch all data in parallel
-        const [overview, byGL, byBU, monthly, opportunities] = await Promise.all([
-          dataService.getSalesPlanOverview(year, period, month, quarter, null, multiSelectParams),
-          dataService.getSalesPlanByGL(year, period, month, quarter, null, multiSelectParams),
+        // Fetch all data in parallel with cache awareness
+        const [overviewResult, byGLResult, byBU, monthlyResult, opportunitiesResult] = await Promise.all([
+          dataService.getSalesPlanOverviewWithCache(year, period, month, quarter, null, multiSelectParams),
+          dataService.getSalesPlanByGLWithCache(year, period, month, quarter, null, multiSelectParams),
           // Business unit doesn't support multi-select yet, use regular endpoint
           multiSelectParams ? 
             { data: [], message: 'Multi-select not supported for Business Units yet' } :
             fetch(`${import.meta.env.VITE_API_URL}/sales-plan/by-business-unit?year=${year}&period=${period}${month ? `&month=${month}` : ''}${quarter ? `&quarter=${quarter}` : ''}`).then(r => r.json()),
-          dataService.getSalesPlanMonthly(year, period, month, quarter, null, multiSelectParams),
-          dataService.getOpportunities()
+          dataService.getSalesPlanMonthlyWithCache(year, period, month, quarter, null, multiSelectParams),
+          { data: await dataService.getOpportunities(), isFromCache: false } // Wrap for consistency
         ])
         
+        // Only show loading if any request is from network
+        if (!overviewResult.isFromCache || !byGLResult.isFromCache || !monthlyResult.isFromCache || !opportunitiesResult.isFromCache) {
+          startLoading();
+        }
         
-        setOverviewData(overview)
-        setGlData(byGL)
+        setOverviewData(overviewResult.data)
+        setGlData(byGLResult.data)
         setBusinessUnitData(byBU)
-        setMonthlyData(monthly)
-        setOpportunitiesData(opportunities)
+        setMonthlyData(monthlyResult.data)
+        setOpportunitiesData(opportunitiesResult.data)
         
         // Update the actual date range in context
-        if (overview && overview.actualDateRange) {
-          setActualDateRange(overview.actualDateRange)
+        if (overviewResult.data && overviewResult.data.actualDateRange) {
+          setActualDateRange(overviewResult.data.actualDateRange)
         }
       } catch (error) {
         console.error('Error fetching sales plan data:', error)

@@ -283,33 +283,68 @@ class DataService {
     return result.data;
   }
 
-  async getBusinessUnitData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
+  // New method that returns cache metadata
+  async getBusinessUnitDataWithCache(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
     const key = multiSelectParams 
       ? this.getCacheKey('businessUnits', multiSelectParams.years, multiSelectParams.periods, multiSelectParams.viewMode)
       : this.getCacheKey('businessUnits', year, period, month, quarter);
     return this.getCachedData(key, () => apiService.getBusinessUnitData(year, period, month, quarter, multiSelectParams));
   }
 
-  async getCustomerData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
+  // Original method for backward compatibility
+  async getBusinessUnitData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
+    const result = await this.getBusinessUnitDataWithCache(year, period, month, quarter, multiSelectParams);
+    return result.data;
+  }
+
+  // New method that returns cache metadata
+  async getCustomerDataWithCache(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
     const key = multiSelectParams 
       ? this.getCacheKey('customers', multiSelectParams.years, multiSelectParams.periods, multiSelectParams.viewMode)
       : this.getCacheKey('customers', year, period, month, quarter);
     return this.getCachedData(key, () => apiService.getCustomerData(year, period, month, quarter, multiSelectParams));
   }
 
-  async getMonthlyTrends(year = new Date().getFullYear(), serviceType = null) {
+  // Original method for backward compatibility
+  async getCustomerData(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, multiSelectParams = null) {
+    const result = await this.getCustomerDataWithCache(year, period, month, quarter, multiSelectParams);
+    return result.data;
+  }
+
+  // New method that returns cache metadata
+  async getMonthlyTrendsWithCache(year = new Date().getFullYear(), serviceType = null) {
     const key = this.getCacheKey('monthlyTrends', year, serviceType);
     return this.getCachedData(key, () => apiService.getMonthlyTrends(year, serviceType));
   }
 
-  async getCustomerAchievement(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
+  // Original method for backward compatibility
+  async getMonthlyTrends(year = new Date().getFullYear(), serviceType = null) {
+    const result = await this.getMonthlyTrendsWithCache(year, serviceType);
+    return result.data;
+  }
+
+  // New method that returns cache metadata
+  async getCustomerAchievementWithCache(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
     const key = this.getCacheKey('customerAchievement', year, period, month, quarter);
     return this.getCachedData(key, () => apiService.getCustomerAchievement(year, period, month, quarter));
   }
 
-  async getCustomerServiceBreakdown(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
+  // Original method for backward compatibility
+  async getCustomerAchievement(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
+    const result = await this.getCustomerAchievementWithCache(year, period, month, quarter);
+    return result.data;
+  }
+
+  // New method that returns cache metadata
+  async getCustomerServiceBreakdownWithCache(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
     const key = this.getCacheKey('customerServiceBreakdown', year, period, month, quarter);
     return this.getCachedData(key, () => apiService.getCustomerServiceBreakdown(year, period, month, quarter));
+  }
+
+  // Original method for backward compatibility
+  async getCustomerServiceBreakdown(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null) {
+    const result = await this.getCustomerServiceBreakdownWithCache(year, period, month, quarter);
+    return result.data;
   }
 
   async getAvailableYears() {
@@ -542,7 +577,8 @@ class DataService {
   }
 
   // Sales Plan methods
-  async getSalesPlanOverview(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
+  // New method that returns cache metadata
+  async getSalesPlanOverviewWithCache(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
     if (multiSelectParams && multiSelectParams.periods?.length > 0) {
       const key = this.getCacheKey('salesPlanOverviewMulti', JSON.stringify(multiSelectParams), serviceType);
       return this.getCachedData(key, () => apiService.getSalesPlanOverview(year, period, month, quarter, serviceType, multiSelectParams));
@@ -551,7 +587,14 @@ class DataService {
     return this.getCachedData(key, () => apiService.getSalesPlanOverview(year, period, month, quarter, serviceType));
   }
 
-  async getSalesPlanMonthly(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
+  // Original method for backward compatibility
+  async getSalesPlanOverview(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
+    const result = await this.getSalesPlanOverviewWithCache(year, period, month, quarter, serviceType, multiSelectParams);
+    return result.data;
+  }
+
+  // New method that returns cache metadata
+  async getSalesPlanMonthlyWithCache(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
     if (multiSelectParams && multiSelectParams.periods?.length > 0) {
       const key = this.getCacheKey('salesPlanMonthlyMulti', JSON.stringify(multiSelectParams), serviceType);
       return this.getCachedData(key, () => apiService.getSalesPlanMonthly(year, period, month, quarter, serviceType, multiSelectParams));
@@ -560,13 +603,26 @@ class DataService {
     return this.getCachedData(key, () => apiService.getSalesPlanMonthly(year, period, month, quarter, serviceType));
   }
 
-  async getSalesPlanByGL(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
+  // Original method for backward compatibility
+  async getSalesPlanMonthly(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
+    const result = await this.getSalesPlanMonthlyWithCache(year, period, month, quarter, serviceType, multiSelectParams);
+    return result.data;
+  }
+
+  // New method that returns cache metadata
+  async getSalesPlanByGLWithCache(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
     if (multiSelectParams && multiSelectParams.periods?.length > 0) {
       const key = this.getCacheKey('salesPlanByGLMulti', JSON.stringify(multiSelectParams), serviceType);
       return this.getCachedData(key, () => apiService.getSalesPlanByGL(year, period, month, quarter, serviceType, multiSelectParams));
     }
     const key = this.getCacheKey('salesPlanByGL', year, period, month, quarter, serviceType);
     return this.getCachedData(key, () => apiService.getSalesPlanByGL(year, period, month, quarter, serviceType));
+  }
+
+  // Original method for backward compatibility
+  async getSalesPlanByGL(year = new Date().getFullYear(), period = 'YTD', month = null, quarter = null, serviceType = null, multiSelectParams = null) {
+    const result = await this.getSalesPlanByGLWithCache(year, period, month, quarter, serviceType, multiSelectParams);
+    return result.data;
   }
 
   async getOpportunities(filters = {}) {

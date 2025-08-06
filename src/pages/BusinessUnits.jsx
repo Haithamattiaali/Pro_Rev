@@ -11,7 +11,7 @@ import BaseTable from '../components/common/BaseTable'
 import BaseCard from '../components/common/BaseCard'
 import { useFilter } from '../contexts/FilterContext'
 import { useDataRefresh } from '../contexts/DataRefreshContext'
-import { useOptimizedLoading } from '../hooks/useOptimizedLoading'
+import { useCacheAwareLoading } from '../hooks/useCacheAwareLoading'
 import dataService from '../services/dataService'
 import exportService from '../services/exportService'
 import { calculateGrossProfit, calculateGrossProfitMargin, calculatePerformanceCost } from '../utils/profitCalculations'
@@ -20,7 +20,7 @@ const BusinessUnits = () => {
   const [selectedUnit, setSelectedUnit] = useState('Transportation')
   const { periodFilter } = useFilter()
   const { refreshTrigger, triggerRefresh } = useDataRefresh()
-  const { isLoading, showLoading, startLoading, stopLoading } = useOptimizedLoading(true)
+  const { isLoading, showLoading, startLoading, stopLoading } = useCacheAwareLoading(true)
   const [error, setError] = useState(null)
   const [businessUnits, setBusinessUnits] = useState([])
   const [monthlyTrends, setMonthlyTrends] = useState([])
@@ -34,7 +34,6 @@ const BusinessUnits = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      startLoading()
       setError(null)
       
       try {
@@ -65,16 +64,24 @@ const BusinessUnits = () => {
           };
         }
         
-        const [unitsResponse, trendsData] = await Promise.all([
-          dataService.getBusinessUnitData(
+        const [unitsResult, trendsResult] = await Promise.all([
+          dataService.getBusinessUnitDataWithCache(
             periodFilter.year, 
             periodFilter.period,
             periodFilter.month,
             periodFilter.quarter,
             multiSelectParams
           ),
-          dataService.getMonthlyTrends(periodFilter.year, selectedUnit)
+          dataService.getMonthlyTrendsWithCache(periodFilter.year, selectedUnit)
         ])
+        
+        // Only show loading if any request is from network
+        if (!unitsResult.isFromCache || !trendsResult.isFromCache) {
+          startLoading();
+        }
+        
+        const unitsResponse = unitsResult.data;
+        const trendsData = trendsResult.data;
         
         // Handle both response formats (array for regular, object with businessUnits for multi-select)
         let unitsData = unitsResponse;
