@@ -78,7 +78,7 @@ const Forecast = () => {
       ])
       
       setForecastData(forecast)
-      setOpportunities(opps)
+      setOpportunities(Array.isArray(opps) ? opps : [])
       setForecastConfig(config)
     } catch (err) {
       console.error('Error fetching forecast data:', err)
@@ -221,7 +221,7 @@ const Forecast = () => {
           title="Opportunities Total"
           value={forecastData?.forecast?.reduce((sum, f) => sum + (f.opportunities || 0), 0) || 0}
           icon={Package}
-          trend={opportunities.filter(o => o.enabled).length}
+          trend={Array.isArray(opportunities) ? opportunities.filter(o => o.enabled).length : 0}
           trendLabel="active opportunities"
           format="currency"
           color="blue"

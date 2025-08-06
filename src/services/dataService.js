@@ -570,7 +570,8 @@ class DataService {
 
   async getForecastOpportunities() {
     const cacheKey = 'forecast-opportunities';
-    return this.getCachedData(cacheKey, () => apiService.getForecastOpportunities());
+    const data = await this.getCachedData(cacheKey, () => apiService.getForecastOpportunities());
+    return Array.isArray(data) ? data : [];
   }
 
   async createForecastOpportunity(opportunity) {
