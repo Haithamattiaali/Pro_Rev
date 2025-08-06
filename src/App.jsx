@@ -14,6 +14,7 @@ import { HierarchicalFilterProvider } from './contexts/HierarchicalFilterContext
 import { ExportProvider } from './contexts/ExportContext'
 import { CacheProvider } from './contexts/CacheContext'
 import logger from './utils/debugLogger'
+import CacheMonitor from './components/debug/CacheMonitor'
 
 function App() {
   useEffect(() => {
@@ -49,6 +50,8 @@ function App() {
               <Route path="upload" element={<Upload />} />
             </Route>
           </Routes>
+              {/* Cache Monitor - Only in development */}
+              {import.meta.env.DEV && <CacheMonitor />}
             </ExportProvider>
           </HierarchicalFilterProvider>
         </FilterProvider>

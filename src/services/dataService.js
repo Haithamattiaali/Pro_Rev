@@ -69,6 +69,12 @@ class DataService {
           hitRate: this.getCacheStats().hitRate
         });
       }
+      
+      // Emit cache hit event
+      window.dispatchEvent(new CustomEvent('cacheEvent', {
+        detail: { type: 'hit', key, isHit: true, age: 0 }
+      }));
+      
       return {
         data: cached.data,
         isFromCache: true,
@@ -84,6 +90,11 @@ class DataService {
       
       // Refresh in background without blocking
       this.refreshInBackground(key, fetcher);
+      
+      // Emit stale hit event
+      window.dispatchEvent(new CustomEvent('cacheEvent', {
+        detail: { type: 'stale', key, isHit: true, age: now - cached.timestamp }
+      }));
       
       return {
         data: cached.data,
@@ -104,6 +115,11 @@ class DataService {
         hitRate: this.getCacheStats().hitRate
       });
     }
+    
+    // Emit cache miss event
+    window.dispatchEvent(new CustomEvent('cacheEvent', {
+      detail: { type: 'miss', key, isHit: false, age: 0 }
+    }));
     
     // Check if already loading this endpoint
     if (this.loadingStates.has(key)) {
