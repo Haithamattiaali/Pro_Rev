@@ -38,7 +38,7 @@ jobs:
           # Replace with your actual backend URL
           BACKEND_URL="${{ secrets.BACKEND_URL }}"
           if [ -z "$BACKEND_URL" ]; then
-            BACKEND_URL="https://proceed-backend-v2.onrender.com"
+            BACKEND_URL="https://pro-rev.onrender.com"
           fi
           
           # Try health check with retries
