@@ -144,38 +144,6 @@ export const FilterProvider = ({ children }) => {
     setHasChanges(hasChanges);
   }, [pendingFilter, periodFilter]);
 
-  // Handle pending changes (before applying)
-  const handlePendingChange = useCallback((filterConfig) => {
-    console.log('🔍 FilterContext: handlePendingChange called with:', filterConfig);
-    setPendingFilter(prev => {
-      const newFilter = {
-        ...prev,
-        ...filterConfig
-      };
-      
-      // Enforce mutual exclusivity between months and quarters
-      if ('selectedMonths' in filterConfig && filterConfig.selectedMonths.length > 0) {
-        // Clear quarters if months are being selected
-        newFilter.selectedQuarters = [];
-      } else if ('selectedQuarters' in filterConfig && filterConfig.selectedQuarters.length > 0) {
-        // Clear months if quarters are being selected
-        newFilter.selectedMonths = [];
-      }
-      
-      console.log('🔍 FilterContext: New pending filter state:', newFilter);
-      return newFilter;
-    });
-    
-    // Auto-apply with debounce for multi-select operations
-    const isMultiSelect = (filterConfig.selectedMonths && filterConfig.selectedMonths.length > 1) ||
-                        (filterConfig.selectedQuarters && filterConfig.selectedQuarters.length > 1) ||
-                        (filterConfig.selectedYears && filterConfig.selectedYears.length > 1);
-    
-    if (isMultiSelect) {
-      debouncedApplyFilters();
-    }
-  }, [debouncedApplyFilters]);
-
   // Apply pending changes to active filters
   const applyFilters = useCallback(() => {
     // NOTE: Cache clearing removed - dataService uses unique cache keys per filter combination
@@ -240,6 +208,38 @@ export const FilterProvider = ({ children }) => {
     () => debounce(applyFilters, 300, { leading: false, trailing: true }),
     [applyFilters]
   );
+
+  // Handle pending changes (before applying)
+  const handlePendingChange = useCallback((filterConfig) => {
+    console.log('🔍 FilterContext: handlePendingChange called with:', filterConfig);
+    setPendingFilter(prev => {
+      const newFilter = {
+        ...prev,
+        ...filterConfig
+      };
+      
+      // Enforce mutual exclusivity between months and quarters
+      if ('selectedMonths' in filterConfig && filterConfig.selectedMonths.length > 0) {
+        // Clear quarters if months are being selected
+        newFilter.selectedQuarters = [];
+      } else if ('selectedQuarters' in filterConfig && filterConfig.selectedQuarters.length > 0) {
+        // Clear months if quarters are being selected
+        newFilter.selectedMonths = [];
+      }
+      
+      console.log('🔍 FilterContext: New pending filter state:', newFilter);
+      return newFilter;
+    });
+    
+    // Auto-apply with debounce for multi-select operations
+    const isMultiSelect = (filterConfig.selectedMonths && filterConfig.selectedMonths.length > 1) ||
+                        (filterConfig.selectedQuarters && filterConfig.selectedQuarters.length > 1) ||
+                        (filterConfig.selectedYears && filterConfig.selectedYears.length > 1);
+    
+    if (isMultiSelect) {
+      debouncedApplyFilters();
+    }
+  }, [debouncedApplyFilters]);
 
   // Reset pending changes to current applied filters
   const resetFilters = () => {
