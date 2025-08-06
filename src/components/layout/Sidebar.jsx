@@ -8,7 +8,7 @@ const navItems = [
   { path: '/overview', label: 'Executive Overview', icon: LayoutDashboard },
   { path: '/business-units', label: 'Business Units Performance', icon: Building2 },
   { path: '/customers', label: 'Customer Performance', icon: Users },
-  { path: '/forecast', label: 'Revenue Forecast', icon: TrendingUp },
+  // { path: '/forecast', label: 'Revenue Forecast', icon: TrendingUp }, // Hidden as requested
   { path: '/sales-plan', label: 'Sales Plan', icon: FileSpreadsheet },
 ]
 
