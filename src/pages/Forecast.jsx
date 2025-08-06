@@ -59,6 +59,7 @@ const Forecast = () => {
   }, [periodFilter.year, refreshTrigger, historicalPeriod, forecastPeriod, forecastMethod])
 
   const fetchForecastData = async () => {
+    console.log('Fetching forecast data...')
     setLoading(true)
     setError(null)
     
@@ -82,7 +83,11 @@ const Forecast = () => {
       setForecastConfig(config)
     } catch (err) {
       console.error('Error fetching forecast data:', err)
-      setError('Failed to load forecast data. Please try again.')
+      setError(`Failed to load forecast data: ${err.message || 'Unknown error'}`)
+      // Set some default data to prevent blank screen
+      setForecastData({ forecast: [], metrics: {} })
+      setOpportunities([])
+      setForecastConfig({ periods: 6, includeOpportunities: true, probabilityThreshold: 0.5 })
     } finally {
       setLoading(false)
     }

@@ -264,14 +264,15 @@ class ApiService {
     }
     
     // New API with date range and method parameters
-    const queryParams = new URLSearchParams({
-      historicalStart: params.historicalStart?.toISOString(),
-      historicalEnd: params.historicalEnd?.toISOString(),
-      forecastStart: params.forecastStart?.toISOString(),
-      forecastEnd: params.forecastEnd?.toISOString(),
-      method: params.method || 'linear',
-      methodConfig: JSON.stringify(params.methodConfig || {})
-    });
+    const queryParams = new URLSearchParams();
+    
+    // Only add parameters if they exist
+    if (params.historicalStart) queryParams.append('historicalStart', params.historicalStart.toISOString());
+    if (params.historicalEnd) queryParams.append('historicalEnd', params.historicalEnd.toISOString());
+    if (params.forecastStart) queryParams.append('forecastStart', params.forecastStart.toISOString());
+    if (params.forecastEnd) queryParams.append('forecastEnd', params.forecastEnd.toISOString());
+    if (params.method) queryParams.append('method', params.method);
+    if (params.methodConfig) queryParams.append('methodConfig', JSON.stringify(params.methodConfig));
     
     return this.request(`/forecast?${queryParams.toString()}`);
   }
