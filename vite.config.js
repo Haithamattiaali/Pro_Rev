@@ -1,8 +1,27 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import circleDependency from 'vite-plugin-circular-dependency'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    circleDependency({
+      outputFilePath: './circular-deps.log',
+      compile: true,
+      format: true
+    }),
+    // Fix for HMR and initialization issues
+    {
+      name: 'singleHMR',
+      handleHotUpdate({ modules }) {
+        modules.map((m) => {
+          m.clientImportedModules = new Set(); // for vite 5
+          m.importers = new Set();
+        });
+        return modules;
+      },
+    }
+  ],
   base: '/',
   resolve: {
     alias: {
@@ -11,6 +30,14 @@ export default defineConfig({
   },
   build: {
     assetsDir: 'assets',
+    target: 'es2015',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true
+      }
+    },
     rollupOptions: {
       output: {
         assetFileNames: (assetInfo) => {
@@ -19,6 +46,12 @@ export default defineConfig({
             return 'assets/[name]-[hash][extname]';
           }
           return 'assets/[name]-[hash][extname]';
+        },
+        // Manual chunks to prevent initialization issues
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          charts: ['recharts'],
+          utils: ['xlsx', 'html2canvas', 'jspdf']
         }
       }
     }

@@ -63,3 +63,6 @@ export const useCacheAwareLoading = (initialDelay = 300) => {
     handleCacheResult
   };
 };
+
+// Also export as default for compatibility
+export default useCacheAwareLoading;
