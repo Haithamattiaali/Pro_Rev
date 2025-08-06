@@ -140,7 +140,7 @@ const BusinessUnitBarChart = memo(({ data, title = 'Monthly Performance' }) => {
   return (
     <div className="w-full">
       <h3 className="text-base md:text-lg font-semibold text-secondary mb-4">{title}</h3>
-      <ResponsiveContainer width="100%" height={getChartHeight()}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
         <BarChart 
           data={data} 
           margin={{ top: 20, right: 80, left: 60, bottom: 60 }}
