@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import DashboardLayout from './components/layout/DashboardLayout'
 import Overview from './pages/Overview'
@@ -14,7 +14,9 @@ import { HierarchicalFilterProvider } from './contexts/HierarchicalFilterContext
 import { ExportProvider } from './contexts/ExportContext'
 import { CacheProvider } from './contexts/CacheContext'
 import logger from './utils/debugLogger'
-import CacheMonitor from './components/debug/CacheMonitor'
+
+// Lazy load CacheMonitor only in development
+const CacheMonitor = import.meta.env.DEV ? lazy(() => import('./components/debug/CacheMonitor')) : null
 
 function App() {
   useEffect(() => {
@@ -51,7 +53,11 @@ function App() {
             </Route>
           </Routes>
               {/* Cache Monitor - Only in development */}
-              {import.meta.env.DEV && <CacheMonitor />}
+              {import.meta.env.DEV && CacheMonitor && (
+                <Suspense fallback={null}>
+                  <CacheMonitor />
+                </Suspense>
+              )}
             </ExportProvider>
           </HierarchicalFilterProvider>
         </FilterProvider>

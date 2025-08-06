@@ -1,7 +1,8 @@
 import React, { memo } from 'react';
 import { cn } from '../../utils/cn';
 
-const BaseTable = memo(({ 
+// Create BaseTable component without memo first
+const BaseTableComponent = ({ 
   children, 
   className = '',
   variant = 'default',
@@ -40,9 +41,9 @@ const BaseTable = memo(({
       </table>
     </div>
   );
-});
+};
 
-BaseTable.displayName = 'BaseTable';
+BaseTableComponent.displayName = 'BaseTable';
 
 const TableHeader = memo(({ children, className = '', sticky = false, variant = 'default' }) => {
   const variantStyles = {
@@ -272,6 +273,21 @@ const TableAction = memo(({ onClick, icon: Icon, label, variant = 'default', cla
 
 TableAction.displayName = 'TableAction';
 
+// Attach sub-components to BaseTable before memoizing
+BaseTableComponent.Header = TableHeader;
+BaseTableComponent.Body = TableBody;
+BaseTableComponent.Row = TableRow;
+BaseTableComponent.Head = TableHead;
+BaseTableComponent.Cell = TableCell;
+BaseTableComponent.Footer = TableFooter;
+BaseTableComponent.Empty = TableEmpty;
+BaseTableComponent.Loading = TableLoading;
+BaseTableComponent.Action = TableAction;
+
+// Now memoize the complete BaseTable with all its sub-components
+const BaseTable = memo(BaseTableComponent);
+
+// Copy sub-components to the memoized version
 BaseTable.Header = TableHeader;
 BaseTable.Body = TableBody;
 BaseTable.Row = TableRow;
