@@ -22,7 +22,35 @@ function createTestDatabase() {
   // Read and execute schema
   const schemaPath = path.join(__dirname, '..', 'database', 'schema.sql');
   const schema = fs.readFileSync(schemaPath, 'utf8');
-  db.exec(schema);
+  
+  // Split by semicolon and execute each statement separately
+  const statements = schema.split(';').filter(stmt => stmt.trim());
+  for (const statement of statements) {
+    if (statement.trim()) {
+      try {
+        db.exec(statement);
+      } catch (err) {
+        console.error('Error executing schema statement:', err.message);
+      }
+    }
+  }
+  
+  // Add columns that might be missing from the base schema
+  try {
+    db.exec('ALTER TABLE revenue_data ADD COLUMN original_cost REAL DEFAULT 0');
+  } catch (err) {
+    // Column might already exist
+  }
+  try {
+    db.exec('ALTER TABLE revenue_data ADD COLUMN original_target REAL DEFAULT 0');
+  } catch (err) {
+    // Column might already exist
+  }
+  try {
+    db.exec('ALTER TABLE revenue_data ADD COLUMN days INTEGER DEFAULT 0');
+  } catch (err) {
+    // Column might already exist
+  }
   
   // Read and execute forecast schema
   const forecastSchemaPath = path.join(__dirname, '..', 'database', 'forecast-schema.sql');
@@ -45,7 +73,10 @@ function seedTestData(db) {
       cost: 100000,
       target: 150000,
       revenue: 140000,
-      receivables_collected: 130000
+      receivables_collected: 130000,
+      original_cost: 100000,
+      original_target: 150000,
+      days: 31
     },
     {
       customer: 'Test Customer A',
@@ -55,7 +86,10 @@ function seedTestData(db) {
       cost: 50000,
       target: 80000,
       revenue: 75000,
-      receivables_collected: 70000
+      receivables_collected: 70000,
+      original_cost: 50000,
+      original_target: 80000,
+      days: 31
     },
     {
       customer: 'Test Customer B',
@@ -65,7 +99,10 @@ function seedTestData(db) {
       cost: 80000,
       target: 120000,
       revenue: 110000,
-      receivables_collected: 105000
+      receivables_collected: 105000,
+      original_cost: 80000,
+      original_target: 120000,
+      days: 31
     },
     {
       customer: 'Test Customer B',
@@ -75,13 +112,16 @@ function seedTestData(db) {
       cost: 40000,
       target: 60000,
       revenue: 55000,
-      receivables_collected: 52000
+      receivables_collected: 52000,
+      original_cost: 40000,
+      original_target: 60000,
+      days: 31
     }
   ];
   
   const stmt = db.prepare(`
-    INSERT INTO revenue_data (customer, service_type, year, month, cost, target, revenue, receivables_collected)
-    VALUES (@customer, @service_type, @year, @month, @cost, @target, @revenue, @receivables_collected)
+    INSERT INTO revenue_data (customer, service_type, year, month, cost, target, revenue, receivables_collected, original_cost, original_target, days)
+    VALUES (@customer, @service_type, @year, @month, @cost, @target, @revenue, @receivables_collected, @original_cost, @original_target, @days)
   `);
   
   for (const data of testData) {

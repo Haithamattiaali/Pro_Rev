@@ -117,7 +117,8 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'No file uploaded' });
     }
     
-    const result = await etlService.processExcelFile(req.file.path);
+    // Process with skipValidation flag to bypass confirmations for now
+    const result = await etlService.processExcelFile(req.file.path, { skipValidation: true });
     
     // Format response based on what was processed
     const response = {

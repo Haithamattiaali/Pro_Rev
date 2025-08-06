@@ -44,31 +44,31 @@ describe('formatters', () => {
 
   describe('formatCurrency', () => {
     it('handles null values', () => {
-      expect(formatCurrency(null)).toBe('SAR 0');
+      expect(formatCurrency(null)).toBe('SAR 0');
     });
     
     it('handles undefined values', () => {
-      expect(formatCurrency(undefined)).toBe('SAR 0');
+      expect(formatCurrency(undefined)).toBe('SAR 0');
     });
     
     it('handles non-numeric strings', () => {
-      expect(formatCurrency('abc')).toBe('SAR 0');
+      expect(formatCurrency('abc')).toBe('SAR 0');
     });
     
     it('handles NaN', () => {
-      expect(formatCurrency(NaN)).toBe('SAR 0');
+      expect(formatCurrency(NaN)).toBe('SAR 0');
     });
     
     it('handles Infinity', () => {
-      expect(formatCurrency(Infinity)).toBe('SAR 0');
-      expect(formatCurrency(-Infinity)).toBe('SAR 0');
+      expect(formatCurrency(Infinity)).toBe('SAR 0');
+      expect(formatCurrency(-Infinity)).toBe('SAR 0');
     });
     
     it('formats valid numbers correctly', () => {
-      expect(formatCurrency(1000)).toBe('SAR 1,000');
-      expect(formatCurrency(1234567.89)).toBe('SAR 1,234,568');
-      expect(formatCurrency(0)).toBe('SAR 0');
-      expect(formatCurrency(-5000)).toBe('-SAR 5,000');
+      expect(formatCurrency(1000)).toBe('SAR 1,000');
+      expect(formatCurrency(1234567.89)).toBe('SAR 1,234,568');
+      expect(formatCurrency(0)).toBe('SAR 0');
+      expect(formatCurrency(-5000)).toBe('-SAR 5,000');
     });
   });
 

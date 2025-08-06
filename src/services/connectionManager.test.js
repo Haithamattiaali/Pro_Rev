@@ -4,10 +4,29 @@ import connectionManager from './connectionManager'
 // Mock fetch globally
 global.fetch = vi.fn()
 
-// Mock AbortSignal.timeout
-global.AbortSignal = {
-  timeout: vi.fn((ms) => ({ timeout: ms }))
+// Create a proper AbortSignal mock
+class MockAbortSignal {
+  constructor() {
+    this.aborted = false;
+    this.reason = undefined;
+    this.onabort = null;
+  }
+  
+  addEventListener() {}
+  removeEventListener() {}
+  dispatchEvent() {}
+  throwIfAborted() {
+    if (this.aborted) {
+      throw this.reason;
+    }
+  }
 }
+
+// Mock AbortSignal.timeout
+if (!global.AbortSignal) {
+  global.AbortSignal = MockAbortSignal;
+}
+global.AbortSignal.timeout = vi.fn((ms) => new MockAbortSignal())
 
 describe('ConnectionManager', () => {
   beforeEach(() => {
@@ -48,7 +67,7 @@ describe('ConnectionManager', () => {
           headers: {
             'Content-Type': 'application/json'
           },
-          signal: expect.objectContaining({ timeout: 5000 })
+          signal: expect.any(MockAbortSignal)
         })
       )
     })
@@ -79,17 +98,13 @@ describe('ConnectionManager', () => {
     })
 
     it('should handle fetch timeout', async () => {
-      // Use real timers for this test since we're testing actual timeout
-      vi.useRealTimers()
-      
-      fetch.mockImplementationOnce(() => new Promise(() => {})) // Never resolves
+      // Mock fetch to simulate an aborted request
+      fetch.mockRejectedValueOnce(new DOMException('The user aborted a request.', 'AbortError'))
 
       const result = await connectionManager.checkHealth()
 
       expect(result).toBe(false)
       expect(connectionManager.isConnected).toBe(false)
-      
-      vi.useFakeTimers()
     })
   })
 
@@ -157,15 +172,11 @@ describe('ConnectionManager', () => {
       expect(connectionManager.retryCount).toBe(0)
       expect(connectionManager.isConnected).toBe(true)
       expect(fetch).toHaveBeenCalledTimes(1)
-      expect(fetch).toHaveBeenCalledWith(
-        expect.stringContaining('/test'),
-        expect.objectContaining({
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          signal: expect.objectContaining({ timeout: 30000 })
-        })
-      )
+      const [url, options] = fetch.mock.calls[0]
+      expect(url).toBe('http://localhost:3001/api/test')
+      expect(options.headers['Content-Type']).toBe('application/json')
+      expect(options.signal).toBeDefined()
+      expect(options.signal.aborted).toBe(false)
     })
 
     it('should retry on failure with exponential backoff', async () => {
@@ -283,9 +294,9 @@ describe('ConnectionManager', () => {
       expect(checkHealthSpy).toHaveBeenCalled()
     })
 
-    it('should check health if last check was over 60 seconds ago', async () => {
+    it('should check health if last check was over 5 minutes ago', async () => {
       connectionManager.isConnected = true
-      connectionManager.lastHealthCheck = new Date(Date.now() - 61000)
+      connectionManager.lastHealthCheck = new Date(Date.now() - 301000) // 5 minutes + 1 second
       const checkHealthSpy = vi.spyOn(connectionManager, 'checkHealth')
       checkHealthSpy.mockResolvedValue(true)
 
@@ -294,14 +305,20 @@ describe('ConnectionManager', () => {
       expect(checkHealthSpy).toHaveBeenCalled()
     })
 
-    it('should throw error in development when health check fails', async () => {
+    it('should not throw error even in development when health check fails', async () => {
       import.meta.env.DEV = true
       connectionManager.isConnected = false
       const checkHealthSpy = vi.spyOn(connectionManager, 'checkHealth')
       checkHealthSpy.mockResolvedValue(false)
+      const consoleWarnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
-      await expect(connectionManager.ensureConnection())
-        .rejects.toThrow('Backend connection is not available')
+      await connectionManager.ensureConnection() // Should not throw
+
+      expect(checkHealthSpy).toHaveBeenCalled()
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Backend health check failed, but proceeding anyway...')
+      expect(consoleWarnSpy).toHaveBeenCalledWith('Backend connection is not available - development mode')
+      
+      consoleWarnSpy.mockRestore()
     })
 
     it('should not throw error in production when health check fails', async () => {

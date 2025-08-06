@@ -140,7 +140,7 @@ describe('DataService', () => {
 
       const result = await dataService.getBusinessUnitData(2025, 'MTD', 6)
       
-      expect(apiService.getBusinessUnitData).toHaveBeenCalledWith(2025, 'MTD', 6, null)
+      expect(apiService.getBusinessUnitData).toHaveBeenCalledWith(2025, 'MTD', 6, null, null)
       expect(result).toEqual(mockData)
     })
 
@@ -150,7 +150,7 @@ describe('DataService', () => {
 
       const result = await dataService.getCustomerData(2025, 'QTD', null, 2)
       
-      expect(apiService.getCustomerData).toHaveBeenCalledWith(2025, 'QTD', null, 2)
+      expect(apiService.getCustomerData).toHaveBeenCalledWith(2025, 'QTD', null, 2, null)
       expect(result).toEqual(mockData)
     })
 

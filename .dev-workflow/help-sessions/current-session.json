@@ -1,0 +1,29 @@
+{
+  "sessionId": "help-20250805-backend-validation",
+  "started": "2025-08-05T18:30:00+03:00",
+  "goal": "Validate ETL process and fix days validation for edge cases",
+  "scope": [
+    "ETL service validation and fixes",
+    "Days validation implementation",
+    "Test calculation accuracy",
+    "Fix January days=1 edge case"
+  ],
+  "completed": [
+    "Analyzed calculation precision issues",
+    "Simulated ETL with Pro rev.xlsx",
+    "Fixed ETL service missing methods",
+    "Applied validation corrections",
+    "Verified auto-corrections work"
+  ],
+  "pending": [
+    "Update Excel export to include daily metrics",
+    "Update server.js to include validation routes",
+    "Update Upload component to use validation endpoint"
+  ],
+  "boundaries": [
+    "Backend calculation logic only",
+    "ETL and validation services",
+    "No frontend UI changes",
+    "No new features"
+  ]
+}

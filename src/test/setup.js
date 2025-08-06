@@ -15,3 +15,28 @@ Object.defineProperty(window, 'matchMedia', {
     dispatchEvent: vi.fn(),
   })),
 })
+
+// Mock AbortSignal.timeout
+class MockAbortSignal {
+  constructor() {
+    this.aborted = false;
+    this.reason = undefined;
+    this.onabort = null;
+  }
+  addEventListener() {}
+  removeEventListener() {}
+  dispatchEvent() {}
+  throwIfAborted() {
+    if (this.aborted) {
+      throw this.reason;
+    }
+  }
+}
+
+global.AbortSignal.timeout = vi.fn((ms) => new MockAbortSignal())
+
+// Mock fetch for connectionManager
+global.fetch = vi.fn(() => Promise.resolve({
+  ok: true,
+  json: () => Promise.resolve({ status: 'OK', database: 'connected' })
+}))

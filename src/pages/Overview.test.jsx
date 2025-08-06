@@ -6,9 +6,71 @@ import dataService from '../services/dataService'
 import { FilterProvider } from '../contexts/FilterContext'
 import { DataRefreshProvider } from '../contexts/DataRefreshContext'
 import { HierarchicalFilterProvider } from '../contexts/HierarchicalFilterContext'
+import { CacheProvider } from '../contexts/CacheContext'
+
+// Mock the optimized loading hook to remove delays in tests
+vi.mock('../hooks/useOptimizedLoading', () => ({
+  useOptimizedLoading: () => ({
+    isLoading: false,
+    showLoading: false,
+    startLoading: vi.fn(),
+    stopLoading: vi.fn(),
+    isWarmingCache: false
+  })
+}))
+
+// Mock AbortSignal.timeout
+class MockAbortSignal {
+  constructor() {
+    this.aborted = false;
+    this.reason = undefined;
+    this.onabort = null;
+  }
+  addEventListener() {}
+  removeEventListener() {}
+  dispatchEvent() {}
+  throwIfAborted() {
+    if (this.aborted) {
+      throw this.reason;
+    }
+  }
+}
+
+global.AbortSignal.timeout = vi.fn((ms) => new MockAbortSignal())
+
+// Mock fetch for connectionManager
+global.fetch = vi.fn(() => Promise.resolve({
+  ok: true,
+  json: () => Promise.resolve({ status: 'OK', database: 'connected' })
+}))
 
 // Mock the services and components
-vi.mock('../services/dataService')
+vi.mock('../services/dataService', () => ({
+  default: {
+    getOverviewData: vi.fn(),
+    getMonthlyTrends: vi.fn(),
+    getPeriodLabel: vi.fn(() => 'Q1'),
+    getPeriodMonths: vi.fn(() => [1, 2, 3]),
+    getCacheStats: vi.fn(() => ({
+      hits: 0,
+      misses: 0,
+      hitRate: '0%',
+      cacheSize: 0
+    })),
+    prefetchAdjacentPeriods: vi.fn(() => Promise.resolve()),
+    warmCache: vi.fn(() => Promise.resolve()),
+    getAvailableYears: vi.fn(() => Promise.resolve([2025, 2024, 2023])),
+    getAnalysisPeriodValidation: vi.fn(() => Promise.resolve({
+      hasJanData: true,
+      lastDataMonth: 12,
+      missingMonths: []
+    })),
+    getLastCompliantMonth: vi.fn(() => Promise.resolve({
+      year: 2025,
+      month: 12
+    }))
+  }
+}))
 vi.mock('../components/cards/MetricCard', () => ({
   default: ({ title, value, format }) => (
     <div data-testid={`metric-${title}`}>
@@ -70,13 +132,15 @@ const mockMonthlyTrends = [
 const renderWithProviders = (component) => {
   return render(
     <BrowserRouter>
-      <DataRefreshProvider>
-        <FilterProvider>
-          <HierarchicalFilterProvider>
-            {component}
-          </HierarchicalFilterProvider>
-        </FilterProvider>
-      </DataRefreshProvider>
+      <CacheProvider>
+        <DataRefreshProvider>
+          <FilterProvider>
+            <HierarchicalFilterProvider>
+              {component}
+            </HierarchicalFilterProvider>
+          </FilterProvider>
+        </DataRefreshProvider>
+      </CacheProvider>
     </BrowserRouter>
   )
 }
@@ -84,8 +148,8 @@ const renderWithProviders = (component) => {
 describe('Overview Page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    dataService.getOverviewData.mockResolvedValue(mockOverviewData)
-    dataService.getMonthlyTrends.mockResolvedValue(mockMonthlyTrends)
+    dataService.getOverviewData = vi.fn().mockResolvedValue(mockOverviewData)
+    dataService.getMonthlyTrends = vi.fn().mockResolvedValue(mockMonthlyTrends)
     dataService.getPeriodLabel = vi.fn(() => 'Q1')
     dataService.getPeriodMonths = vi.fn(() => [1, 2, 3])
   })
@@ -100,41 +164,58 @@ describe('Overview Page', () => {
   it('should render all metric cards with correct data', async () => {
     renderWithProviders(<Overview />)
     
+    // Wait for the loading state to finish
     await waitFor(() => {
-      expect(screen.getByTestId('metric-Total Revenue')).toHaveTextContent('Total Revenue: 5,000,000')
-      expect(screen.getByTestId('metric-Target')).toHaveTextContent('Target: 6,000,000')
-      expect(screen.getByTestId('metric-Gross Profit')).toHaveTextContent('Gross Profit: 1,500,000')
-      expect(screen.getByTestId('metric-Gross Profit Margin')).toHaveTextContent('Gross Profit Margin: 30')
-    })
+      const spinner = document.querySelector('.animate-spin')
+      expect(spinner).not.toBeInTheDocument()
+    }, { timeout: 10000 })
+    
+    // Now check for the metric cards
+    expect(screen.getByTestId('metric-Total Revenue')).toHaveTextContent('Total Revenue: 5,000,000')
+    expect(screen.getByTestId('metric-Target')).toHaveTextContent('Target: 6,000,000')
+    expect(screen.getByTestId('metric-Gross Profit')).toHaveTextContent('Gross Profit: 1,500,000')
+    expect(screen.getByTestId('metric-Gross Profit Margin')).toHaveTextContent('Gross Profit Margin: 30')
   })
 
   it('should render gauge chart with correct values', async () => {
     renderWithProviders(<Overview />)
     
+    // Wait for loading to finish
     await waitFor(() => {
-      const achievementCard = screen.getByTestId('card-Overall Achievement')
-      expect(achievementCard).toBeInTheDocument()
-      // The gauge chart is inside this card
-      expect(screen.getByTestId('gauge-Q1 Achievement')).toHaveTextContent('Gauge: Q1 Achievement - 83.33%')
+      const spinner = document.querySelector('.animate-spin')
+      expect(spinner).not.toBeInTheDocument()
     })
+    
+    const achievementCard = screen.getByTestId('card-Overall Achievement')
+    expect(achievementCard).toBeInTheDocument()
+    // The gauge chart is inside this card
+    expect(screen.getByTestId('gauge-Q1 Achievement')).toHaveTextContent('Gauge: Q1 Achievement - 83.33%')
   })
 
   it('should render achievement summary section', async () => {
     renderWithProviders(<Overview />)
     
+    // Wait for loading to finish
     await waitFor(() => {
-      const summaryCard = screen.getByTestId('card-Achievement Summary')
-      expect(summaryCard).toBeInTheDocument()
+      const spinner = document.querySelector('.animate-spin')
+      expect(spinner).not.toBeInTheDocument()
     })
+    
+    const summaryCard = screen.getByTestId('card-Achievement Summary')
+    expect(summaryCard).toBeInTheDocument()
   })
 
   it('should render period filter and export button', async () => {
     renderWithProviders(<Overview />)
     
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(screen.getByTestId('period-filter')).toBeInTheDocument()
-      expect(screen.getByTestId('export-button')).toBeInTheDocument()
+      const spinner = document.querySelector('.animate-spin')
+      expect(spinner).not.toBeInTheDocument()
     })
+    
+    expect(screen.getByTestId('period-filter')).toBeInTheDocument()
+    expect(screen.getByTestId('export-button')).toBeInTheDocument()
   })
 
   it('should handle data fetching errors', async () => {
@@ -160,11 +241,15 @@ describe('Overview Page', () => {
     // Simulate filter change by re-rendering
     rerender(
       <BrowserRouter>
-        <DataRefreshProvider>
-          <FilterProvider>
-            <Overview />
-          </FilterProvider>
-        </DataRefreshProvider>
+        <CacheProvider>
+          <DataRefreshProvider>
+            <FilterProvider>
+              <HierarchicalFilterProvider>
+                <Overview />
+              </HierarchicalFilterProvider>
+            </FilterProvider>
+          </DataRefreshProvider>
+        </CacheProvider>
       </BrowserRouter>
     )
     
@@ -175,10 +260,14 @@ describe('Overview Page', () => {
   it('should display correct period label', async () => {
     renderWithProviders(<Overview />)
     
+    // Wait for loading to finish
     await waitFor(() => {
-      const toolbar = screen.getByTestId('toolbar')
-      expect(toolbar).toHaveTextContent('Executive Overview')
+      const spinner = document.querySelector('.animate-spin')
+      expect(spinner).not.toBeInTheDocument()
     })
+    
+    const toolbar = screen.getByTestId('toolbar')
+    expect(toolbar).toHaveTextContent('Executive Overview')
   })
 
   it('should handle empty data gracefully', async () => {
@@ -195,10 +284,15 @@ describe('Overview Page', () => {
     
     renderWithProviders(<Overview />)
     
+    // Wait for loading to finish
     await waitFor(() => {
-      expect(screen.getByTestId('metric-Total Revenue')).toHaveTextContent('Total Revenue: 0')
-      expect(screen.getByTestId('metric-Target')).toHaveTextContent('Target: 0')
+      const spinner = document.querySelector('.animate-spin')
+      expect(spinner).not.toBeInTheDocument()
     })
+    
+    // Check that metric cards display 0 values
+    expect(screen.getByTestId('metric-Total Revenue')).toHaveTextContent('Total Revenue: 0')
+    expect(screen.getByTestId('metric-Target')).toHaveTextContent('Target: 0')
   })
 
   it('should use correct filter parameters', async () => {
@@ -206,11 +300,11 @@ describe('Overview Page', () => {
     
     await waitFor(() => {
       expect(dataService.getOverviewData).toHaveBeenCalledWith(
-        expect.any(Number), // year
-        expect.any(String), // period
-        expect.any(Number), // month
-        expect.any(Number), // quarter
-        expect.any(Object)  // multiSelectParams
+        expect.any(Number), // year (current year)
+        expect.any(String), // period (YTD default)
+        null, // month (null for YTD)
+        null, // quarter (null for YTD)
+        null  // multiSelectParams (null by default)
       )
     })
   })
@@ -218,20 +312,24 @@ describe('Overview Page', () => {
   it('should render all main sections', async () => {
     renderWithProviders(<Overview />)
     
+    // Wait for loading to finish
     await waitFor(() => {
-      // Check for main sections
-      expect(screen.getByTestId('toolbar')).toBeInTheDocument()
-      expect(screen.getByTestId('period-filter')).toBeInTheDocument()
-      
-      // Metric cards
-      expect(screen.getByTestId('metric-Total Revenue')).toBeInTheDocument()
-      expect(screen.getByTestId('metric-Target')).toBeInTheDocument()
-      expect(screen.getByTestId('metric-Gross Profit')).toBeInTheDocument()
-      expect(screen.getByTestId('metric-Gross Profit Margin')).toBeInTheDocument()
-      
-      // Content cards
-      expect(screen.getByTestId('card-Overall Achievement')).toBeInTheDocument()
-      expect(screen.getByTestId('card-Achievement Summary')).toBeInTheDocument()
+      const spinner = document.querySelector('.animate-spin')
+      expect(spinner).not.toBeInTheDocument()
     })
+    
+    // Check for main sections
+    expect(screen.getByTestId('toolbar')).toBeInTheDocument()
+    expect(screen.getByTestId('period-filter')).toBeInTheDocument()
+    
+    // Metric cards
+    expect(screen.getByTestId('metric-Total Revenue')).toBeInTheDocument()
+    expect(screen.getByTestId('metric-Target')).toBeInTheDocument()
+    expect(screen.getByTestId('metric-Gross Profit')).toBeInTheDocument()
+    expect(screen.getByTestId('metric-Gross Profit Margin')).toBeInTheDocument()
+    
+    // Content cards
+    expect(screen.getByTestId('card-Overall Achievement')).toBeInTheDocument()
+    expect(screen.getByTestId('card-Achievement Summary')).toBeInTheDocument()
   })
 })

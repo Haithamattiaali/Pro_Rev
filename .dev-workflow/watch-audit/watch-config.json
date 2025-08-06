@@ -1,0 +1,33 @@
+{
+  "watchAudits": [
+    {
+      "id": "scoop-audit",
+      "target": "scoop",
+      "type": "custom",
+      "interval": 600,
+      "enabled": true,
+      "description": "Monitor for scoop-related patterns and issues",
+      "auditConfig": {
+        "scope": "scoop functionality and dependencies",
+        "patterns": [
+          "scoop",
+          "scope",
+          "getScopeValue",
+          "setScopeValue",
+          "clearScope"
+        ],
+        "directories": [
+          "src",
+          "backend"
+        ],
+        "riskTolerance": "balanced",
+        "reportDetail": "standard"
+      }
+    }
+  ],
+  "globalSettings": {
+    "maxConcurrentAudits": 1,
+    "notificationEmail": null,
+    "logRetentionDays": 7
+  }
+}

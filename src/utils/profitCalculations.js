@@ -13,6 +13,12 @@
 export function calculateGrossProfit(revenue, target, cost) {
   // Handle edge cases
   if (!revenue || revenue === 0) return 0;
+  
+  // Handle null/undefined cost
+  if (cost === null || cost === undefined) {
+    return revenue;
+  }
+  
   if (!target || target === 0) {
     // When no target is set, use simple calculation
     return revenue - cost;

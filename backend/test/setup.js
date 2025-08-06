@@ -39,3 +39,9 @@ if (process.env.NODE_ENV === 'test') {
     debug: jest.fn(),
   };
 }
+
+// Mock the database modules globally for all tests except integration tests
+if (!process.env.INTEGRATION_TEST) {
+  jest.mock('../database/persistent-db');
+  jest.mock('better-sqlite3');
+}

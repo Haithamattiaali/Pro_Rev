@@ -38,6 +38,31 @@ class DataService {
     END`;
   }
 
+  // Helper function for daily achievement calculations SQL
+  getDailyCalculationSQL(tableAlias = '') {
+    const prefix = tableAlias ? `${tableAlias}.` : '';
+    // For aggregated data across multiple months, we need to sum calendar days per record
+    return `
+      CASE 
+        WHEN SUM(${this.getCalendarDaysSQL()}) > 0 
+        THEN SUM(${prefix}target) / SUM(${this.getCalendarDaysSQL()}) 
+        ELSE 0 
+      END as daily_target,
+      CASE 
+        WHEN SUM(${this.getCalendarDaysSQL()}) > 0 
+        THEN (SUM(${prefix}target) / SUM(${this.getCalendarDaysSQL()})) * SUM(COALESCE(${prefix}days, 30))
+        ELSE 0 
+      END as period_target,
+      CASE 
+        WHEN SUM(${this.getCalendarDaysSQL()}) > 0 AND ((SUM(${prefix}target) / SUM(${this.getCalendarDaysSQL()})) * SUM(COALESCE(${prefix}days, 30))) > 0 
+        THEN (SUM(${prefix}revenue) / ((SUM(${prefix}target) / SUM(${this.getCalendarDaysSQL()})) * SUM(COALESCE(${prefix}days, 30)))) * 100
+        ELSE 0
+      END as daily_achievement,
+      SUM(COALESCE(${prefix}days, 30)) as total_days_worked,
+      SUM(${this.getCalendarDaysSQL()}) as calendar_days
+    `;
+  }
+
   // New method to handle multi-select filters
   getMultiSelectMonths(filters) {
     const { months = [], quarters = [], years = [] } = filters;
@@ -246,7 +271,8 @@ class DataService {
         CASE 
           WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
-        END as achievement_percentage
+        END as achievement_percentage,
+        ${this.getDailyCalculationSQL()}
       FROM revenue_data
       WHERE year IN (${yearPlaceholders}) AND month IN (${monthPlaceholders})
     `;
@@ -270,7 +296,14 @@ class DataService {
         CASE 
           WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
-        END as achievement_percentage
+        END as achievement_percentage,
+        SUM(target) / ${this.getCalendarDaysSQL()} as daily_target,
+        (SUM(target) / ${this.getCalendarDaysSQL()}) * SUM(COALESCE(days, 30)) as period_target,
+        CASE 
+          WHEN ((SUM(target) / ${this.getCalendarDaysSQL()}) * SUM(COALESCE(days, 30))) > 0 
+          THEN (SUM(revenue) / ((SUM(target) / ${this.getCalendarDaysSQL()}) * SUM(COALESCE(days, 30)))) * 100
+          ELSE 0
+        END as daily_achievement
       FROM revenue_data
       WHERE year IN (${yearPlaceholders}) AND month IN (${monthPlaceholders})
       GROUP BY service_type
@@ -321,7 +354,13 @@ class DataService {
         profitMargin: calculateGrossProfitMargin(
           calculateGrossProfit(overview.total_revenue || 0, overview.total_target || 0, overview.total_cost || 0),
           overview.total_revenue || 0
-        )
+        ),
+        // Daily achievement fields
+        dailyTarget: overview.daily_target || 0,
+        periodTarget: overview.period_target || 0,
+        dailyAchievement: overview.daily_achievement || 0,
+        daysWorked: overview.total_days_worked || 30,
+        calendarDays: overview.calendar_days || 30
       },
       serviceBreakdown
     };
@@ -389,7 +428,8 @@ class DataService {
         CASE 
           WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
-        END as achievement_percentage
+        END as achievement_percentage,
+        ${this.getDailyCalculationSQL()}
       FROM revenue_data
       WHERE year = ? AND month IN (${placeholders})
     `;
@@ -407,7 +447,14 @@ class DataService {
         CASE 
           WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
-        END as achievement_percentage
+        END as achievement_percentage,
+        SUM(target) / ${this.getCalendarDaysSQL()} as daily_target,
+        (SUM(target) / ${this.getCalendarDaysSQL()}) * SUM(COALESCE(days, 30)) as period_target,
+        CASE 
+          WHEN ((SUM(target) / ${this.getCalendarDaysSQL()}) * SUM(COALESCE(days, 30))) > 0 
+          THEN (SUM(revenue) / ((SUM(target) / ${this.getCalendarDaysSQL()}) * SUM(COALESCE(days, 30)))) * 100
+          ELSE 0
+        END as daily_achievement
       FROM revenue_data
       WHERE year = ? AND month IN (${placeholders})
       GROUP BY service_type
@@ -432,7 +479,13 @@ class DataService {
         profitMargin: calculateGrossProfitMargin(
           calculateGrossProfit(overview.total_revenue || 0, overview.total_target || 0, overview.total_cost || 0),
           overview.total_revenue || 0
-        )
+        ),
+        // Daily achievement fields
+        dailyTarget: overview.daily_target || 0,
+        periodTarget: overview.period_target || 0,
+        dailyAchievement: overview.daily_achievement || 0,
+        daysWorked: overview.total_days_worked || 30,
+        calendarDays: overview.calendar_days || 30
       },
       serviceBreakdown
     };
@@ -468,7 +521,8 @@ class DataService {
         CASE 
           WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
-        END as achievement
+        END as achievement,
+        ${this.getDailyCalculationSQL()}
       FROM revenue_data
       WHERE year = ? AND month IN (${placeholders})
       GROUP BY service_type
@@ -517,7 +571,8 @@ class DataService {
         CASE 
           WHEN SUM(target) > 0 THEN (SUM(revenue) / SUM(target)) * 100 
           ELSE 0 
-        END as achievement
+        END as achievement,
+        ${this.getDailyCalculationSQL()}
       FROM revenue_data
       WHERE year = ? AND month IN (${placeholders})
       GROUP BY customer

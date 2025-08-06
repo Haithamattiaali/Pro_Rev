@@ -7,23 +7,29 @@ global.fetch = vi.fn();
 vi.stubEnv('VITE_API_URL', 'http://test-api.com/api');
 
 describe('ConnectionManager', () => {
-  let ConnectionManager;
   let connectionManager;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     global.fetch.mockReset();
     
-    // Import the class dynamically to ensure fresh instance
+    // Import the singleton instance
     const module = await import('../connectionManager.js');
-    ConnectionManager = module.default;
-    connectionManager = new ConnectionManager();
+    connectionManager = module.default;
+    
+    // Reset the instance state
+    connectionManager.isConnected = true;
+    connectionManager.retryCount = 0;
+    connectionManager.lastHealthCheck = null;
+    connectionManager.requestQueue = [];
+    connectionManager.isProcessingQueue = false;
   });
 
   afterEach(() => {
     vi.clearAllTimers();
     if (connectionManager && connectionManager.healthCheckInterval) {
       clearInterval(connectionManager.healthCheckInterval);
+      connectionManager.healthCheckInterval = null;
     }
   });
 

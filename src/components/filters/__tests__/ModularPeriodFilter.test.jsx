@@ -72,8 +72,9 @@ describe('ModularPeriodFilter', () => {
       </TestWrapper>
     );
 
-    // Click on the filter dropdown
-    const filterButton = screen.getByRole('button', { name: /select period/i });
+    // Click on the filter dropdown by finding the text
+    const selectPeriodText = screen.getByText(/select period/i);
+    const filterButton = selectPeriodText.closest('button');
     fireEvent.click(filterButton);
 
     // Wait for popover to open
@@ -82,8 +83,8 @@ describe('ModularPeriodFilter', () => {
     });
 
     // Try to select January
-    const januaryCheckbox = screen.getByLabelText(/january/i);
-    fireEvent.click(januaryCheckbox);
+    const januaryOption = screen.getByText('Jan');
+    fireEvent.click(januaryOption);
 
     // Should show error message
     await waitFor(() => {
@@ -115,7 +116,8 @@ describe('ModularPeriodFilter', () => {
     });
 
     // Open filter dropdown
-    const filterButton = screen.getByRole('button', { name: /select period/i });
+    const selectPeriodText = screen.getByText(/select period/i);
+    const filterButton = selectPeriodText.closest('button');
     fireEvent.click(filterButton);
 
     // Check that non-compliant months are disabled
@@ -150,7 +152,8 @@ describe('ModularPeriodFilter', () => {
       expect(apiService.getAnalysisValidation).toHaveBeenCalled();
     });
 
-    const filterButton = screen.getByRole('button', { name: /select period/i });
+    const selectPeriodText = screen.getByText(/select period/i);
+    const filterButton = selectPeriodText.closest('button');
     fireEvent.click(filterButton);
 
     // Look for alert icon next to July
@@ -182,7 +185,8 @@ describe('ModularPeriodFilter', () => {
       expect(apiService.getAnalysisValidation).toHaveBeenCalled();
     });
 
-    const filterButton = screen.getByRole('button', { name: /select period/i });
+    const selectPeriodText = screen.getByText(/select period/i);
+    const filterButton = selectPeriodText.closest('button');
     fireEvent.click(filterButton);
 
     // Check for tooltip
@@ -224,7 +228,8 @@ describe('ModularPeriodFilter', () => {
     );
 
     // Open filter dropdown
-    const filterButton = screen.getByRole('button', { name: /select period/i });
+    const selectPeriodText = screen.getByText(/select period/i);
+    const filterButton = selectPeriodText.closest('button');
     fireEvent.click(filterButton);
 
     // July should NOT be disabled
